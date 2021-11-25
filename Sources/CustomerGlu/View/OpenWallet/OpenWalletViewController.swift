@@ -42,7 +42,17 @@ public class OpenWalletViewController: UIViewController {
                 print(error.localizedDescription)
             }
         } else {
-            getCampaigns()
+            if CustomerGlu.single_instance.doValidateToken() == true {
+                getCampaigns()
+            } else {
+                openWalletViewModel.doRegister { success, _ in
+                    if success {
+                        self.getCampaigns()
+                    } else {
+                        DebugLogger.sharedInstance.setErrorDebugLogger(functionName: "getCampaigns", exception: "error")
+                    }
+                }
+            }
         }
     }
    

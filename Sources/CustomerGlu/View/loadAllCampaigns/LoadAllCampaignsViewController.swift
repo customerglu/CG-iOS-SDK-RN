@@ -22,19 +22,17 @@ public class LoadAllCampaignsViewController: UIViewController {
         super.viewDidLoad()
         tblRewardList.rowHeight = UITableView.automaticDimension
         tblRewardList.estimatedRowHeight = 200
-        if UserDefaults.standard.object(forKey: Constants.WalletRewardData) != nil {
-            let userDefaults = UserDefaults.standard
-            do {
-                let campaignsModel = try userDefaults.getObject(forKey: Constants.WalletRewardData, castTo: CampaignsModel.self)
-                self.campaigns = (campaignsModel.campaigns)!
-                DispatchQueue.main.async { // Make sure you're on the main thread here
-                    self.tblRewardList.reloadData()
-                }
-            } catch {
-                print(error.localizedDescription)
-            }
-        } else {
+        
+        if CustomerGlu.single_instance.doValidateToken() == true {
             getCampaign()
+        } else {
+            loadAllCampaignsViewModel.doRegister { success, _ in
+                if success {
+                    self.getCampaign()
+                } else {
+                    DebugLogger.sharedInstance.setErrorDebugLogger(functionName: "getCampaigns", exception: "error")
+                }
+            }
         }
     }
     

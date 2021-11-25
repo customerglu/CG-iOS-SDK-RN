@@ -26,7 +26,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     var isbottomdefault = false
     weak var delegate: CustomerGluWebViewDelegate?
     var documentInteractionController: UIDocumentInteractionController!
-    var alpha = 0.0
+    public var alpha = 0.0
     
     public override func viewDidLoad() {
         super.viewDidLoad()
@@ -44,7 +44,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         
         if notificationHandler {
             let black = UIColor.black
-            let blackTrans = UIColor.withAlphaComponent(black)(CGFloat(alpha))
+            let blackTrans = UIColor.withAlphaComponent(black)(alpha)
             self.view.backgroundColor = blackTrans
             
             let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
@@ -140,8 +140,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 let share = try? JSONDecoder().decode(EventShareModel.self, from: bodyData)
                 let text = share?.data?.text
                 let channelName = share?.data?.channelName
-                if var imageurl = share?.data?.image {
-                    imageurl = "https://assets.customerglu.com/demo/banner/3.png"
+                if let imageurl = share?.data?.image {
                     if imageurl == "" {
                         if channelName == "WHATSAPP" {
                             sendToWhatsapp(shareText: text!)
@@ -150,9 +149,9 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                         }
                     } else {
                         if channelName == "WHATSAPP" {
-                            shareImageToWhatsapp(imageString: imageurl)
+                            shareImageToWhatsapp(imageString: imageurl, shareText: text ?? "")
                         } else {
-                            sendImagesToOtherApp(imageString: imageurl)
+                            sendImagesToOtherApp(imageString: imageurl, shareText: text ?? "")
                         }
                     }
                 }
@@ -161,32 +160,34 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     private func sendToOtherApps(shareText: String) {
-         // set up activity view controller
-         let textToShare = [ shareText ]
-         let activityViewController = UIActivityViewController(activityItems: textToShare, applicationActivities: nil)
-
+        // set up activity view controller
+        let textToShare = [ shareText ]
+        let activityViewController = UIActivityViewController(activityItems: textToShare, applicationActivities: nil)
         if UIDevice.current.userInterfaceIdiom == .pad {
             activityViewController.popoverPresentationController?.sourceView = self.view
-//                        activityViewController.popoverPresentationController?.sourceRect = CGRect(x: self!.view.bounds.midX, y: self!.view.bounds.midY,width: 0,height: 0)
-            
             activityViewController.popoverPresentationController?.sourceRect = CGRect(x: UIScreen.main.bounds.width / 2, y: UIScreen.main.bounds.height / 2, width: 0, height: 0)
-            activityViewController.popoverPresentationController?.sourceView = self.view
             activityViewController.popoverPresentationController?.permittedArrowDirections = UIPopoverArrowDirection(rawValue: 0)
-            }
-        
-         self.present(activityViewController, animated: true, completion: nil)
+        }
+        // present the view controller
+        self.present(activityViewController, animated: true, completion: nil)
     }
-    
+ 
     private func sendToWhatsapp(shareText: String) {
-        if let url = URL(string: "whatsapp://send?text=\(shareText)") {
-            UIApplication.shared.open(url)
-        } else {
-            DebugLogger.sharedInstance.setErrorDebugLogger(functionName: "", exception: "Can't open whatsapp")
-            print("Can't open whatsapp")
+        let urlWhats = "whatsapp://send?text=\(shareText)"
+        if let urlString = urlWhats.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) {
+            if let whatsappURL = URL(string: urlString) {
+                if UIApplication.shared.canOpenURL(whatsappURL as URL) {
+                    UIApplication.shared.open(whatsappURL)
+                } else {
+                    // Cannot open whatsapp
+                    DebugLogger.sharedInstance.setErrorDebugLogger(functionName: "", exception: "Can't open whatsapp")
+                    print("Can't open whatsapp")
+                }
+            }
         }
     }
     
-    private func sendImagesToOtherApp(imageString: String) {
+    private func sendImagesToOtherApp(imageString: String, shareText: String) {
         // Set your image's URL into here
         let url = URL(string: imageString)!
         data(from: url) { data, response, error in
@@ -195,34 +196,24 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             DispatchQueue.main.async { [weak self] in
                 if let image = UIImage(data: data) {
                     // set up activity view controller
-                    let imageToShare = ["HItesh", image ] as [Any]
+                    let imageToShare = [shareText, image] as [Any]
                     let activityViewController = UIActivityViewController(activityItems: imageToShare, applicationActivities: nil)
-                    
                     if UIDevice.current.userInterfaceIdiom == .pad {
                         activityViewController.popoverPresentationController?.sourceView = self!.view
-//                        activityViewController.popoverPresentationController?.sourceRect = CGRect(x: self!.view.bounds.midX, y: self!.view.bounds.midY,width: 0,height: 0)
-                        
                         activityViewController.popoverPresentationController?.sourceRect = CGRect(x: UIScreen.main.bounds.width / 2, y: UIScreen.main.bounds.height / 2, width: 0, height: 0)
-                        activityViewController.popoverPresentationController?.sourceView = self!.view
                         activityViewController.popoverPresentationController?.permittedArrowDirections = UIPopoverArrowDirection(rawValue: 0)
-                        }
-                    
-                    
+                    }
                     self!.present(activityViewController, animated: true, completion: nil)
-                    
-                    
                 }
             }
         }
     }
     
-    private func shareImageToWhatsapp(imageString: String) {
+    private func shareImageToWhatsapp(imageString: String, shareText: String) {
         let urlWhats = "whatsapp://app"
         if let urlString = urlWhats.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) {
             if let whatsappURL = URL(string: urlString) {
-
                 if UIApplication.shared.canOpenURL(whatsappURL as URL) {
-
                     // Set your image's URL into here
                     let url = URL(string: imageString)!
                     data(from: url) { data, response, error in
@@ -245,6 +236,8 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                     }
                 } else {
                     // Cannot open whatsapp
+                    DebugLogger.sharedInstance.setErrorDebugLogger(functionName: "", exception: "Can't open whatsapp")
+                    print("Can't open whatsapp")
                 }
             }
         }

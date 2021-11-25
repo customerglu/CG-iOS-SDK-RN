@@ -1,17 +1,15 @@
 import Foundation
 import SwiftUI
 import UIKit
-@available(iOS 13.0, *)
+
 let gcmMessageIDKey = "gcm.message_id"
 
-@available(iOS 13.0, *)
-public class CustomerGlu: ObservableObject {
+public class CustomerGlu: NSObject {
     
     // Singleton Instance
     public static var single_instance = CustomerGlu()
     
-    @available(iOS 13.0, *)
-    private init() {
+    private override init() {
         NSSetUncaughtExceptionHandler { exception in
             if exception.reason != nil {
                 DebugLogger.sharedInstance.setErrorDebugLogger(functionName: exception.reason!.replace(string: ",", replacement: " "), code: exception.callStackSymbols.description.replace(string: ",", replacement: " "))
@@ -52,7 +50,7 @@ public class CustomerGlu: ObservableObject {
         }
     }
     
-    public func cgapplication(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+    public func cgapplication(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], backgroundAlpha: Double = 0.0, fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
         
         if let messageID = userInfo[gcmMessageIDKey] {
             print("Message ID: \(messageID)")
@@ -71,17 +69,17 @@ public class CustomerGlu: ObservableObject {
                     customerWebViewVC.urlStr = nudge_url as? String ?? ""
                     customerWebViewVC.notificationHandler = true
                     customerWebViewVC.isbottomsheet = true
-                    customerWebViewVC.isModalInPresentation = true
+//                    customerWebViewVC.isModalInPresentation = true
                     guard let topController = UIViewController.topViewController() else {
                         return
                     }
-//                    if #available(iOS 15.0, *) {
-//                        if let sheet = customerWebViewVC.sheetPresentationController {
-//                            sheet.detents = [ .medium(), .large() ]
-//                        }
-//                    } else {
+                    if #available(iOS 15.0, *) {
+                        if let sheet = customerWebViewVC.sheetPresentationController {
+                            sheet.detents = [ .medium(), .large() ]
+                        }
+                    } else {
                         customerWebViewVC.modalPresentationStyle = .pageSheet
-//                    }
+                    }
                     topController.present(customerWebViewVC, animated: true, completion: nil)
                 } else if page_type as? String == Constants.BOTTOM_DEFAULT_NOTIFICATION {
                     let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
@@ -99,7 +97,7 @@ public class CustomerGlu: ObservableObject {
                     customerWebViewVC.notificationHandler = true
                     customerWebViewVC.modalPresentationStyle = .overCurrentContext
                     customerWebViewVC.ismiddle = true
-                    customerWebViewVC.alpha = 0.9
+                    customerWebViewVC.alpha = backgroundAlpha
                     guard let topController = UIViewController.topViewController() else {
                         return
                     }
@@ -155,6 +153,20 @@ public class CustomerGlu: ObservableObject {
         } else {
             return false
         }
+    }
+    
+    public func doValidateToken() -> Bool {
+        if UserDefaults.standard.object(forKey: Constants.CUSTOMERGLU_TOKEN) != nil {
+            let arr = JWTDecode.shared.decode(jwtToken: UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_TOKEN) ?? "")
+            let expTime = Date(timeIntervalSince1970: (arr["exp"] as? Double)!)
+            let currentDateTime = Date()
+            if currentDateTime < expTime {
+                return true
+            } else {
+                return false
+            }
+        }
+        return false
     }
     
     // MARK: - API Calls Methods
