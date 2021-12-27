@@ -24,6 +24,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     var ismiddle = false
     var isbottomsheet = false
     var isbottomdefault = false
+    var iscampignId = false
     weak var delegate: CustomerGluWebViewDelegate?
     var documentInteractionController: UIDocumentInteractionController!
     public var alpha = 0.0
@@ -38,7 +39,6 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         
         let contentController = WKUserContentController()
         contentController.add(self, name: WebViewsKey.callback) //name is the key you want the app to listen to.
-        
         let config = WKWebViewConfiguration()
         config.userContentController = contentController
         
@@ -46,43 +46,48 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             let black = UIColor.black
             let blackTrans = UIColor.withAlphaComponent(black)(alpha)
             self.view.backgroundColor = blackTrans
-            
             let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
             self.view.addGestureRecognizer(tap)
         }
         
+        let x = self.view.frame.midX - 30
+        var y = self.view.frame.midY - 30
+
         if notificationHandler {
-            let height = UIScreen.main.bounds.height / 1.4
+            let height = self.view.frame.height / 1.4
             if ismiddle {
-                webView = WKWebView(frame: CGRect(x: 20, y: (UIScreen.main.bounds.height - height)/2, width: UIScreen.main.bounds.width - 40, height: height), configuration: config) //set your own frame
+                webView = WKWebView(frame: CGRect(x: 20, y: (self.view.frame.height - height)/2, width: self.view.frame.width - 40, height: height), configuration: config) //set your own frame
                 webView.layer.cornerRadius = 20
                 webView.clipsToBounds = true
+                y = webView.frame.midY - 30
             } else if isbottomdefault {
-                webView = WKWebView(frame: CGRect(x: 0, y: UIScreen.main.bounds.height - height, width: UIScreen.main.bounds.width, height: height), configuration: config) //set your own frame
+                webView = WKWebView(frame: CGRect(x: 0, y: self.view.frame.height - height, width: self.view.frame.width, height: height), configuration: config) //set your own frame
                 webView.layer.cornerRadius = 20
                 webView.clipsToBounds = true
+                y = webView.frame.midY - 30
             } else if isbottomsheet {
-                webView = WKWebView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height), configuration: config) //set your own frame
+                webView = WKWebView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: UIScreen.main.bounds.height), configuration: config) //set your own frame
+                y = self.view.frame.midY - 30
             } else {
-                webView = WKWebView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height), configuration: config) //set your own frame
+                webView = WKWebView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: self.view.frame.height), configuration: config) //set your own frame
+                y = self.view.frame.midY - 30
             }
+            webView.scrollView.contentInsetAdjustmentBehavior = .never
         } else {
-            webView = WKWebView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height), configuration: config) //set your own frame
+            webView = WKWebView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: self.view.frame.height), configuration: config) //set your own frame
         }
         webView.navigationDelegate = self
-        webView.load(URLRequest(url: URL(string: urlStr )!))
+        if urlStr != "" || !urlStr.isEmpty {
+            webView.load(URLRequest(url: URL(string: urlStr)!))
+        } else {
+            self.dismiss(animated: false, completion: nil)
+        }
         self.view.addSubview(webView)
+        CustomerGlu.getInstance.loaderShow(withcoordinate: x, y: y)
     }
     
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
         self.dismiss(animated: false, completion: nil)
-    }
-    
-    @objc func panGesture(recognizer: UIPanGestureRecognizer) {
-        let translation = recognizer.translation(in: self.view)
-        let y = self.view.frame.minY
-        self.view.frame = CGRect(x: 0, y: y + translation.y, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
-        recognizer.setTranslation(.zero, in: self.view)
     }
     
     public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
@@ -91,10 +96,12 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         print("Finished loading")
+        CustomerGlu.getInstance.loaderHide()
     }
     
     public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         print(error.localizedDescription)
+        CustomerGlu.getInstance.loaderHide()
     }
     
     // receive message from wkwebview
@@ -111,12 +118,11 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             let bodyStruct = try? JSONDecoder().decode(EventModel.self, from: bodyData)
             
             if bodyStruct?.eventName == WebViewsKey.close {
-                print("close")
                 //                if parent.fromWallet && parent.fromUikit {
                 print("UIKIT")
                 if openWallet {
                     delegate?.closeClicked(true)
-                } else if notificationHandler {
+                } else if notificationHandler || iscampignId {
                     self.dismiss(animated: true, completion: nil)
                 } else {
                     self.navigationController?.popViewController(animated: true)
@@ -127,10 +133,13 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 let deeplink = try? JSONDecoder().decode(DeepLinkModel.self, from: bodyData)
                 if  let deep_link = deeplink?.data?.deepLink {
                     print("link", deep_link)
+                    let dict = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!)
+                    // Post notification
+                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_DEEPLINK_EVENT").rawValue), object: nil, userInfo: dict?["data"] as? [String: Any])
                     if let url = URL(string: deep_link) {
                         UIApplication.shared.open(url)
                     } else {
-                        DebugLogger.sharedInstance.setErrorDebugLogger(functionName: "", exception: "Can't open deeplink")
+                        ApplicationManager.callCrashReport(stackTrace: "Can't open deeplink", methodName: "CUSTOMERGLU_DEEPLINK_EVENT")
                         print("Can't open deeplink")
                     }
                 }
@@ -158,7 +167,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }
         }
     }
-    
+        
     private func sendToOtherApps(shareText: String) {
         // set up activity view controller
         let textToShare = [ shareText ]
@@ -179,8 +188,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 if UIApplication.shared.canOpenURL(whatsappURL as URL) {
                     UIApplication.shared.open(whatsappURL)
                 } else {
-                    // Cannot open whatsapp
-                    DebugLogger.sharedInstance.setErrorDebugLogger(functionName: "", exception: "Can't open whatsapp")
+                    ApplicationManager.callCrashReport(stackTrace: "Can't open whatsapp", methodName: "sendToWhatsapp")
                     print("Can't open whatsapp")
                 }
             }
@@ -235,8 +243,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                         }
                     }
                 } else {
-                    // Cannot open whatsapp
-                    DebugLogger.sharedInstance.setErrorDebugLogger(functionName: "", exception: "Can't open whatsapp")
+                    ApplicationManager.callCrashReport(stackTrace: "Can't open whatsapp", methodName: "shareImageToWhatsapp")
                     print("Can't open whatsapp")
                 }
             }

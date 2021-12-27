@@ -6,33 +6,12 @@
 //
 
 import Foundation
-import UIKit
 
 class OpenWalletViewModel {
-    
-    public func getWalletRewards(completion: @escaping (Bool, CampaignsModel?) -> Void) {
-        APIManager.getWalletRewards(queryParameters: [:]) { result in
-            switch result {
-            case .success(let response):
-                completion(true, response)
 
-            case .failure(let error):
-                print(error)
-                DebugLogger.sharedInstance.setErrorDebugLogger(functionName: "getWalletRewards", exception: error.localizedDescription)
-                completion(false, nil)
-            }
-        }
-    }
-    
-    public func doRegister(completion: @escaping (Bool, RegistrationModel?) -> Void) {
-        
-        let fcmRegTokenMessage = UserDefaults.standard.string(forKey: "fcmtoken") ?? "defaultvalue"
-        let parameters = [
-            "userId": "hitesh11",
-            "deviceId": "deviceb",
-            "firebaseToken": fcmRegTokenMessage]
-        
-        CustomerGlu.single_instance.doRegister(body: parameters) { success, registrationModel in
+    public func updateProfile(completion: @escaping (Bool, RegistrationModel?) -> Void) {
+        let userData = [String: AnyHashable]()
+        CustomerGlu.getInstance.updateProfile(userdata: userData) { success, registrationModel in
             if success {
                 completion(true, registrationModel)
             } else {

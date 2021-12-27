@@ -14,37 +14,51 @@ public class LoadAllCampaignsViewController: UIViewController {
 
     @IBOutlet weak var tblRewardList: UITableView!
     var campaigns: [Campaigns] = []
+    var bannerDefaultUrl = CustomerGlu.defaultBannerUrl
+    var loadCampignType = ""
+    var loadCampignValue = ""
+    var loadByparams = NSDictionary()
     
     // MARK: - Variables
     private var loadAllCampaignsViewModel = LoadAllCampaignsViewModel()
     
     public override func viewDidLoad() {
         super.viewDidLoad()
+        navigationController?.setNavigationBarHidden(true, animated: false)
+        
         tblRewardList.rowHeight = UITableView.automaticDimension
         tblRewardList.estimatedRowHeight = 200
         
-        if CustomerGlu.single_instance.doValidateToken() == true {
+        if ApplicationManager.doValidateToken() == true {
             getCampaign()
         } else {
-            loadAllCampaignsViewModel.doRegister { success, _ in
+            loadAllCampaignsViewModel.updateProfile { success, _ in
                 if success {
                     self.getCampaign()
                 } else {
-                    DebugLogger.sharedInstance.setErrorDebugLogger(functionName: "getCampaigns", exception: "error")
+                    print("error")
                 }
             }
         }
     }
     
+    @IBAction func backButton(sender: UIButton) {
+        self.dismiss(animated: true, completion: nil)
+    }
+    
     func getCampaign() {
-        loadAllCampaignsViewModel.getWalletRewards { success, campaignsModel in
+        CustomerGlu.getInstance.loaderShow(withcoordinate: self.view.frame.midX - 30, y: self.view.frame.midY - 30)
+                
+        ApplicationManager.loadAllCampaignsApi(type: loadCampignType, value: loadCampignValue, loadByparams: loadByparams) { success, campaignsModel in
             if success {
+                CustomerGlu.getInstance.loaderHide()
                 self.campaigns = (campaignsModel?.campaigns)!
                 DispatchQueue.main.async { // Make sure you're on the main thread here
                     self.tblRewardList.reloadData()
                 }
             } else {
-                DebugLogger.sharedInstance.setErrorDebugLogger(functionName: "getCampaigns", exception: "error")
+                CustomerGlu.getInstance.loaderHide()
+                print("error")
             }
         }
     }
@@ -90,16 +104,16 @@ extension LoadAllCampaignsViewController: UITableViewDataSource, UITableViewDele
         
         if element.banner != nil {
             if element.banner?.imageUrl == nil && element.banner?.title == nil {
-                cell.setImageAndTitle(image_url: "https://images.unsplash.com/photo-1614680376739-414d95ff43df?ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTJ8fGdhbWVzJTIwYmFubmVyfGVufDB8fDB8fA%3D%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60", title: "")
+                cell.setImageAndTitle(image_url: bannerDefaultUrl, title: "")
             } else if element.banner?.imageUrl == nil {
-                cell.setImageAndTitle(image_url: "https://images.unsplash.com/photo-1614680376739-414d95ff43df?ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTJ8fGdhbWVzJTIwYmFubmVyfGVufDB8fDB8fA%3D%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60", title: (element.banner?.title)!)
+                cell.setImageAndTitle(image_url: bannerDefaultUrl, title: (element.banner?.title)!)
             } else if element.banner?.title == nil {
                 cell.setImageAndTitle(image_url: (element.banner?.imageUrl!)!, title: "")
             } else {
                 cell.setImageAndTitle(image_url: (element.banner?.imageUrl!)!, title: (element.banner?.title!)!)
             }
         } else {
-            cell.setImageAndTitle(image_url: "https://images.unsplash.com/photo-1614680376739-414d95ff43df?ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTJ8fGdhbWVzJTIwYmFubmVyfGVufDB8fDB8fA%3D%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60", title: "")
+            cell.setImageAndTitle(image_url: bannerDefaultUrl, title: "")
         }
         cell.selectionStyle = .none
     }

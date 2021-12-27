@@ -4,22 +4,110 @@ import UIKit
 
 let gcmMessageIDKey = "gcm.message_id"
 
-public class CustomerGlu: NSObject {
+public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
+    // MARK: - Global Variable
+    var spinner = SpinnerView()
+   
     // Singleton Instance
-    public static var single_instance = CustomerGlu()
+    public static var getInstance = CustomerGlu()
+    public static var sdk_disable: Bool? = false
+    public static var fcm_apn = "fcm"
+    let userDefaults = UserDefaults.standard
+    public var apnToken = ""
+    public var fcmToken = ""
+    public static var defaultBannerUrl = ""
+    public static var arrColor = [UIColor.black]
     
     private override init() {
-        NSSetUncaughtExceptionHandler { exception in
-            if exception.reason != nil {
-                DebugLogger.sharedInstance.setErrorDebugLogger(functionName: exception.reason!.replace(string: ",", replacement: " "), code: exception.callStackSymbols.description.replace(string: ",", replacement: " "))
-            } else {
-                DebugLogger.sharedInstance.setErrorDebugLogger(functionName: "Unknown", code: exception.callStackSymbols.description.replace(string: ",", replacement: " "))
+        super.init()
+        CustomerGluCrash.add(delegate: self)
+        do {
+            // retrieving a value for a key
+            if let data = userDefaults.data(forKey: Constants.CustomerGluCrash),
+               let crashItems = try NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as? Dictionary<String, Any> {
+                ApplicationManager.callCrashReport(stackTrace: (crashItems["callStack"] as? String)!, isException: true, methodName: "CustomerGluCrash")
             }
+        } catch {
+            print(error)
+        }
+    }
+    
+    public func customerGluDidCatchCrash(with model: CrashModel) {
+        print("\(model)")
+        let dict = [
+            "name": model.name!,
+            "reason": model.reason!,
+            "appinfo": model.appinfo!,
+            "callStack": model.callStack!] as [String: Any]
+        do {
+            // setting a value for a key
+            let encodedData = try NSKeyedArchiver.archivedData(withRootObject: dict, requiringSecureCoding: true)
+            userDefaults.set(encodedData, forKey: Constants.CustomerGluCrash)
+        } catch {
+            print(error)
         }
     }
     
     @Published var campaigndata = CampaignsModel()
+    
+    public func disableGluSdk(disable: Bool) {
+        CustomerGlu.sdk_disable = disable
+    }
+    
+    public func isFcmApn(fcmApn: String) {
+        CustomerGlu.fcm_apn = fcmApn
+    }
+    
+    public func setDefaultBannerImage(bannerUrl: String) {
+        CustomerGlu.defaultBannerUrl = bannerUrl
+    }
+    
+    public func configureLoaderColour(color: [UIColor]) {
+        CustomerGlu.arrColor = color
+    }
+    
+    func loaderShow(withcoordinate x: CGFloat, y: CGFloat) {
+        DispatchQueue.main.async { [self] in
+            if let controller = topMostController() {
+                controller.view.isUserInteractionEnabled = false
+                spinner = SpinnerView(frame: CGRect(x: x, y: y, width: 60, height: 60))
+                controller.view.addSubview(spinner)
+                controller.view.bringSubviewToFront(spinner)
+            }
+        }
+    }
+    
+    public func getReferralId(deepLink: URL) -> String {
+        let queryItems = URLComponents(url: deepLink, resolvingAgainstBaseURL: true)?.queryItems
+        let referrerUserId = queryItems?.filter({(item) in item.name == APIParameterKey.userId}).first?.value
+        return referrerUserId ?? ""
+    }
+    
+    func loaderHide() {
+        DispatchQueue.main.async { [self] in
+            if let controller = topMostController() {
+                controller.view.isUserInteractionEnabled = true
+                spinner.removeFromSuperview()
+            }
+        }
+    }
+    
+    private func topMostController() -> UIViewController? {
+        guard let window = UIApplication.shared.keyWindowInConnectedScenes, let rootViewController = window.rootViewController else {
+            return nil
+        }
+        
+        var topController = rootViewController
+        if let navController = topController as? UINavigationController {
+            topController = navController.viewControllers.last!
+        }
+        
+        while let newTopController = topController.presentedViewController {
+            topController = newTopController
+        }
+        return topController
+    }
     
     private func getDeviceName() -> String {
         var systemInfo = utsname()
@@ -29,19 +117,17 @@ public class CustomerGlu: NSObject {
             guard let value = element.value as? Int8, value != 0 else { return identifier }
             return identifier + String(UnicodeScalar(UInt8(value)))
         }
-    }
-    
-    private func getReferralId(deepLink: URL) -> String {
-        let queryItems = URLComponents(url: deepLink, resolvingAgainstBaseURL: true)?.queryItems
-        let referrerUserId = queryItems?.filter({(item) in item.name == APIParameterKey.userId}).first?.value
-        return referrerUserId ?? ""
-    }
+    }    
     
     public func cgUserNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        if CustomerGlu.sdk_disable! == true {
+            print(CustomerGlu.sdk_disable!)
+            return
+        }
         let userInfo = notification.request.content.userInfo
         
         // Change this to your preferred presentation option
-        if CustomerGlu.single_instance.notificationFromCustomerGlu(remoteMessage: userInfo as? [String: AnyHashable] ?? [NotificationsKey.customerglu: "d"]) {
+        if CustomerGlu.getInstance.notificationFromCustomerGlu(remoteMessage: userInfo as? [String: AnyHashable] ?? [NotificationsKey.customerglu: "d"]) {
             if userInfo[NotificationsKey.glu_message_type] as? String == "push" {
                 if UIApplication.shared.applicationState == .active {
                     completionHandler([[.alert, .badge, .sound]])
@@ -50,67 +136,30 @@ public class CustomerGlu: NSObject {
         }
     }
     
-    public func cgapplication(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], backgroundAlpha: Double = 0.0, fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-        
+    public func cgapplication(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], backgroundAlpha: Double = 0.5, fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        if CustomerGlu.sdk_disable! == true {
+            print(CustomerGlu.sdk_disable!)
+            return
+        }
         if let messageID = userInfo[gcmMessageIDKey] {
             print("Message ID: \(messageID)")
         }
         
-        if CustomerGlu.single_instance.notificationFromCustomerGlu(remoteMessage: userInfo as? [String: AnyHashable] ?? [NotificationsKey.customerglu: "d"]) {
+        if CustomerGlu.getInstance.notificationFromCustomerGlu(remoteMessage: userInfo as? [String: AnyHashable] ?? [NotificationsKey.customerglu: "d"]) {
             let nudge_url = userInfo[NotificationsKey.nudge_url]
             print(nudge_url as Any)
             let page_type = userInfo[NotificationsKey.page_type]
             
             if userInfo[NotificationsKey.glu_message_type] as? String == NotificationsKey.in_app {
                 print(page_type as Any)
-                
                 if page_type as? String == Constants.BOTTOM_SHEET_NOTIFICATION {
-                    let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
-                    customerWebViewVC.urlStr = nudge_url as? String ?? ""
-                    customerWebViewVC.notificationHandler = true
-                    customerWebViewVC.isbottomsheet = true
-//                    customerWebViewVC.isModalInPresentation = true
-                    guard let topController = UIViewController.topViewController() else {
-                        return
-                    }
-                    if #available(iOS 15.0, *) {
-                        if let sheet = customerWebViewVC.sheetPresentationController {
-                            sheet.detents = [ .medium(), .large() ]
-                        }
-                    } else {
-                        customerWebViewVC.modalPresentationStyle = .pageSheet
-                    }
-                    topController.present(customerWebViewVC, animated: true, completion: nil)
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: Constants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: backgroundAlpha)
                 } else if page_type as? String == Constants.BOTTOM_DEFAULT_NOTIFICATION {
-                    let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
-                    customerWebViewVC.urlStr = nudge_url as? String ?? ""
-                    customerWebViewVC.notificationHandler = true
-                    customerWebViewVC.isbottomdefault = true
-                    customerWebViewVC.view.backgroundColor = .clear
-                    guard let topController = UIViewController.topViewController() else {
-                        return
-                    }
-                    topController.present(customerWebViewVC, animated: false, completion: nil)
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: Constants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: backgroundAlpha)
                 } else if page_type as? String == Constants.MIDDLE_NOTIFICATIONS {
-                    let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
-                    customerWebViewVC.urlStr = nudge_url as? String ?? ""
-                    customerWebViewVC.notificationHandler = true
-                    customerWebViewVC.modalPresentationStyle = .overCurrentContext
-                    customerWebViewVC.ismiddle = true
-                    customerWebViewVC.alpha = backgroundAlpha
-                    guard let topController = UIViewController.topViewController() else {
-                        return
-                    }
-                    topController.present(customerWebViewVC, animated: false, completion: nil)
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: backgroundAlpha)
                 } else {
-                    let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
-                    customerWebViewVC.urlStr = nudge_url as? String ?? ""
-                    customerWebViewVC.notificationHandler = true
-                    customerWebViewVC.modalPresentationStyle = .fullScreen
-                    guard let topController = UIViewController.topViewController() else {
-                        return
-                    }
-                    topController.present(customerWebViewVC, animated: false, completion: nil)
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: backgroundAlpha)
                 }
             } else {
                 //                if UIApplication.shared.applicationState == .active {
@@ -128,7 +177,43 @@ public class CustomerGlu: NSObject {
         }
     }
     
+    private func presentToCustomerWebViewController(nudge_url: String, page_type: String, backgroundAlpha: Double) {
+        
+        let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
+        customerWebViewVC.urlStr = nudge_url
+        customerWebViewVC.notificationHandler = true
+        customerWebViewVC.alpha = backgroundAlpha
+        guard let topController = UIViewController.topViewController() else {
+            return
+        }
+        
+        if page_type == Constants.BOTTOM_SHEET_NOTIFICATION {
+            customerWebViewVC.isbottomsheet = true
+            if #available(iOS 15.0, *) {
+                if let sheet = customerWebViewVC.sheetPresentationController {
+                    sheet.detents = [ .medium(), .large() ]
+                }
+            } else {
+                customerWebViewVC.modalPresentationStyle = .pageSheet
+            }
+        } else if page_type == Constants.BOTTOM_DEFAULT_NOTIFICATION {
+            customerWebViewVC.isbottomdefault = true
+            customerWebViewVC.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
+            customerWebViewVC.navigationController?.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
+        } else if page_type == Constants.MIDDLE_NOTIFICATIONS {
+            customerWebViewVC.ismiddle = true
+            customerWebViewVC.modalPresentationStyle = .overCurrentContext
+        } else {
+            customerWebViewVC.modalPresentationStyle = .fullScreen
+        }
+        topController.present(customerWebViewVC, animated: true, completion: nil)
+    }
+    
     public func displayBackgroundNotification(remoteMessage: [String: AnyHashable]) {
+        if CustomerGlu.sdk_disable! == true {
+            print(CustomerGlu.sdk_disable!)
+            return
+        }
         let nudge_url = remoteMessage[NotificationsKey.nudge_url]
         
         let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
@@ -154,102 +239,233 @@ public class CustomerGlu: NSObject {
             return false
         }
     }
-    
-    public func doValidateToken() -> Bool {
-        if UserDefaults.standard.object(forKey: Constants.CUSTOMERGLU_TOKEN) != nil {
-            let arr = JWTDecode.shared.decode(jwtToken: UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_TOKEN) ?? "")
-            let expTime = Date(timeIntervalSince1970: (arr["exp"] as? Double)!)
-            let currentDateTime = Date()
-            if currentDateTime < expTime {
-                return true
-            } else {
-                return false
-            }
+        
+    public func clearGluData() {
+        let dictionary = userDefaults.dictionaryRepresentation()
+        dictionary.keys.forEach { key in
+            userDefaults.removeObject(forKey: key)
         }
-        return false
     }
     
     // MARK: - API Calls Methods
-    public func doRegister(body: [String: AnyHashable], completion: @escaping (Bool, RegistrationModel?) -> Void) {
-        
-        var userdata = body
+    public func registerDevice(userdata: [String: AnyHashable], completion: @escaping (Bool, RegistrationModel?) -> Void) {
+        if CustomerGlu.sdk_disable! == true {
+            print(CustomerGlu.sdk_disable!)
+            return
+        }
+        var userData = userdata
         if let uuid = UIDevice.current.identifierForVendor?.uuidString {
             print(uuid)
-            userdata[APIParameterKey.deviceId] = uuid
+            userData[APIParameterKey.deviceId] = uuid
         }
         let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
         let writekey = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String
-        userdata[APIParameterKey.deviceType] = "ios"
-        userdata[APIParameterKey.deviceName] = getDeviceName()
-        userdata[APIParameterKey.appVersion] = appVersion
-        userdata[APIParameterKey.writeKey] = writekey
+        userData[APIParameterKey.deviceType] = "ios"
+        userData[APIParameterKey.deviceName] = getDeviceName()
+        userData[APIParameterKey.appVersion] = appVersion
+        userData[APIParameterKey.writeKey] = writekey
         
-        APIManager.userRegister(queryParameters: userdata as NSDictionary) { result in
+        if CustomerGlu.fcm_apn == "fcm" {
+            userData[APIParameterKey.apnsDeviceToken] = ""
+        } else {
+            userData[APIParameterKey.firebaseToken] = ""
+        }
+        
+        APIManager.userRegister(queryParameters: userData as NSDictionary) { result in
             switch result {
             case .success(let response):
                 if response.success! {
-                    UserDefaults.standard.set(response.data?.token, forKey: Constants.CUSTOMERGLU_TOKEN)
-                    UserDefaults.standard.set(response.data?.user?.userId, forKey: Constants.CUSTOMERGLU_USERID)
+                    self.userDefaults.set(response.data?.token, forKey: Constants.CUSTOMERGLU_TOKEN)
+                    self.userDefaults.set(response.data?.user?.userId, forKey: Constants.CUSTOMERGLU_USERID)
                     completion(true, response)
                 } else {
-                    DebugLogger.sharedInstance.setErrorDebugLogger(functionName: "doRegister", exception: "Not found")
+                    ApplicationManager.callCrashReport(methodName: "registerDevice")
                 }
             case .failure(let error):
                 print(error)
-                DebugLogger.sharedInstance.setErrorDebugLogger(functionName: "doRegister", exception: error.localizedDescription)
+                ApplicationManager.callCrashReport(stackTrace: error.localizedDescription, methodName: "registerDevice")
                 completion(false, nil)
             }
         }
     }
     
-    public func getWalletRewards(completion: @escaping (Bool, CampaignsModel?) -> Void) {
-        APIManager.getWalletRewards(queryParameters: [:]) { result in
+    public func updateProfile(userdata: [String: AnyHashable], completion: @escaping (Bool, RegistrationModel?) -> Void) {
+        if CustomerGlu.sdk_disable! == true {
+            print(CustomerGlu.sdk_disable!)
+            return
+        }
+        var userData = userdata
+        if let uuid = UIDevice.current.identifierForVendor?.uuidString {
+            print(uuid)
+            userData[APIParameterKey.deviceId] = uuid
+        }
+        let user_id = userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID)
+        if user_id == nil {
+            return
+        }
+        let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+        let writekey = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String
+        userData[APIParameterKey.deviceType] = "ios"
+        userData[APIParameterKey.deviceName] = getDeviceName()
+        userData[APIParameterKey.appVersion] = appVersion
+        userData[APIParameterKey.writeKey] = writekey
+        userData[APIParameterKey.userId] = user_id
+        
+        if CustomerGlu.fcm_apn == "fcm" {
+            userData[APIParameterKey.apnsDeviceToken] = ""
+            userData[APIParameterKey.firebaseToken] = fcmToken
+        } else {
+            userData[APIParameterKey.firebaseToken] = ""
+            userData[APIParameterKey.apnsDeviceToken] = apnToken
+        }
+
+        APIManager.userRegister(queryParameters: userData as NSDictionary) { result in
             switch result {
             case .success(let response):
-                self.campaigndata = response
-                let userDefaults = UserDefaults.standard
-                do {
-                    try userDefaults.setObject(self.campaigndata, forKey: Constants.WalletRewardData)
-                } catch {
-                    print(error.localizedDescription)
+                if response.success! {
+                    self.userDefaults.set(response.data?.token, forKey: Constants.CUSTOMERGLU_TOKEN)
+                    self.userDefaults.set(response.data?.user?.userId, forKey: Constants.CUSTOMERGLU_USERID)
+                    completion(true, response)
+                } else {
+                    ApplicationManager.callCrashReport(methodName: "updateProfile")
                 }
-                completion(true, response)
-                    
             case .failure(let error):
                 print(error)
-                DebugLogger.sharedInstance.setErrorDebugLogger(functionName: "getWalletRewards", exception: error.localizedDescription)
+                ApplicationManager.callCrashReport(stackTrace: error.localizedDescription, methodName: "updateProfile")
                 completion(false, nil)
             }
         }
     }
     
-    public func addToCart(eventName: String, eventProperties: [String: Any], completion: @escaping (Bool, AddCartModel?) -> Void) {
+    public func openWallet() {
+        if CustomerGlu.sdk_disable! == true {
+            print(CustomerGlu.sdk_disable!)
+            return
+        }
+        DispatchQueue.main.async {
+            let openWalletVC = StoryboardType.main.instantiate(vcType: OpenWalletViewController.self)
+            guard let topController = UIViewController.topViewController() else {
+                return
+            }
+            openWalletVC.modalPresentationStyle = .fullScreen
+            topController.present(openWalletVC, animated: true, completion: nil)
+        }
+    }
         
-        let date = Date()
-        let event_id = UUID().uuidString
-        let dateformatter = DateFormatter()
-        dateformatter.dateFormat = Constants.DATE_FORMAT
-        let timestamp = dateformatter.string(from: date)
-        let evp = String(describing: eventProperties)
-        let user_id = UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_USERID)
-        print(evp)
+    public func loadAllCampaigns() {
+        if CustomerGlu.sdk_disable! == true {
+            print(CustomerGlu.sdk_disable!)
+            return
+        }
+        DispatchQueue.main.async {
+            let loadAllCampign = StoryboardType.main.instantiate(vcType: LoadAllCampaignsViewController.self)
+            guard let topController = UIViewController.topViewController() else {
+                return
+            }
+            let navController = UINavigationController(rootViewController: loadAllCampign)
+            navController.modalPresentationStyle = .fullScreen
+            topController.present(navController, animated: true, completion: nil)
+        }
+    }
+    
+    public func loadCampaignById(campaign_id: String) {
+        if CustomerGlu.sdk_disable! == true {
+            print(CustomerGlu.sdk_disable!)
+            return
+        }
         
-        let eventData = [
-            APIParameterKey.event_id: event_id,
-            APIParameterKey.event_name: eventName,
-            APIParameterKey.user_id: user_id,
-            APIParameterKey.timestamp: timestamp,
-            APIParameterKey.event_properties: evp]
-        
-        APIManager.addToCart(queryParameters: eventData as NSDictionary) { result in
-            switch result {
-            case .success(let response):
-                completion(true, response)
-                    
-            case .failure(let error):
-                print(error)
-                DebugLogger.sharedInstance.setErrorDebugLogger(functionName: "addToCart", exception: error.localizedDescription)
-                completion(false, nil)
+        loaderShow(withcoordinate: UIScreen.main.bounds.midX - 30, y: UIScreen.main.bounds.midY - 30)
+                
+        ApplicationManager.loadAllCampaignsApi(type: "", value: campaign_id, loadByparams: [:]) { success, campaignsModel in
+            if success {
+                self.loaderHide()
+                let campaigns: [Campaigns] = (campaignsModel?.campaigns)!
+                
+                let filteredArray = campaigns.filter({($0.campaignId.localizedCaseInsensitiveContains(campaign_id))})
+
+                if filteredArray.count > 0 {
+                    DispatchQueue.main.async {
+                        let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
+                        customerWebViewVC.urlStr = filteredArray[0].url
+                        guard let topController = UIViewController.topViewController() else {
+                            return
+                        }
+                        customerWebViewVC.modalPresentationStyle = .fullScreen
+                        customerWebViewVC.iscampignId = true
+                        topController.present(customerWebViewVC, animated: false, completion: nil)
+                    }
+                }
+            } else {
+                CustomerGlu.getInstance.loaderHide()
+                print("error")
+            }
+        }
+    }
+   
+    public func loadCampaignsByType(type: String) {
+        if CustomerGlu.sdk_disable! == true {
+            print(CustomerGlu.sdk_disable!)
+            return
+        }
+        DispatchQueue.main.async {
+            let loadAllCampign = StoryboardType.main.instantiate(vcType: LoadAllCampaignsViewController.self)
+            loadAllCampign.loadCampignType = APIParameterKey.type
+            loadAllCampign.loadCampignValue = type
+            guard let topController = UIViewController.topViewController() else {
+                return
+            }
+            let navController = UINavigationController(rootViewController: loadAllCampign)
+            navController.modalPresentationStyle = .fullScreen
+            topController.present(navController, animated: true, completion: nil)
+        }
+    }
+    
+    public func loadCampaignByStatus(status: String) {
+        if CustomerGlu.sdk_disable! == true {
+            print(CustomerGlu.sdk_disable!)
+            return
+        }
+        DispatchQueue.main.async {
+            let loadAllCampign = StoryboardType.main.instantiate(vcType: LoadAllCampaignsViewController.self)
+            loadAllCampign.loadCampignType = APIParameterKey.status
+            loadAllCampign.loadCampignValue = status
+            guard let topController = UIViewController.topViewController() else {
+                return
+            }
+            let navController = UINavigationController(rootViewController: loadAllCampign)
+            navController.modalPresentationStyle = .fullScreen
+            topController.present(navController, animated: true, completion: nil)
+        }
+    }
+    
+    public func loadCampaignByFilter(parameters: NSDictionary) {
+        if CustomerGlu.sdk_disable! == true {
+            print(CustomerGlu.sdk_disable!)
+            return
+        }
+        DispatchQueue.main.async {
+            let loadAllCampign = StoryboardType.main.instantiate(vcType: LoadAllCampaignsViewController.self)
+            loadAllCampign.loadByparams = parameters
+            guard let topController = UIViewController.topViewController() else {
+                return
+            }
+            let navController = UINavigationController(rootViewController: loadAllCampign)
+            navController.modalPresentationStyle = .fullScreen
+            topController.present(navController, animated: true, completion: nil)
+        }
+    }
+    
+    public func sendEventData(eventName: String, eventProperties: [String: Any]) {
+        if CustomerGlu.sdk_disable! == true {
+            print(CustomerGlu.sdk_disable!)
+            return
+        }
+
+        ApplicationManager.sendEventData(eventName: "completePurchase", eventProperties: ["state": "1"]) { success, addCartModel in
+            if success {
+                print(addCartModel as Any)
+            } else {
+                print("error")
             }
         }
     }

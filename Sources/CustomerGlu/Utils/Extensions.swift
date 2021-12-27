@@ -125,3 +125,16 @@ extension UIImageView {
         }
     }
 }
+
+extension UIApplication {
+    /// The app's key window taking into consideration apps that support multiple scenes.
+    var keyWindowInConnectedScenes: UIWindow? {
+        return windows.first(where: { $0.isKeyWindow })
+    }
+}
+
+extension Date {
+    static var currentTimeStamp: Int64 {
+        return Int64(Date().timeIntervalSince1970 * 1000)
+    }
+}
