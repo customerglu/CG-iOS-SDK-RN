@@ -108,7 +108,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 if success {
                     CustomerGlu.getInstance.loaderHide()
                     let campaigns: [Campaigns] = (campaignsModel?.campaigns)!
-                    let filteredArray = campaigns.filter({($0.campaignId.localizedCaseInsensitiveContains(self.campaign_id))})
+                    let filteredArray = campaigns.filter({($0.campaignId.elementsEqual(self.campaign_id))})
                     if filteredArray.count > 0 {
                         DispatchQueue.main.async {
                             self.webView = WKWebView(frame: CGRect(x: 0, y: self.topHeight.constant, width: self.view.frame.width, height: self.view.frame.height - (self.topHeight.constant + self.bottomHeight.constant)), configuration: config) //set your own frame
