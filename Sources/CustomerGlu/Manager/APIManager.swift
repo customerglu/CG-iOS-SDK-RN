@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import SwiftUI
 
 // HTTP Header Field's for API's
 private enum HTTPHeaderField: String {
@@ -50,11 +51,16 @@ private struct BaseUrls {
 // Class contain Helper Methods Used in Overall Application Related to API Calls
 class APIManager {
     
+    public var session: URLSession
+    init(session: URLSession = .shared) {
+        self.session = session
+    }
+    
     // Singleton Instance
     static let shared = APIManager()
     
     private static func performRequest<T: Decodable>(baseurl: String, methodandpath: MethodandPath, parametersDict: NSDictionary?, completion: @escaping (Result<T, Error>) -> Void) {
-
+        
         var urlRequest: URLRequest!
         var url: URL!
         let strUrl = "https://" + baseurl
@@ -72,7 +78,7 @@ class APIManager {
             urlRequest.setValue("\(APIParameterKey.bearer) " + UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_TOKEN)!, forHTTPHeaderField: HTTPHeaderField.authorization.rawValue)
             urlRequest.setValue(Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String, forHTTPHeaderField: HTTPHeaderField.xapikey.rawValue)
         }
-       
+        
         if parametersDict!.count > 0 { // Check Parameters & Move Accordingly
             print(parametersDict as Any)
             if methodandpath.method == "GET" {
@@ -90,7 +96,7 @@ class APIManager {
             }
         }
         
-        URLSession.shared.dataTask(with: urlRequest) { data, response, error in
+        let task = shared.session.dataTask(with: urlRequest) { data, response, error in
             if let httpResponse = response as? HTTPURLResponse {
                 if httpResponse.statusCode == 401 {
                     resetDefaults()
@@ -108,7 +114,8 @@ class APIManager {
             } catch let error as NSError {
                 print(error)
             }
-        }.resume()
+        }
+        task.resume()
     }
     
     static func userRegister(queryParameters: NSDictionary, completion: @escaping (Result<RegistrationModel, Error>) -> Void) {
@@ -196,6 +203,42 @@ class APIManager {
         let dictionary = defaults.dictionaryRepresentation()
         dictionary.keys.forEach { key in
             defaults.removeObject(forKey: key)
+        }
+    }
+}
+
+// We create a partial mock by subclassing the original class
+class URLSessionDataTaskMock: URLSessionDataTask {
+    private let closure: () -> Void
+    
+    init(closure: @escaping () -> Void) {
+        self.closure = closure
+    }
+    
+    // We override the 'resume' method and simply call our closure
+    // instead of actually resuming any task.
+    override func resume() {
+        closure()
+    }
+}
+
+class URLSessionMock: URLSession {
+    typealias CompletionHandler = (Data?, URLResponse?, Error?) -> Void
+    
+    // Properties that enable us to set exactly what data or error
+    // we want our mocked URLSession to return for any request.
+    var data: Data?
+    var error: Error?
+    
+    override func dataTask(
+        with url: URLRequest,
+        completionHandler: @escaping CompletionHandler
+    ) -> URLSessionDataTask {
+        let data = self.data
+        let error = self.error
+        
+        return URLSessionDataTaskMock {
+            completionHandler(data, nil, error)
         }
     }
 }
