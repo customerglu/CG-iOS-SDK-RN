@@ -239,10 +239,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
         
     public func clearGluData() {
-        let dictionary = userDefaults.dictionaryRepresentation()
-        dictionary.keys.forEach { key in
-            userDefaults.removeObject(forKey: key)
-        }
+        userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_TOKEN)
+        userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_USERID)
+        userDefaults.removeObject(forKey: Constants.WalletRewardData)
+        userDefaults.removeObject(forKey: Constants.CustomerGluCrash)
     }
     
     // MARK: - API Calls Methods
