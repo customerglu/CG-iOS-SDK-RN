@@ -35,13 +35,12 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     public var alpha = 0.0
     var campaign_id = ""
     
-    public func configureSafeAreaForDevices(){
-        
+    public func configureSafeAreaForDevices() {
         let window = UIApplication.shared.keyWindow
         let topPadding = (window?.safeAreaInsets.top)!
         let bottomPadding = (window?.safeAreaInsets.bottom)!
         
-        if(topPadding <= 20 || bottomPadding < 20){
+        if topPadding <= 20 || bottomPadding < 20 {
             CustomerGlu.topSafeAreaHeight = 20
             CustomerGlu.bottomSafeAreaHeight = 0
             CustomerGlu.topSafeAreaColor = UIColor.clear
@@ -65,7 +64,6 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     
         let x = self.view.frame.midX - 30
         var y = self.view.frame.midY - 30
-
 
         self.configureSafeAreaForDevices()
         
