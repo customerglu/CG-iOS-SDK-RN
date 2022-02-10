@@ -4,13 +4,9 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'CustomerGlu'
-  s.version          = '1.0.5'
+  s.version          = '0.0.3'
   s.summary          = 'CustomerGlu '
   s.description      = <<-DESC
-  s.resources = 'Sources/CustomerGlu/Resources/*.{png,jpeg,jpg,storyboard,xib,xcassets}'
-
-
-
 A new CustomerGlu.
                        DESC
   s.homepage         = 'https://github.com/customerglu/CG-iOS-SDK'
