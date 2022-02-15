@@ -8,6 +8,12 @@
 import Foundation
 import UIKit
 
+#if !SPM
+extension Bundle {
+  static var module:Bundle { Bundle(identifier: "org.cocoapods.CustomerGlu")! }
+}
+#endif
+
 protocol StoryboardIdentifiable where Self: UIViewController {
    static func getInstance(storyBoardType: StoryboardType) -> UIViewController
 }

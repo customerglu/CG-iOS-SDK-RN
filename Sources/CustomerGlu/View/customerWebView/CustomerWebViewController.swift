@@ -227,6 +227,16 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                     }
                 }
             }
+            
+            if bodyStruct?.eventName == WebViewsKey.analytics {
+                if (true == CustomerGlu.analyticsEvent)
+                {
+                    let dict = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!)
+                    if(dict != nil && dict!.count>0 && dict?["data"] != nil){
+                      NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_ANALYTICS_EVENT").rawValue), object: nil, userInfo: dict?["data"] as? [String: Any])
+                    }
+                }
+            }
         }
     }
         

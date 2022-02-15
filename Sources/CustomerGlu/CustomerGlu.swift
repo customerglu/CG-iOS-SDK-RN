@@ -13,6 +13,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var getInstance = CustomerGlu()
     public static var sdk_disable: Bool? = false
     public static var fcm_apn = ""
+    public static var analyticsEvent: Bool? = false
     let userDefaults = UserDefaults.standard
     public var apnToken = ""
     public var fcmToken = ""
@@ -53,7 +54,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             print(error)
         }
     }
-        
+
     public func disableGluSdk(disable: Bool) {
         CustomerGlu.sdk_disable = disable
     }
@@ -90,6 +91,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public func closeWebviewOnDeeplinkEvent(close: Bool) {
         CustomerGlu.auto_close_webview = close
     }
+    
+    public func enableAnalyticsEvent(event: Bool) {
+        CustomerGlu.analyticsEvent = event
+      }
     
     func loaderHide() {
         DispatchQueue.main.async { [self] in

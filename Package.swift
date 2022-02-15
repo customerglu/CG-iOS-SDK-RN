@@ -1,5 +1,5 @@
 // swift-tools-version:5.3
-// The swift-tools-version declares the minimum version of Swift required to build this package.
+// The swift-tools-version declares th`e minimum version of Swift required to build this package.
 
 import PackageDescription
 
@@ -26,7 +26,8 @@ let package = Package(
             dependencies: [],
             resources: [
                 .process("Resources")
-            ]),
+            ],
+            swiftSettings: [.define("SPM")]),
         .testTarget(
             name: "CustomerGluTests",
             dependencies: ["CustomerGlu"])
