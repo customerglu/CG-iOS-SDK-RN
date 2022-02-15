@@ -106,7 +106,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 if success {
                     CustomerGlu.getInstance.loaderHide()
                     let campaigns: [Campaigns] = (campaignsModel?.campaigns)!
-                    let filteredArray = campaigns.filter({($0.campaignId.elementsEqual(self.campaign_id))})
+                    let filteredArray = campaigns.filter{($0.campaignId.elementsEqual(self.campaign_id)) || ($0.banner != nil && $0.banner?.tag != nil && ($0.banner!.tag!.elementsEqual(self.campaign_id)))}
                     if filteredArray.count > 0 {
                         DispatchQueue.main.async {
                             self.webView = WKWebView(frame: CGRect(x: 0, y: self.topHeight.constant, width: self.view.frame.width, height: self.view.frame.height - (self.topHeight.constant + self.bottomHeight.constant)), configuration: config) //set your own frame
@@ -222,6 +222,16 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                         } else {
                             sendImagesToOtherApp(imageString: imageurl, shareText: text ?? "")
                         }
+                    }
+                }
+            }
+            
+            if bodyStruct?.eventName == WebViewsKey.analytics {
+                if (true == CustomerGlu.analyticsEvent)
+                {
+                    let dict = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!)
+                    if(dict != nil && dict!.count>0 && dict?["data"] != nil){
+                      NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_ANALYTICS_EVENT").rawValue), object: nil, userInfo: dict?["data"] as? [String: Any])
                     }
                 }
             }
