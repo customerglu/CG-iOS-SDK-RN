@@ -359,7 +359,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
         }
     }
-    
+    public func openWalletWithURL(url: String) {
+        CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: url, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5)
+    }
     public func openWallet() {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
             if CustomerGlu.sdk_disable! {
