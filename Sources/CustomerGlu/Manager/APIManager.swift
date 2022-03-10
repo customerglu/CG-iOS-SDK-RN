@@ -40,6 +40,7 @@ private struct MethodNameandPath {
     static let getWalletRewards = MethodandPath(method: "GET", path: "reward/v1.1/user")
     static let addToCart = MethodandPath(method: "POST", path: "v3/server")
     static let crashReport = MethodandPath(method: "PUT", path: "api/v1/report")
+    static let entryPointdata = MethodandPath(method: "GET", path: "entrypoints/v1/list?consumer=MOBILE")
 }
 
 // Parameter Key's for all API's
@@ -136,6 +137,11 @@ class APIManager {
     static func crashReport(queryParameters: NSDictionary, completion: @escaping (Result<AddCartModel, Error>) -> Void) {
         // Call Get Wallet and Rewards List
         performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.crashReport, parametersDict: queryParameters, completion: completion)
+    }
+    
+    static func getEntryPointdata(queryParameters: NSDictionary, completion: @escaping (Result<CGEntryPoint, Error>) -> Void) {
+        // Call Get Wallet and Rewards List
+        performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.entryPointdata, parametersDict: queryParameters, completion: completion)
     }
     
     // MARK: - Private Class Methods

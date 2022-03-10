@@ -24,6 +24,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var bottomSafeAreaHeight = 34
     public static var topSafeAreaColor = UIColor.white
     public static var bottomSafeAreaColor = UIColor.white
+    public static var entryPointdata: [CGData] = []
+    
     
     private override init() {
         super.init()
@@ -286,6 +288,20 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 if response.success! {
                     self.userDefaults.set(response.data?.token, forKey: Constants.CUSTOMERGLU_TOKEN)
                     self.userDefaults.set(response.data?.user?.userId, forKey: Constants.CUSTOMERGLU_USERID)
+                    
+                    
+                    APIManager.getEntryPointdata(queryParameters: [:]){ result in
+                        
+                        switch result {
+                        case .success(let response):
+                            CustomerGlu.entryPointdata = response.data
+                            break
+                        case .failure(let error): break
+                            
+                        }
+                        
+                    }
+                    
                     if loadcampaigns == true {
                         ApplicationManager.openWalletApi { success, _ in
                             if success {
@@ -345,6 +361,19 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             switch result {
             case .success(let response):
                 if response.success! {
+                    
+                    APIManager.getEntryPointdata(queryParameters: [:]){ result in
+                        
+                        switch result {
+                        case .success(let response):
+                            CustomerGlu.entryPointdata = response.data
+                            break
+                        case .failure(let error): break
+                            
+                        }
+                        
+                    }
+                    
                     self.userDefaults.set(response.data?.token, forKey: Constants.CUSTOMERGLU_TOKEN)
                     self.userDefaults.set(response.data?.user?.userId, forKey: Constants.CUSTOMERGLU_USERID)
                     completion(true, response)
