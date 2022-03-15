@@ -5,7 +5,7 @@
 
 import Foundation
 
-struct CGMobile: Codable{
+struct CGMobile: Codable {
 
 	var id : String!
 	var conditions : CGCondition!

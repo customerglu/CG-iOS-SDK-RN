@@ -297,9 +297,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             CustomerGlu.entryPointdata = response.data
                             break
                         case .failure(let error): break
-                            
                         }
-                        
                     }
                     
                     if loadcampaigns == true {
@@ -363,15 +361,26 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 if response.success! {
                     
                     APIManager.getEntryPointdata(queryParameters: [:]){ result in
-                        
                         switch result {
                         case .success(let response):
                             CustomerGlu.entryPointdata = response.data
+                                let floatingButtons = CustomerGlu.entryPointdata.filter {
+                                    $0.mobile.container.type == "FLOATING"
+                                }
+                               
+                                if floatingButtons.count != 0 {
+                                    if floatingButtons.count > 1 {
+                                        self.addFloatingButton(btnInfo: floatingButtons[0])
+                                    }
+//                                    for floatBtn in floatingButtons {
+//                                        self.addFloatingButton(floatBtnList: floatingButtons, btnInfo: floatBtn)
+//                                    }
+                                }
+                                
                             break
-                        case .failure(let error): break
-                            
+                        case .failure(let error):
+                            print(error)
                         }
-                        
                     }
                     
                     self.userDefaults.set(response.data?.token, forKey: Constants.CUSTOMERGLU_TOKEN)
@@ -387,9 +396,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
         }
     }
+    
     public func openWalletWithURL(url: String) {
         CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: url, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5)
     }
+    
     public func openWallet() {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
             if CustomerGlu.sdk_disable! {
@@ -562,9 +573,19 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         return bannerView
     }
     
-    public func addDragabbleView(frame: CGRect) {
+//    public func addDragabbleView(frame: CGRect) {
+//        DispatchQueue.main.async {
+//            let dragView = DraggableView(height: 55, width: 120, alignDirection: .right, url: "https://i.gifer.com/origin/41/41297901c13bc7325dc7a17bba585ff9_w200.gif", elementId: "")
+//            guard let topController = UIViewController.topViewController() else {
+//                return
+//            }
+//            topController.view.addSubview(dragView)
+//        }
+//    }
+    
+    public func addFloatingButton(btnInfo: CGData) {
         DispatchQueue.main.async {
-            let dragView = DraggableView(height: 55, width: 120, alignDirection: .right, url: "https://i.gifer.com/origin/41/41297901c13bc7325dc7a17bba585ff9_w200.gif")
+            let dragView = DraggableView(btnInfo: btnInfo)
             guard let topController = UIViewController.topViewController() else {
                 return
             }
