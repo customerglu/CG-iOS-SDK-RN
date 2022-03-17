@@ -25,7 +25,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var topSafeAreaColor = UIColor.white
     public static var bottomSafeAreaColor = UIColor.white
     public static var entryPointdata: [CGData] = []
-    
+    var dragView = DraggableView()
     
     private override init() {
         super.init()
@@ -131,7 +131,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             guard let value = element.value as? Int8, value != 0 else { return identifier }
             return identifier + String(UnicodeScalar(UInt8(value)))
         }
-    }    
+    }
     
     public func cgUserNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         if CustomerGlu.sdk_disable! == true {
@@ -362,24 +362,42 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     
                     APIManager.getEntryPointdata(queryParameters: [:]){ result in
                         switch result {
-                        case .success(let response):
-                            CustomerGlu.entryPointdata = response.data
+                            case .success(let response):
+                                CustomerGlu.entryPointdata = response.data
                                 let floatingButtons = CustomerGlu.entryPointdata.filter {
                                     $0.mobile.container.type == "FLOATING"
                                 }
-                               
+                                
                                 if floatingButtons.count != 0 {
                                     if floatingButtons.count > 1 {
                                         self.addFloatingButton(btnInfo: floatingButtons[0])
                                     }
-//                                    for floatBtn in floatingButtons {
-//                                        self.addFloatingButton(floatBtnList: floatingButtons, btnInfo: floatBtn)
-//                                    }
+                                    //                                    for floatBtn in floatingButtons {
+                                    //                                        self.addFloatingButton(floatBtnList: floatingButtons, btnInfo: floatBtn)
+                                    //                                    }
                                 }
                                 
-                            break
-                        case .failure(let error):
-                            print(error)
+                                let bannerViews = CustomerGlu.entryPointdata.filter {
+                                    $0.mobile.container.type == "BANNER"
+                                }
+
+                                if bannerViews.count != 0 {
+                                    let mobile = bannerViews[2].mobile!
+                                    let imageURL =  NSMutableArray()
+                                    var contentArray = [CGContent]()
+                                    
+                                    if mobile.content.count != 0{
+                                        for content in mobile.content {
+                                            imageURL.add(content)
+                                            contentArray.append(content)
+                                        }
+                                        
+                                        self.addBannerView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width - 30, height: 110), imageArray: imageURL,isAutoScrollEnabled: mobile.conditions.autoScroll,autoScrollSpeed: mobile.conditions.autoScrollSpeed,contentArray: contentArray)
+                                    }
+                                }
+                                
+                            case .failure(let error):
+                                print(error)
                         }
                     }
                     
@@ -417,7 +435,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 return
             }
             openWalletVC.modalPresentationStyle = .fullScreen
-            topController.present(openWalletVC, animated: true, completion: nil)
+            topController.present(openWalletVC, animated: true, completion: { [self] in
+                draggableviewBringtoFront()
+            })
         }
     }
         
@@ -438,7 +458,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
             let navController = UINavigationController(rootViewController: loadAllCampign)
             navController.modalPresentationStyle = .fullScreen
-            topController.present(navController, animated: true, completion: nil)
+            topController.present(navController, animated: true, completion:{ [self] in
+                draggableviewBringtoFront()
+            })
         }
     }
     
@@ -558,38 +580,49 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         CustomerGlu.bottomSafeAreaColor = bottomSafeAreaColor
     }
     
-    public func addBannerView(frame: CGRect) {
-        DispatchQueue.main.async {
-            guard let topController = UIViewController.topViewController() else {
-                return
-            }
-            let bannerView = BannerView(frame: CGRect(x: 0, y: 100, width: topController.view.frame.width, height: frame.height))
-            topController.view.addSubview(bannerView)
-        }
-    }
+//    public func addBannerView(frame: CGRect) {
+//        DispatchQueue.main.async {
+//            guard let topController = UIViewController.topViewController() else {
+//                return
+//            }
+//            let bannerView = BannerView(frame: CGRect(x: 0, y: 100, width: topController.view.frame.width, height: frame.height))
+//            topController.view.addSubview(bannerView)
+//        }
+//    }
     
     public func addBannerViewNew(frame: CGRect) -> UIView {
         let bannerView = BannerView(frame: CGRect(x: frame.origin.x, y: frame.origin.y, width: frame.width, height: frame.height))
         return bannerView
     }
     
-//    public func addDragabbleView(frame: CGRect) {
-//        DispatchQueue.main.async {
-//            let dragView = DraggableView(height: 55, width: 120, alignDirection: .right, url: "https://i.gifer.com/origin/41/41297901c13bc7325dc7a17bba585ff9_w200.gif", elementId: "")
-//            guard let topController = UIViewController.topViewController() else {
-//                return
-//            }
-//            topController.view.addSubview(dragView)
-//        }
-//    }
-    
-    public func addFloatingButton(btnInfo: CGData) {
+    func addBannerView(frame: CGRect,imageArray:NSMutableArray,isAutoScrollEnabled:Bool,autoScrollSpeed:Int,contentArray:[CGContent]) {
         DispatchQueue.main.async {
-            let dragView = DraggableView(btnInfo: btnInfo)
             guard let topController = UIViewController.topViewController() else {
                 return
             }
-            topController.view.addSubview(dragView)
+            let bannerView = BannerView(frame: CGRect(x: 0, y: 100, width: topController.view.frame.width, height: frame.height))
+            bannerView.sliderImagesArray = imageArray
+            bannerView.autoScrollSpeed = autoScrollSpeed
+            bannerView.isAutoScroll = isAutoScrollEnabled
+            bannerView.subViewArray = contentArray
+            bannerView.configure()
+            topController.view.addSubview(bannerView)
         }
+    }
+    
+    public func addFloatingButton(btnInfo: CGData) {
+        DispatchQueue.main.async {
+//            self.dragView = DraggableView(btnInfo: btnInfo)
+//            guard let topController = UIViewController.topViewController() else {
+//                return
+//            }
+         //   topController.view.addSubview(dragView)
+//            self.dragView.setupDraggableView()
+            let floatingButtonController = FloatingButtonController()
+        }
+    }
+    
+    public func draggableviewBringtoFront() {
+        dragView.setupView()
     }
 }

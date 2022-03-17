@@ -8,7 +8,9 @@
 import Foundation
 import UIKit
 
-public class DraggableView: UIView {
+class DraggableView: UIView {
+    
+//    static let shared = DraggableView()
     
     var panGesture = UIPanGestureRecognizer()
     var lblText = UILabel()
@@ -46,7 +48,15 @@ public class DraggableView: UIView {
         self.addSubview(imgView)
         configure()
     }
-        
+    
+    public func setupDraggableView(){
+        UIApplication.shared.keyWindow?.addSubview(self)
+    }
+    
+    public func setupView(){
+        UIApplication.shared.keyWindow?.bringSubviewToFront(self)
+    }
+    
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         backgroundColor = UIColor.red

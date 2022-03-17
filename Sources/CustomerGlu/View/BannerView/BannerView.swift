@@ -7,57 +7,79 @@
 
 import UIKit
 import Foundation
+import WebKit
 
-public class BannerView: UIView, UIScrollViewDelegate {
+@IBDesignable public class BannerView: UIView, UIScrollViewDelegate {
     
     var view = UIView()
+    var isAutoScroll = false
+    var autoScrollSpeed = 0
+    var elementID = ""
     
     @IBOutlet weak var imgScrollView: UIScrollView!
     var sliderImagesArray = NSMutableArray()
-
+    var subViewArray = [CGContent]()
+    
+    @IBInspectable var elementId: String = "er" {
+        didSet {
+            self.elementID = elementId
+        }
+    }
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = UIColor.clear
         xibSetup()
-        configure()
+        // configure()
     }
     
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         backgroundColor = UIColor.clear
         xibSetup()
-        configure()
     }
     
-    private func configure() {
-        // imgView.downloadImage(urlString: "https://assets.customerglu.com/demo/quiz/banner-image/Quiz_1.png")
-        sliderImagesArray = ["https://assets.customerglu.com/demo/quiz/banner-image/Quiz_1.png",
-                             "https://i.gifer.com/origin/41/41297901c13bc7325dc7a17bba585ff9_w200.gif"]
-        
+    func configure() {
         imgScrollView.delegate = self
-        for i in 0..<sliderImagesArray.count {
-            var imageView: UIImageView
-            let xOrigin = self.imgScrollView.frame.size.width * CGFloat(i)
-            imageView = UIImageView(frame: CGRect(x: xOrigin, y: 0, width: self.imgScrollView.frame.size.width, height: self.imgScrollView.frame.size.height))
-            imageView.isUserInteractionEnabled = true
-            imageView.tag = i
-            let urlStr = sliderImagesArray.object(at: i)
-            imageView.downloadImage(urlString: urlStr as! String)
-            imageView.contentMode = .scaleToFill
-            self.imgScrollView.addSubview(imageView)
-            
-            let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
-            imageView.addGestureRecognizer(tap)
+        for i in 0..<subViewArray.count {
+            let dict = subViewArray[i]
+            if dict.type == "IMAGE" {
+                print("add image view")
+                var imageView: UIImageView
+                let xOrigin = self.imgScrollView.frame.size.width * CGFloat(i)
+                imageView = UIImageView(frame: CGRect(x: xOrigin, y: 0, width: self.imgScrollView.frame.size.width, height: self.imgScrollView.frame.size.height))
+                imageView.isUserInteractionEnabled = true
+                imageView.tag = i
+                let urlStr = dict.url
+                imageView.downloadImage(urlString: urlStr!)
+                imageView.contentMode = .scaleToFill
+                self.imgScrollView.addSubview(imageView)
+                let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
+                imageView.addGestureRecognizer(tap)
+            } else {
+                print("add webview")
+                var webView: WKWebView
+                let xOrigin = self.imgScrollView.frame.size.width * CGFloat(i)
+                webView = WKWebView(frame: CGRect(x: xOrigin, y: 0, width: self.imgScrollView.frame.size.width, height: self.imgScrollView.frame.size.height))
+                webView.isUserInteractionEnabled = true
+                webView.tag = i
+                let urlStr = dict.url
+                webView.load(URLRequest(url: URL(string: urlStr!)!))
+                self.imgScrollView.addSubview(webView)
+                let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
+                self.imgScrollView.addGestureRecognizer(tap)
+            }
         }
         self.imgScrollView.isPagingEnabled = true
         self.imgScrollView.bounces = false
         self.imgScrollView.showsVerticalScrollIndicator = false
         self.imgScrollView.showsHorizontalScrollIndicator = false
-        self.imgScrollView.contentSize = CGSize(width:
-                                                    self.imgScrollView.frame.size.width * CGFloat(sliderImagesArray.count), height: self.imgScrollView.frame.size.height)
+        self.imgScrollView.contentSize = CGSize(width: self.imgScrollView.frame.size.width * CGFloat(sliderImagesArray.count), height: self.imgScrollView.frame.size.height)
         
         // Timer in viewdidload()
-        Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(moveToNextImage), userInfo: nil, repeats: true)
+        if isAutoScroll {
+            Timer.scheduledTimer(timeInterval: TimeInterval(autoScrollSpeed), target: self, selector: #selector(moveToNextImage), userInfo: nil, repeats: true)
+        }
     }
     
     @objc func moveToNextImage() {
@@ -74,8 +96,8 @@ public class BannerView: UIView, UIScrollViewDelegate {
     
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
         print(sender?.view?.tag ?? 0)
-//        self.removeFromSuperview()
-        CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: "https://stackoverflow.com/questions/43714948/draggable-uiview-swift-3", page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: 0.5)
+        let dict = subViewArray[tag]
+        CustomerGlu.getInstance.loadCampaignById(campaign_id: dict.campaignId)
     }
     
     // MARK: - Nib handlers
