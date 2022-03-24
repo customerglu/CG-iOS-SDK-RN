@@ -25,10 +25,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var topSafeAreaColor = UIColor.white
     public static var bottomSafeAreaColor = UIColor.white
     public static var entryPointdata: [CGData] = []
-    var arrBannerView = NSMutableArray()
     
     private override init() {
         super.init()
+        
+        if UserDefaults.standard.object(forKey: Constants.CUSTOMERGLU_TOKEN) != nil {
+            getEntryPointData()
+        }
+        
         CustomerGluCrash.add(delegate: self)
         do {
             // retrieving a value for a key
@@ -195,7 +199,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
         if page_type == Constants.BOTTOM_SHEET_NOTIFICATION {
             customerWebViewVC.isbottomsheet = true
-#if compiler(>=5.5)
+        #if compiler(>=5.5)
             if #available(iOS 15.0, *) {
                 if let sheet = customerWebViewVC.sheetPresentationController {
                     sheet.detents = [ .medium(), .large() ]
@@ -203,9 +207,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             } else {
                 customerWebViewVC.modalPresentationStyle = .pageSheet
             }
-#else
+        #else
             customerWebViewVC.modalPresentationStyle = .pageSheet
-#endif
+        #endif
         } else if page_type == Constants.BOTTOM_DEFAULT_NOTIFICATION {
             customerWebViewVC.isbottomdefault = true
             customerWebViewVC.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
@@ -289,13 +293,27 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         self.userDefaults.set(response.data?.token, forKey: Constants.CUSTOMERGLU_TOKEN)
                         self.userDefaults.set(response.data?.user?.userId, forKey: Constants.CUSTOMERGLU_USERID)
                         
-                        APIManager.getEntryPointdata(queryParameters: [:]){ result in
-                            
+                        APIManager.getEntryPointdata(queryParameters: [:]) { result in
                             switch result {
-                                case .success(let response):
-                                    CustomerGlu.entryPointdata = response.data
-                                    break
-                                case .failure(let error): break
+                                case .success(let responseGetEntry):
+                                    CustomerGlu.entryPointdata = responseGetEntry.data
+                                    let floatingButtons = CustomerGlu.entryPointdata.filter {
+                                        $0.mobile.container.type == "FLOATING"
+                                    }
+                                    
+                                    if floatingButtons.count != 0 {
+                                        if floatingButtons.count > 1 {
+                                            self.addFloatingButton(btnInfo: floatingButtons[0])
+                                        }
+                                        //                                    for floatBtn in floatingButtons {
+                                        //                                        self.addFloatingButton(floatBtnList: floatingButtons, btnInfo: floatBtn)
+                                        //                                    }
+                                    }
+                                    completion(true, response)
+                                    
+                                case .failure(let error):
+                                    print(error)
+                                    completion(true, response)
                             }
                         }
                         
@@ -306,7 +324,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                 }
                             }
                         }
-                        completion(true, response)
                     } else {
                         ApplicationManager.callCrashReport(methodName: "registerDevice")
                     }
@@ -359,10 +376,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 case .success(let response):
                     if response.success! {
                         
-                        APIManager.getEntryPointdata(queryParameters: [:]){ result in
+                        APIManager.getEntryPointdata(queryParameters: [:]) { result in
                             switch result {
-                                case .success(let response):
-                                    CustomerGlu.entryPointdata = response.data
+                                case .success(let responseGetEntry):
+                                    CustomerGlu.entryPointdata = responseGetEntry.data
                                     let floatingButtons = CustomerGlu.entryPointdata.filter {
                                         $0.mobile.container.type == "FLOATING"
                                     }
@@ -375,17 +392,16 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                         //                                        self.addFloatingButton(floatBtnList: floatingButtons, btnInfo: floatBtn)
                                         //                                    }
                                     }
-                                    
-                                    self.setBannerViewInfo()
-                                    
+                                    completion(true, response)
+
                                 case .failure(let error):
                                     print(error)
+                                    completion(true, response)
                             }
                         }
                         
                         self.userDefaults.set(response.data?.token, forKey: Constants.CUSTOMERGLU_TOKEN)
                         self.userDefaults.set(response.data?.user?.userId, forKey: Constants.CUSTOMERGLU_USERID)
-                        completion(true, response)
                     } else {
                         ApplicationManager.callCrashReport(methodName: "updateProfile")
                     }
@@ -393,6 +409,30 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     print(error)
                     ApplicationManager.callCrashReport(stackTrace: error.localizedDescription, methodName: "updateProfile")
                     completion(false, nil)
+            }
+        }
+    }
+    
+    private func getEntryPointData() {
+        APIManager.getEntryPointdata(queryParameters: [:]) { result in
+            switch result {
+                case .success(let response):
+                    CustomerGlu.entryPointdata = response.data
+                    let floatingButtons = CustomerGlu.entryPointdata.filter {
+                        $0.mobile.container.type == "FLOATING"
+                    }
+                    
+                    if floatingButtons.count != 0 {
+                        if floatingButtons.count > 1 {
+                            self.addFloatingButton(btnInfo: floatingButtons[0])
+                        }
+                        //                                    for floatBtn in floatingButtons {
+                        //                                        self.addFloatingButton(floatBtnList: floatingButtons, btnInfo: floatBtn)
+                        //                                    }
+                    }
+                                        
+                case .failure(let error):
+                    print(error)
             }
         }
     }
@@ -556,62 +596,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         CustomerGlu.bottomSafeAreaHeight = bottomHeight
         CustomerGlu.topSafeAreaColor = topSafeAreaColor
         CustomerGlu.bottomSafeAreaColor = bottomSafeAreaColor
-    }
-    
-    public func addBannerView(frame: CGRect, elementId: String) -> UIView {
-        let bannerView = BannerView(frame: CGRect(x: frame.origin.x, y: frame.origin.y, width: frame.width, height: frame.height))
-        var dictBannerView = [String: Any]()
-        dictBannerView["elementId"] = elementId as String
-        dictBannerView["bannerView"] = bannerView as BannerView
-        arrBannerView.add(dictBannerView)
-        return bannerView
-    }
-    
-    public func setContainerForBannerView(bannerView: BannerView, elementId: String) {
-        var dictBannerView = [String: Any]()
-        dictBannerView["elementId"] = elementId as String
-        dictBannerView["bannerView"] = bannerView as BannerView
-        arrBannerView.add(dictBannerView)
-        setBannerViewInfo()
-    }
-    
-    private func setBannerViewInfo() {
-        if self.arrBannerView.count > 0 {
-            for bannerInfo in self.arrBannerView {
-                let dict = bannerInfo as! Dictionary<String, Any>
-                let elementId = dict["elementId"] as! String
-                
-                let bannerViews = CustomerGlu.entryPointdata.filter {
-                    $0.mobile.container.type == "BANNER" && $0.mobile.container.elementId == elementId
-                }
-                
-                if bannerViews.count != 0 {
-                    let mobile = bannerViews[0].mobile!
-                    let imageURL =  NSMutableArray()
-                    var contentArray = [CGContent]()
-                    
-                    if mobile.content.count != 0 {
-                        for content in mobile.content {
-                            imageURL.add(content)
-                            contentArray.append(content)
-                        }
-                        
-                        self.setBannerView(bannerView: dict["bannerView"] as! BannerView, height: 180, imageArray: imageURL, isAutoScrollEnabled: mobile.conditions.autoScroll, autoScrollSpeed: mobile.conditions.autoScrollSpeed, contentArray: contentArray)
-                    }
-                }
-            }
-        }
-    }
-    
-    private func setBannerView(bannerView: BannerView, height: Int, imageArray: NSMutableArray, isAutoScrollEnabled: Bool, autoScrollSpeed: Int, contentArray: [CGContent]){
-        DispatchQueue.main.async {
-            bannerView.viewHeight = height
-            bannerView.sliderImagesArray = imageArray
-            bannerView.autoScrollSpeed = autoScrollSpeed
-            bannerView.isAutoScroll = isAutoScrollEnabled
-            bannerView.subViewArray = contentArray
-            bannerView.configure()
-        }
     }
     
     private func addFloatingButton(btnInfo: CGData) {
