@@ -8,7 +8,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     // MARK: - Global Variable
     var spinner = SpinnerView()
-   
+    
     // Singleton Instance
     public static var getInstance = CustomerGlu()
     public static var sdk_disable: Bool? = false
@@ -25,7 +25,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var topSafeAreaColor = UIColor.white
     public static var bottomSafeAreaColor = UIColor.white
     public static var entryPointdata: [CGData] = []
-    var dragView = DraggableView()
+    var arrBannerView = NSMutableArray()
     
     private override init() {
         super.init()
@@ -56,7 +56,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             print(error)
         }
     }
-
+    
     public func disableGluSdk(disable: Bool) {
         CustomerGlu.sdk_disable = disable
     }
@@ -96,7 +96,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     public func enableAnalyticsEvent(event: Bool) {
         CustomerGlu.analyticsEvent = event
-      }
+    }
     
     func loaderHide() {
         DispatchQueue.main.async { [self] in
@@ -195,17 +195,17 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
         if page_type == Constants.BOTTOM_SHEET_NOTIFICATION {
             customerWebViewVC.isbottomsheet = true
-            #if compiler(>=5.5)
-                if #available(iOS 15.0, *) {
-                    if let sheet = customerWebViewVC.sheetPresentationController {
-                        sheet.detents = [ .medium(), .large() ]
-                    }
-                } else {
-                    customerWebViewVC.modalPresentationStyle = .pageSheet
+#if compiler(>=5.5)
+            if #available(iOS 15.0, *) {
+                if let sheet = customerWebViewVC.sheetPresentationController {
+                    sheet.detents = [ .medium(), .large() ]
                 }
-            #else
+            } else {
                 customerWebViewVC.modalPresentationStyle = .pageSheet
-            #endif
+            }
+#else
+            customerWebViewVC.modalPresentationStyle = .pageSheet
+#endif
         } else if page_type == Constants.BOTTOM_DEFAULT_NOTIFICATION {
             customerWebViewVC.isbottomdefault = true
             customerWebViewVC.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
@@ -244,7 +244,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             return false
         }
     }
-        
+    
     public func clearGluData() {
         userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_TOKEN)
         userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_USERID)
@@ -284,37 +284,36 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
         APIManager.userRegister(queryParameters: userData as NSDictionary) { result in
             switch result {
-            case .success(let response):
-                if response.success! {
-                    self.userDefaults.set(response.data?.token, forKey: Constants.CUSTOMERGLU_TOKEN)
-                    self.userDefaults.set(response.data?.user?.userId, forKey: Constants.CUSTOMERGLU_USERID)
-                    
-                    
-                    APIManager.getEntryPointdata(queryParameters: [:]){ result in
+                case .success(let response):
+                    if response.success! {
+                        self.userDefaults.set(response.data?.token, forKey: Constants.CUSTOMERGLU_TOKEN)
+                        self.userDefaults.set(response.data?.user?.userId, forKey: Constants.CUSTOMERGLU_USERID)
                         
-                        switch result {
-                        case .success(let response):
-                            CustomerGlu.entryPointdata = response.data
-                            break
-                        case .failure(let error): break
-                        }
-                    }
-                    
-                    if loadcampaigns == true {
-                        ApplicationManager.openWalletApi { success, _ in
-                            if success {
-                            } else {
+                        APIManager.getEntryPointdata(queryParameters: [:]){ result in
+                            
+                            switch result {
+                                case .success(let response):
+                                    CustomerGlu.entryPointdata = response.data
+                                    break
+                                case .failure(let error): break
                             }
                         }
+                        
+                        if loadcampaigns == true {
+                            ApplicationManager.openWalletApi { success, _ in
+                                if success {
+                                } else {
+                                }
+                            }
+                        }
+                        completion(true, response)
+                    } else {
+                        ApplicationManager.callCrashReport(methodName: "registerDevice")
                     }
-                    completion(true, response)
-                } else {
-                    ApplicationManager.callCrashReport(methodName: "registerDevice")
-                }
-            case .failure(let error):
-                print(error)
-                ApplicationManager.callCrashReport(stackTrace: error.localizedDescription, methodName: "registerDevice")
-                completion(false, nil)
+                case .failure(let error):
+                    print(error)
+                    ApplicationManager.callCrashReport(stackTrace: error.localizedDescription, methodName: "registerDevice")
+                    completion(false, nil)
             }
         }
     }
@@ -354,63 +353,46 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             userData[APIParameterKey.firebaseToken] = ""
             userData[APIParameterKey.apnsDeviceToken] = apnToken
         }
-
+        
         APIManager.userRegister(queryParameters: userData as NSDictionary) { result in
             switch result {
-            case .success(let response):
-                if response.success! {
-                    
-                    APIManager.getEntryPointdata(queryParameters: [:]){ result in
-                        switch result {
-                            case .success(let response):
-                                CustomerGlu.entryPointdata = response.data
-                                let floatingButtons = CustomerGlu.entryPointdata.filter {
-                                    $0.mobile.container.type == "FLOATING"
-                                }
-                                
-                                if floatingButtons.count != 0 {
-                                    if floatingButtons.count > 1 {
-                                        self.addFloatingButton(btnInfo: floatingButtons[0])
+                case .success(let response):
+                    if response.success! {
+                        
+                        APIManager.getEntryPointdata(queryParameters: [:]){ result in
+                            switch result {
+                                case .success(let response):
+                                    CustomerGlu.entryPointdata = response.data
+                                    let floatingButtons = CustomerGlu.entryPointdata.filter {
+                                        $0.mobile.container.type == "FLOATING"
                                     }
-                                    //                                    for floatBtn in floatingButtons {
-                                    //                                        self.addFloatingButton(floatBtnList: floatingButtons, btnInfo: floatBtn)
-                                    //                                    }
-                                }
-                                
-                                let bannerViews = CustomerGlu.entryPointdata.filter {
-                                    $0.mobile.container.type == "BANNER"
-                                }
-
-                                if bannerViews.count != 0 {
-                                    let mobile = bannerViews[2].mobile!
-                                    let imageURL =  NSMutableArray()
-                                    var contentArray = [CGContent]()
                                     
-                                    if mobile.content.count != 0{
-                                        for content in mobile.content {
-                                            imageURL.add(content)
-                                            contentArray.append(content)
+                                    if floatingButtons.count != 0 {
+                                        if floatingButtons.count > 1 {
+                                            self.addFloatingButton(btnInfo: floatingButtons[0])
                                         }
-                                        
-                                        self.addBannerView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width - 30, height: 110), imageArray: imageURL,isAutoScrollEnabled: mobile.conditions.autoScroll,autoScrollSpeed: mobile.conditions.autoScrollSpeed,contentArray: contentArray)
+                                        //                                    for floatBtn in floatingButtons {
+                                        //                                        self.addFloatingButton(floatBtnList: floatingButtons, btnInfo: floatBtn)
+                                        //                                    }
                                     }
-                                }
-                                
-                            case .failure(let error):
-                                print(error)
+                                    
+                                    self.setBannerViewInfo()
+                                    
+                                case .failure(let error):
+                                    print(error)
+                            }
                         }
+                        
+                        self.userDefaults.set(response.data?.token, forKey: Constants.CUSTOMERGLU_TOKEN)
+                        self.userDefaults.set(response.data?.user?.userId, forKey: Constants.CUSTOMERGLU_USERID)
+                        completion(true, response)
+                    } else {
+                        ApplicationManager.callCrashReport(methodName: "updateProfile")
                     }
-                    
-                    self.userDefaults.set(response.data?.token, forKey: Constants.CUSTOMERGLU_TOKEN)
-                    self.userDefaults.set(response.data?.user?.userId, forKey: Constants.CUSTOMERGLU_USERID)
-                    completion(true, response)
-                } else {
-                    ApplicationManager.callCrashReport(methodName: "updateProfile")
-                }
-            case .failure(let error):
-                print(error)
-                ApplicationManager.callCrashReport(stackTrace: error.localizedDescription, methodName: "updateProfile")
-                completion(false, nil)
+                case .failure(let error):
+                    print(error)
+                    ApplicationManager.callCrashReport(stackTrace: error.localizedDescription, methodName: "updateProfile")
+                    completion(false, nil)
             }
         }
     }
@@ -435,12 +417,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 return
             }
             openWalletVC.modalPresentationStyle = .fullScreen
-            topController.present(openWalletVC, animated: true, completion: { [self] in
-                draggableviewBringtoFront()
-            })
+            topController.present(openWalletVC, animated: true, completion: nil)
         }
     }
-        
+    
     public func loadAllCampaigns() {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
             if CustomerGlu.sdk_disable! {
@@ -458,9 +438,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
             let navController = UINavigationController(rootViewController: loadAllCampign)
             navController.modalPresentationStyle = .fullScreen
-            topController.present(navController, animated: true, completion:{ [self] in
-                draggableviewBringtoFront()
-            })
+            topController.present(navController, animated: true, completion: nil)
         }
     }
     
@@ -485,7 +463,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             topController.present(customerWebViewVC, animated: false, completion: nil)
         }
     }
-   
+    
     public func loadCampaignsByType(type: String) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
             if CustomerGlu.sdk_disable! {
@@ -563,7 +541,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
             return
         }
-
+        
         ApplicationManager.sendEventData(eventName: eventName, eventProperties: ["state": "1"]) { success, addCartModel in
             if success {
                 print(addCartModel as Any)
@@ -580,49 +558,65 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         CustomerGlu.bottomSafeAreaColor = bottomSafeAreaColor
     }
     
-//    public func addBannerView(frame: CGRect) {
-//        DispatchQueue.main.async {
-//            guard let topController = UIViewController.topViewController() else {
-//                return
-//            }
-//            let bannerView = BannerView(frame: CGRect(x: 0, y: 100, width: topController.view.frame.width, height: frame.height))
-//            topController.view.addSubview(bannerView)
-//        }
-//    }
-    
-    public func addBannerViewNew(frame: CGRect) -> UIView {
+    public func addBannerView(frame: CGRect, elementId: String) -> UIView {
         let bannerView = BannerView(frame: CGRect(x: frame.origin.x, y: frame.origin.y, width: frame.width, height: frame.height))
+        var dictBannerView = [String: Any]()
+        dictBannerView["elementId"] = elementId as String
+        dictBannerView["bannerView"] = bannerView as BannerView
+        arrBannerView.add(dictBannerView)
         return bannerView
     }
     
-    func addBannerView(frame: CGRect,imageArray:NSMutableArray,isAutoScrollEnabled:Bool,autoScrollSpeed:Int,contentArray:[CGContent]) {
-        DispatchQueue.main.async {
-            guard let topController = UIViewController.topViewController() else {
-                return
+    public func setContainerForBannerView(bannerView: BannerView, elementId: String) {
+        var dictBannerView = [String: Any]()
+        dictBannerView["elementId"] = elementId as String
+        dictBannerView["bannerView"] = bannerView as BannerView
+        arrBannerView.add(dictBannerView)
+        setBannerViewInfo()
+    }
+    
+    private func setBannerViewInfo() {
+        if self.arrBannerView.count > 0 {
+            for bannerInfo in self.arrBannerView {
+                let dict = bannerInfo as! Dictionary<String, Any>
+                let elementId = dict["elementId"] as! String
+                
+                let bannerViews = CustomerGlu.entryPointdata.filter {
+                    $0.mobile.container.type == "BANNER" && $0.mobile.container.elementId == elementId
+                }
+                
+                if bannerViews.count != 0 {
+                    let mobile = bannerViews[0].mobile!
+                    let imageURL =  NSMutableArray()
+                    var contentArray = [CGContent]()
+                    
+                    if mobile.content.count != 0 {
+                        for content in mobile.content {
+                            imageURL.add(content)
+                            contentArray.append(content)
+                        }
+                        
+                        self.setBannerView(bannerView: dict["bannerView"] as! BannerView, height: 180, imageArray: imageURL, isAutoScrollEnabled: mobile.conditions.autoScroll, autoScrollSpeed: mobile.conditions.autoScrollSpeed, contentArray: contentArray)
+                    }
+                }
             }
-            let bannerView = BannerView(frame: CGRect(x: 0, y: 100, width: topController.view.frame.width, height: frame.height))
+        }
+    }
+    
+    private func setBannerView(bannerView: BannerView, height: Int, imageArray: NSMutableArray, isAutoScrollEnabled: Bool, autoScrollSpeed: Int, contentArray: [CGContent]){
+        DispatchQueue.main.async {
+            bannerView.viewHeight = height
             bannerView.sliderImagesArray = imageArray
             bannerView.autoScrollSpeed = autoScrollSpeed
             bannerView.isAutoScroll = isAutoScrollEnabled
             bannerView.subViewArray = contentArray
             bannerView.configure()
-            topController.view.addSubview(bannerView)
         }
     }
     
-    public func addFloatingButton(btnInfo: CGData) {
+    private func addFloatingButton(btnInfo: CGData) {
         DispatchQueue.main.async {
-//            self.dragView = DraggableView(btnInfo: btnInfo)
-//            guard let topController = UIViewController.topViewController() else {
-//                return
-//            }
-         //   topController.view.addSubview(dragView)
-//            self.dragView.setupDraggableView()
-            let floatingButtonController = FloatingButtonController()
+            _ = FloatingButtonController(btnInfo: btnInfo)
         }
-    }
-    
-    public func draggableviewBringtoFront() {
-        dragView.setupView()
     }
 }

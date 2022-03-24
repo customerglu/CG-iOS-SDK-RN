@@ -15,6 +15,7 @@ import WebKit
     var isAutoScroll = false
     var autoScrollSpeed = 0
     var elementID = ""
+    var viewHeight = 0
     
     @IBOutlet weak var imgScrollView: UIScrollView!
     var sliderImagesArray = NSMutableArray()
@@ -30,7 +31,6 @@ import WebKit
         super.init(frame: frame)
         backgroundColor = UIColor.clear
         xibSetup()
-        // configure()
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -40,24 +40,33 @@ import WebKit
     }
     
     func configure() {
+        self.frame.size.height = CGFloat(viewHeight)
+        self.imgScrollView.frame.size.height = CGFloat(viewHeight)
+        
+        var dict = [String: AnyHashable]()
+        dict["height"] = viewHeight
+        dict["elementId"] = elementId
+
+        // Post notification
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_Banner_Height").rawValue), object: self, userInfo: dict)
+        
         imgScrollView.delegate = self
         for i in 0..<subViewArray.count {
             let dict = subViewArray[i]
             if dict.type == "IMAGE" {
-                print("add image view")
                 var imageView: UIImageView
                 let xOrigin = self.imgScrollView.frame.size.width * CGFloat(i)
                 imageView = UIImageView(frame: CGRect(x: xOrigin, y: 0, width: self.imgScrollView.frame.size.width, height: self.imgScrollView.frame.size.height))
                 imageView.isUserInteractionEnabled = true
                 imageView.tag = i
-                let urlStr = dict.url
-                imageView.downloadImage(urlString: urlStr!)
+//                let urlStr = dict.url
+                let urlStr = "https://picsum.photos/400/250"
+                imageView.downloadImage(urlString: urlStr)
                 imageView.contentMode = .scaleToFill
                 self.imgScrollView.addSubview(imageView)
                 let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
                 imageView.addGestureRecognizer(tap)
             } else {
-                print("add webview")
                 var webView: WKWebView
                 let xOrigin = self.imgScrollView.frame.size.width * CGFloat(i)
                 webView = WKWebView(frame: CGRect(x: xOrigin, y: 0, width: self.imgScrollView.frame.size.width, height: self.imgScrollView.frame.size.height))
@@ -97,7 +106,9 @@ import WebKit
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
         print(sender?.view?.tag ?? 0)
         let dict = subViewArray[tag]
-        CustomerGlu.getInstance.loadCampaignById(campaign_id: dict.campaignId)
+        if dict.campaignId != nil {
+            CustomerGlu.getInstance.loadCampaignById(campaign_id: dict.campaignId)
+        }
     }
     
     // MARK: - Nib handlers
@@ -109,6 +120,7 @@ import WebKit
         // Adding custom subview on top of our view (over any custom drawing > see note below)
         imgScrollView.frame = bounds
         imgScrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.backgroundColor = .red
         addSubview(view)
     }
     

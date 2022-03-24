@@ -2,14 +2,16 @@ import UIKit
 
 class FloatingButtonController: UIViewController {
 
-    private(set) var button: UIButton!
+    private(set) var imageview: UIImageView!
+    var floatInfo: CGData?
 
     required init?(coder aDecoder: NSCoder) {
         fatalError()
     }
 
-    init() {
+    init(btnInfo: CGData) {
         super.init(nibName: nil, bundle: nil)
+        floatInfo = btnInfo
         window.windowLevel = UIWindow.Level(rawValue: CGFloat.greatestFiniteMagnitude)
         window.isHidden = false
         window.rootViewController = self
@@ -21,83 +23,68 @@ class FloatingButtonController: UIViewController {
 
     override func loadView() {
         let view = UIView()
-        let button = UIButton(type: .custom)
-        button.setTitle("Floating", for: .normal)
-        button.setTitleColor(UIColor.green, for: .normal)
-        button.backgroundColor = UIColor.white
-        button.layer.shadowColor = UIColor.black.cgColor
-        button.layer.shadowRadius = 3
-        button.layer.shadowOpacity = 0.8
-        button.layer.shadowOffset = CGSize.zero
-        button.sizeToFit()
-        button.frame = CGRect(x: 50, y: 50, width: 100, height: 100)
-        button.autoresizingMask = []
-        view.addSubview(button)
-        self.view = view
-        self.button = button
-        window.button = button
 
-        let panner = UIPanGestureRecognizer(target: self, action: #selector(panDidFire(panner:)))
-        button.addGestureRecognizer(panner)
+        let height: Int = Int((floatInfo?.mobile.container.height)!)!
+        let width: Int = Int((floatInfo?.mobile.container.width)!)!
+        let imageview = UIImageView()
+
+        if floatInfo?.mobile.container.position == "BOTTOM-LEFT" {
+            imageview.frame = CGRect(x: 10, y: Int(UIScreen.main.bounds.height) - (height + 20), width: width, height: height)
+        } else if floatInfo?.mobile.container.position == "BOTTOM-RIGHT" {
+            imageview.frame = CGRect(x: Int(UIScreen.main.bounds.maxX) - 110, y: Int(UIScreen.main.bounds.height) - (height + 20), width: width, height: height)
+        } else {
+            imageview.frame = CGRect(x: Int(UIScreen.main.bounds.midX) - 50, y: Int(UIScreen.main.bounds.height) - (height + 20), width: width, height: height)
+        }
+
+        imageview.downloadImage(urlString: (floatInfo?.mobile.content[0].url)!)
+        imageview.contentMode = .scaleToFill
+        imageview.clipsToBounds = true
+        imageview.backgroundColor = UIColor.white
+        imageview.layer.shadowColor = UIColor.black.cgColor
+        imageview.layer.shadowRadius = 3
+        imageview.layer.shadowOpacity = 0.8
+        imageview.layer.shadowOffset = CGSize.zero
+        imageview.autoresizingMask = []
+        imageview.isUserInteractionEnabled = true
+        view.addSubview(imageview)
+        self.view = view
+        self.imageview = imageview
+        window.imageview = imageview
+        
+        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(self.draggedView(_:)))
+        imageview.addGestureRecognizer(panGesture)
+        
+        let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
+        imageview.addGestureRecognizer(tap)
     }
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        snapButtonToSocket()
     }
-
-    @objc func panDidFire(panner: UIPanGestureRecognizer) {
-        let offset = panner.translation(in: view)
-        panner.setTranslation(CGPoint.zero, in: view)
-        var center = button.center
-        center.x += offset.x
-        center.y += offset.y
-        button.center = center
-
-        if panner.state == .ended || panner.state == .cancelled {
-            UIView.animate(withDuration: 0.3) {
-                self.snapButtonToSocket()
-            }
+    
+    @objc func draggedView(_ sender: UIPanGestureRecognizer) {
+        let translation = sender.translation(in: imageview)
+        imageview.center = CGPoint(x: imageview.center.x + translation.x, y: imageview.center.y + translation.y)
+        sender.setTranslation(CGPoint.zero, in: imageview)
+    }
+    
+    @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
+//        self.removeFromSuperview()
+        if floatInfo?.mobile.content[0].openLayout == "FULL-DEFAULT" {
+            CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: (floatInfo?.mobile.content[0].url)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5)
         }
     }
-
+    
     @objc func keyboardDidShow(note: NSNotification) {
         window.windowLevel = UIWindow.Level(rawValue: 0)
         window.windowLevel = UIWindow.Level(rawValue: CGFloat.greatestFiniteMagnitude)
-    }
-
-    private func snapButtonToSocket() {
-        var bestSocket = CGPoint.zero
-        var distanceToBestSocket = CGFloat.infinity
-        let center = button.center
-        for socket in sockets {
-            let distance = hypot(center.x - socket.x, center.y - socket.y)
-            if distance < distanceToBestSocket {
-                distanceToBestSocket = distance
-                bestSocket = socket
-            }
-        }
-        button.center = bestSocket
-    }
-
-    private var sockets: [CGPoint] {
-        let buttonSize = button.bounds.size
-        let rect = view.bounds.insetBy(dx: 4 + buttonSize.width / 2, dy: 4 + buttonSize.height / 2)
-        let sockets: [CGPoint] = [
-            CGPoint(x: rect.minX, y: rect.minY),
-            CGPoint(x: rect.minX, y: rect.maxY),
-            CGPoint(x: rect.maxX, y: rect.minY),
-            CGPoint(x: rect.maxX, y: rect.maxY),
-            CGPoint(x: rect.midX, y: rect.midY)
-        ]
-        return sockets
     }
 
 }
 
 private class FloatingButtonWindow: UIWindow {
 
-    var button: UIButton?
+    var imageview: UIImageView?
 
     init() {
         super.init(frame: UIScreen.main.bounds)
@@ -112,8 +99,8 @@ private class FloatingButtonWindow: UIWindow {
     }
 
     fileprivate override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        guard let button = button else { return false }
-        let buttonPoint = convert(point, to: button)
-        return button.point(inside: buttonPoint, with: event)
+        guard let imageview = imageview else { return false }
+        let imageviewPoint = convert(point, to: imageview)
+        return imageview.point(inside: imageviewPoint, with: event)
     }
 }
