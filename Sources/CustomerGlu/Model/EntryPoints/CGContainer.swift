@@ -1,11 +1,11 @@
 //
-//	CGContainer.swift
+//	Container.swift
 //
-//	Create by Mukesh Yadav on 10/3/2022
+//	Create by Mukesh Yadav on 24/3/2022
 
 import Foundation
 
-struct CGContainer: Codable{
+public struct CGContainer: Codable{
 
 	var elementId : String!
 	var height : String!

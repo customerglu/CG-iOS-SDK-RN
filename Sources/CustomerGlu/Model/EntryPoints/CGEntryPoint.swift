@@ -1,7 +1,7 @@
 //
 //	CGEntryPoint.swift
 //
-//	Create by Mukesh Yadav on 10/3/2022
+//	Create by Mukesh Yadav on 24/3/2022
 
 import Foundation
 
@@ -9,7 +9,6 @@ public struct CGEntryPoint: Codable{
 
 	var data : [CGData]!
 	var success : Bool!
-
 
 	/**
 	 * Instantiate the instance using the passed dictionary values to set the properties values

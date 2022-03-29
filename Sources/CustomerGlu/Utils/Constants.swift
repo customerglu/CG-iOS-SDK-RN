@@ -19,6 +19,7 @@ struct Constants {
     static let BOTTOM_DEFAULT_NOTIFICATION = "bottom-default"
     static let FCM_APN = "fcm_apn"
     static let CustomerGluCrash = "CustomerGluCrash"
+    static let CustomerGluPopupDict = "CustomerGluPopupDict"
 }
 
 // Default APIParameterKey

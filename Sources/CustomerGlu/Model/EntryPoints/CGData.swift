@@ -1,14 +1,14 @@
 //
-//	CGData.swift
+//	Data.swift
 //
-//	Create by Mukesh Yadav on 10/3/2022
+//	Create by Mukesh Yadav on 24/3/2022
 
 import Foundation
 
 public struct CGData: Codable{
 
 	var v : Int!
-	var id : String!
+	var _id : String!
 	var client : String!
 	var consumer : String!
 	var createdAt : String!
@@ -18,13 +18,12 @@ public struct CGData: Codable{
 	var updatedAt : String!
 	var visible : Bool!
 
-
 	/**
 	 * Instantiate the instance using the passed dictionary values to set the properties values
 	 */
 	init(fromDictionary dictionary: [String:Any]){
 		v = dictionary["__v"] as? Int
-		id = dictionary["_id"] as? String
+        _id = dictionary["_id"] as? String
 		client = dictionary["client"] as? String
 		consumer = dictionary["consumer"] as? String
 		createdAt = dictionary["createdAt"] as? String
@@ -46,8 +45,8 @@ public struct CGData: Codable{
 		if v != nil{
 			dictionary["__v"] = v
 		}
-		if id != nil{
-			dictionary["_id"] = id
+		if _id != nil{
+			dictionary["_id"] = _id
 		}
 		if client != nil{
 			dictionary["client"] = client

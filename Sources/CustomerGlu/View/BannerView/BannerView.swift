@@ -68,7 +68,7 @@ import WebKit
                     arrContent.append(content)
                 }
                 
-                self.setBannerView(height: 180, isAutoScrollEnabled: mobile.conditions.autoScroll, autoScrollSpeed: mobile.conditions.autoScrollSpeed)
+                self.setBannerView(height: Int(mobile.container.height)!, isAutoScrollEnabled: mobile.conditions.autoScroll, autoScrollSpeed: mobile.conditions.autoScrollSpeed)
             }
         }
     }

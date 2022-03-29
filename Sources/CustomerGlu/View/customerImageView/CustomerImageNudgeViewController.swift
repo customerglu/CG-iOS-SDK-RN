@@ -91,7 +91,7 @@ public class CustomerImageNudgeViewController: UIViewController {
             self.dismiss(animated: false, completion: nil)
         }
         self.view.addSubview(imgView)
-        CustomerGlu.getInstance.loaderShow(withcoordinate: x, y: y)
+//        CustomerGlu.getInstance.loaderShow(withcoordinate: x, y: y)
     }
     
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {

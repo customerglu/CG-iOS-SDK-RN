@@ -149,4 +149,8 @@ extension Date {
     static var currentTimeStamp: Int64 {
         return Int64(Date().timeIntervalSince1970 * 1000)
     }
+    
+    var tomorrow: Date? {
+        return Calendar.current.date(byAdding: .day, value: 1, to: self)
+    }
 }

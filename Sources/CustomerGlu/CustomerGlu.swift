@@ -4,6 +4,19 @@ import UIKit
 
 let gcmMessageIDKey = "gcm.message_id"
 
+struct EntryPointPopUpModel: Codable {
+    public var popups: [PopUpModel]?
+}
+
+struct PopUpModel: Codable {
+    public var _id: String?
+    public var showcount: CGShowCount?
+    public var delay: Int?
+    public var backgroundopacity: Double?
+    public var priority: Int?
+    public var popupdate: Date?
+}
+
 public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     // MARK: - Global Variable
@@ -25,6 +38,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var topSafeAreaColor = UIColor.white
     public static var bottomSafeAreaColor = UIColor.white
     public static var entryPointdata: [CGData] = []
+    var delaySeconds = 0
     
     private override init() {
         super.init()
@@ -253,6 +267,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_TOKEN)
         userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_USERID)
         userDefaults.removeObject(forKey: Constants.CustomerGluCrash)
+        userDefaults.removeObject(forKey: Constants.CustomerGluPopupDict)
     }
     
     // MARK: - API Calls Methods
@@ -429,6 +444,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         //                                    for floatBtn in floatingButtons {
                         //                                        self.addFloatingButton(floatBtnList: floatingButtons, btnInfo: floatBtn)
                         //                                    }
+                        
+                        let popups = CustomerGlu.entryPointdata.filter {
+                            $0.mobile.container.type == "POPUP"
+                        }
+                        
+                        self.showPopupBanners(popups: popups)
                     }
                                         
                 case .failure(let error):
@@ -601,6 +622,105 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     private func addFloatingButton(btnInfo: CGData) {
         DispatchQueue.main.async {
             _ = FloatingButtonController(btnInfo: btnInfo)
+        }
+    }
+    
+    private func showPopupBanners(popups: [CGData]) {
+        
+        var popupDict = [PopUpModel]()
+        var entryPointPopUpModel = EntryPointPopUpModel()
+        
+        do {
+            let popupItems = try userDefaults.getObject(forKey: Constants.CustomerGluPopupDict, castTo: EntryPointPopUpModel.self)
+            popupDict = popupItems.popups!
+        } catch {
+            print(error.localizedDescription)
+        }
+
+        for dict in popups {
+            if popupDict.contains(where: { $0._id == dict._id }) {
+                print("1 exists in the array")
+            } else {
+                print("1 does not exists in the array")
+                var popupInfo = PopUpModel()
+                popupInfo._id = dict._id
+                popupInfo.showcount = dict.mobile.conditions.showCount
+                popupInfo.delay = dict.mobile.conditions.delay
+                popupInfo.backgroundopacity = dict.mobile.conditions.backgroundOpacity
+                popupInfo.priority = dict.mobile.conditions.priority
+                popupInfo.popupdate = Date()
+                
+                popupDict.append(popupInfo)
+            }
+        }
+        
+        for item in popupDict {
+            if popups.contains(where: { $0._id == item._id }) {
+                print("1 exists in the array")
+            } else {
+                print("1 does not exists in the array")
+                // remove item from popupDict
+                if let index = popupDict.firstIndex(where: {$0._id == item._id}) {
+                    popupDict.remove(at: index)
+                }
+            }
+        }
+                
+        let sortedPopup = popupDict.sorted{$0.priority! > $1.priority!}
+
+        if sortedPopup.count > 0 {
+            for popupShow in sortedPopup {
+                var finalPopupShow = popupShow
+                if finalPopupShow.showcount?.count != 0 {
+                    let finalPopUp = CustomerGlu.entryPointdata.filter {
+                        $0._id == popupShow._id
+                    }
+                    
+                    finalPopupShow.showcount?.count -= 1
+                    
+                    if finalPopupShow.showcount?.dailyRefresh == true {
+                        if finalPopupShow.popupdate == Date() {
+                            let today = Date()
+                            if let tomorrow = today.tomorrow {
+                                print("\(tomorrow)")
+                                finalPopupShow.popupdate = tomorrow
+                            }
+                        } else {
+                            return
+                        }
+                    }
+                    
+                    if let index = popupDict.firstIndex(where: {$0._id == finalPopupShow._id}) {
+                        popupDict.remove(at: index)
+                        popupDict.insert(finalPopupShow, at: index)
+                    }
+                    
+                    let seconds = DispatchTimeInterval.seconds(finalPopUp[0].mobile.conditions.delay)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
+                        
+                        if finalPopUp[0].mobile.content[0].type == "IMAGE" {                            
+                            let image_url = finalPopUp[0].mobile.content[0].url
+                            let customerImageNudgeVC = StoryboardType.main.instantiate(vcType: CustomerImageNudgeViewController.self)
+                            customerImageNudgeVC.urlStr = image_url ?? ""
+//                            customerImageNudgeVC.modalPresentationStyle = .fullScreen
+                            customerImageNudgeVC.alpha = finalPopUp[0].mobile.conditions.backgroundOpacity
+                            guard let topController = UIViewController.topViewController() else {
+                                return
+                            }
+                            topController.present(customerImageNudgeVC, animated: false, completion: nil)
+                        }
+                    }
+                }
+                break
+            }
+        }
+        
+        entryPointPopUpModel.popups = popupDict
+        
+        do {
+            try userDefaults.setObject(entryPointPopUpModel, forKey: Constants.CustomerGluPopupDict)
+        } catch {
+            print(error.localizedDescription)
         }
     }
 }

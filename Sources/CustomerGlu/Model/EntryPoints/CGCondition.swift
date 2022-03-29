@@ -1,17 +1,19 @@
 //
-//	CGCondition.swift
+//	Condition.swift
 //
-//	Create by Mukesh Yadav on 10/3/2022
+//	Create by Mukesh Yadav on 24/3/2022
 
 import Foundation
 
-struct CGCondition: Codable{
+public struct CGCondition: Codable{
 
 	var autoScroll : Bool!
 	var autoScrollSpeed : Int!
-	var backgroundOpacity : Float!
+	var backgroundOpacity : Double!
 	var delay : Int!
 	var draggable : Bool!
+	var priority : Int!
+	var showCount : CGShowCount!
 
 
 	/**
@@ -20,9 +22,13 @@ struct CGCondition: Codable{
 	init(fromDictionary dictionary: [String:Any]){
 		autoScroll = dictionary["autoScroll"] as? Bool
 		autoScrollSpeed = dictionary["autoScrollSpeed"] as? Int
-		backgroundOpacity = dictionary["backgroundOpacity"] as? Float
+		backgroundOpacity = dictionary["backgroundOpacity"] as? Double
 		delay = dictionary["delay"] as? Int
 		draggable = dictionary["draggable"] as? Bool
+		priority = dictionary["priority"] as? Int
+		if let showCountData = dictionary["showCount"] as? [String:Any]{
+				showCount = CGShowCount(fromDictionary: showCountData)
+			}
 	}
 
 	/**
@@ -45,6 +51,12 @@ struct CGCondition: Codable{
 		}
 		if draggable != nil{
 			dictionary["draggable"] = draggable
+		}
+		if priority != nil{
+			dictionary["priority"] = priority
+		}
+		if showCount != nil{
+			dictionary["showCount"] = showCount.toDictionary()
 		}
 		return dictionary
 	}

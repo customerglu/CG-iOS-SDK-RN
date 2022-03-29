@@ -1,13 +1,13 @@
 //
-//	CGContent.swift
+//	Content.swift
 //
-//	Create by Mukesh Yadav on 10/3/2022
+//	Create by Mukesh Yadav on 24/3/2022
 
 import Foundation
 
-struct CGContent: Codable{
+public struct CGContent: Codable{
 
-	var id : String!
+	var _id : String!
 	var campaignId : String!
 	var openLayout : String!
 	var type : String!
@@ -18,7 +18,7 @@ struct CGContent: Codable{
 	 * Instantiate the instance using the passed dictionary values to set the properties values
 	 */
 	init(fromDictionary dictionary: [String:Any]){
-		id = dictionary["_id"] as? String
+        _id = dictionary["_id"] as? String
 		campaignId = dictionary["campaignId"] as? String
 		openLayout = dictionary["openLayout"] as? String
 		type = dictionary["type"] as? String
@@ -31,8 +31,8 @@ struct CGContent: Codable{
 	func toDictionary() -> [String:Any]
 	{
 		var dictionary = [String:Any]()
-		if id != nil{
-			dictionary["_id"] = id
+		if _id != nil{
+			dictionary["_id"] = _id
 		}
 		if campaignId != nil{
 			dictionary["campaignId"] = campaignId

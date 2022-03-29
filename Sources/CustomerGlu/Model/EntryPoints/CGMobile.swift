@@ -1,23 +1,22 @@
 //
-//	CGMobile.swift
+//	Mobile.swift
 //
-//	Create by Mukesh Yadav on 10/3/2022
+//	Create by Mukesh Yadav on 24/3/2022
 
 import Foundation
 
-struct CGMobile: Codable {
+public struct CGMobile: Codable{
 
-	var id : String!
+	var _id : String!
 	var conditions : CGCondition!
 	var container : CGContainer!
 	var content : [CGContent]!
-
 
 	/**
 	 * Instantiate the instance using the passed dictionary values to set the properties values
 	 */
 	init(fromDictionary dictionary: [String:Any]){
-		id = dictionary["_id"] as? String
+        _id = dictionary["_id"] as? String
 		if let conditionsData = dictionary["conditions"] as? [String:Any]{
 				conditions = CGCondition(fromDictionary: conditionsData)
 			}
@@ -39,8 +38,8 @@ struct CGMobile: Codable {
 	func toDictionary() -> [String:Any]
 	{
 		var dictionary = [String:Any]()
-		if id != nil{
-			dictionary["_id"] = id
+		if _id != nil{
+			dictionary["_id"] = _id
 		}
 		if conditions != nil{
 			dictionary["conditions"] = conditions.toDictionary()
