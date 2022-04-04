@@ -23,17 +23,28 @@ class FloatingButtonController: UIViewController {
 
     override func loadView() {
         let view = UIView()
+        
+        let screenHeight = UIScreen.main.bounds.height
+        let screenWidth = UIScreen.main.bounds.width
+        
+        let heightPer: CGFloat = 50
+        let widthPer:CGFloat = 50
+        
+        let finalHeight = (screenHeight * heightPer)/100
+        let finalWidth = (screenWidth * widthPer)/100
+
+        print("final height\(finalHeight)  and width \(finalWidth)")
 
         let height: Int = Int((floatInfo?.mobile.container.height)!)!
         let width: Int = Int((floatInfo?.mobile.container.width)!)!
         let imageview = UIImageView()
 
         if floatInfo?.mobile.container.position == "BOTTOM-LEFT" {
-            imageview.frame = CGRect(x: 10, y: Int(UIScreen.main.bounds.height) - (height + 20), width: width, height: height)
+            imageview.frame = CGRect(x: 10, y: CGFloat(Int(UIScreen.main.bounds.height) - (Int(finalHeight) + 20)), width: finalWidth, height: finalHeight)
         } else if floatInfo?.mobile.container.position == "BOTTOM-RIGHT" {
-            imageview.frame = CGRect(x: Int(UIScreen.main.bounds.maxX) - 110, y: Int(UIScreen.main.bounds.height) - (height + 20), width: width, height: height)
+            imageview.frame = CGRect(x: CGFloat(Int(UIScreen.main.bounds.maxX) - 110), y: CGFloat(Int(UIScreen.main.bounds.height) - (Int(finalHeight) + 20)), width: finalWidth, height: finalHeight)
         } else {
-            imageview.frame = CGRect(x: Int(UIScreen.main.bounds.midX) - 50, y: Int(UIScreen.main.bounds.height) - (height + 20), width: width, height: height)
+            imageview.frame = CGRect(x: CGFloat(Int(UIScreen.main.bounds.midX) - 50), y: CGFloat(Int(UIScreen.main.bounds.height) - (Int(finalHeight) + 20)), width: finalWidth, height: finalHeight)
         }
 
         imageview.downloadImage(urlString: (floatInfo?.mobile.content[0].url)!)
@@ -57,7 +68,11 @@ class FloatingButtonController: UIViewController {
         let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
         imageview.addGestureRecognizer(tap)
     }
-
+    public func hideFloatingButton(ishidden:Bool) {
+        window.isHidden = ishidden
+        window.imageview?.isHidden = ishidden
+        self.imageview.isHidden = ishidden
+    }
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
     }

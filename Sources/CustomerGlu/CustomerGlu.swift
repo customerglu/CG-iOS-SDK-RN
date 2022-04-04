@@ -21,6 +21,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     // MARK: - Global Variable
     var spinner = SpinnerView()
+    var floatingButton: FloatingButtonController?
+    
     
     // Singleton Instance
     public static var getInstance = CustomerGlu()
@@ -318,6 +320,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                     
                                     if floatingButtons.count != 0 {
                                         if floatingButtons.count > 1 {
+                                            
                                             self.addFloatingButton(btnInfo: floatingButtons[0])
                                         }
                                         //                                    for floatBtn in floatingButtons {
@@ -621,9 +624,24 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     private func addFloatingButton(btnInfo: CGData) {
         DispatchQueue.main.async {
-            _ = FloatingButtonController(btnInfo: btnInfo)
+            self.floatingButton = FloatingButtonController(btnInfo: btnInfo)
         }
     }
+    func getcontrollerName(viewController:UIViewController) {
+        print("controller name \(viewController)")
+        let className = NSStringFromClass(viewController .classForCoder).components(separatedBy: ".").last!
+        print("class name \(className)")
+        if className == "OpenWalletViewController"{
+            self.floatingButton?.hideFloatingButton(ishidden: true)
+        }
+        else if className == "LoadAllCampaignsViewController"{
+            self.floatingButton?.hideFloatingButton(ishidden:false)
+
+        }
+
+        
+    }
+    
     
     private func showPopupBanners(popups: [CGData]) {
         
