@@ -57,10 +57,19 @@ class FloatingButtonController: UIViewController {
         imageview.layer.shadowOffset = CGSize.zero
         imageview.autoresizingMask = []
         imageview.isUserInteractionEnabled = true
+        if floatInfo?.mobile.container.borderRadius != nil {
+            let radius = NumberFormatter().number(from: (floatInfo?.mobile.container.borderRadius)!)
+
+            imageview.layer.cornerRadius = radius as! CGFloat
+            imageview.clipsToBounds = true
+            
+        }
+        
         view.addSubview(imageview)
         self.view = view
         self.imageview = imageview
         window.imageview = imageview
+        
         
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(self.draggedView(_:)))
         imageview.addGestureRecognizer(panGesture)

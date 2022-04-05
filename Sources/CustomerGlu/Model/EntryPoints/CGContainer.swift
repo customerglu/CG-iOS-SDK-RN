@@ -12,6 +12,7 @@ public struct CGContainer: Codable{
 	var position : String!
 	var type : String!
 	var width : String!
+    var borderRadius : String!
 
 
 	/**
@@ -23,6 +24,7 @@ public struct CGContainer: Codable{
 		position = dictionary["position"] as? String
 		type = dictionary["type"] as? String
 		width = dictionary["width"] as? String
+        borderRadius = dictionary["borderRadius"] as? String
 	}
 
 	/**
@@ -46,6 +48,9 @@ public struct CGContainer: Codable{
 		if width != nil{
 			dictionary["width"] = width
 		}
+        if borderRadius != nil{
+            dictionary["borderRadius"] = borderRadius
+        }
 		return dictionary
 	}
 

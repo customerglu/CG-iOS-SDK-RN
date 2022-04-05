@@ -74,15 +74,35 @@ import WebKit
     }
     
     private func setBannerView(height: Int, isAutoScrollEnabled: Bool, autoScrollSpeed: Int){
-        self.frame.size.height = CGFloat(height)
-        self.imgScrollView.frame.size.height = CGFloat(height)
         
         var dict = [String: AnyHashable]()
         dict["height"] = height
         dict["elementId"] = elementId
+        
+        let screenHeight = UIScreen.main.bounds.height
+
+        let finalHeight = (Int(screenHeight) * height)/100
+        self.frame.size.height = CGFloat(finalHeight)
+
+        self.imgScrollView.frame.size.height = CGFloat(finalHeight)
+        print("final height \(finalHeight)")
 
         // Post notification
-        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_Banner_Height").rawValue), object: self, userInfo: dict)
+       // NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_Banner_Height").rawValue), object: self, userInfo: dict)
+        if let constraint = (self.imgScrollView.constraints.filter{$0.firstAttribute == .height}.first) {
+            constraint.constant = CGFloat(finalHeight)
+        }
+        else {
+            print("No height constraint found on imageview")
+        }
+        if let constraint = (self.constraints.filter{$0.firstAttribute == .height}.first) {
+            constraint.constant = CGFloat(finalHeight)
+        }
+        else {
+            print("No height constraint found on view--- ")
+        }
+        
+                
         
         imgScrollView.delegate = self
 
