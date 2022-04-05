@@ -1,22 +1,22 @@
 //
-//	ShowCount.swift
+//	Android.swift
 //
 //	Create by Mukesh Yadav on 5/4/2022
 
 import Foundation
 
-public struct CGShowCount: Codable{
+public struct CGAndroid: Codable{
 
-	var count : Int!
-	var dailyRefresh : Bool!
+	var allowedActitivityList : [String]!
+	var disallowedActitivityList : [String]!
+
 
 	/**
 	 * Instantiate the instance using the passed dictionary values to set the properties values
 	 */
 	init(fromDictionary dictionary: [String:Any]){
-		count = dictionary["count"] as? Int
-		dailyRefresh = dictionary["dailyRefresh"] as? Bool
-        count = dictionary["count"] as? Int
+		allowedActitivityList = dictionary["allowedActitivityList"] as? [String]
+		disallowedActitivityList = dictionary["disallowedActitivityList"] as? [String]
 	}
 
 	/**
@@ -25,11 +25,11 @@ public struct CGShowCount: Codable{
 	func toDictionary() -> [String:Any]
 	{
 		var dictionary = [String:Any]()
-		if count != nil{
-			dictionary["count"] = count
+		if allowedActitivityList != nil{
+			dictionary["allowedActitivityList"] = allowedActitivityList
 		}
-		if dailyRefresh != nil{
-			dictionary["dailyRefresh"] = dailyRefresh
+		if disallowedActitivityList != nil{
+			dictionary["disallowedActitivityList"] = disallowedActitivityList
 		}
 		return dictionary
 	}

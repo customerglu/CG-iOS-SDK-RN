@@ -19,8 +19,9 @@
             <rect key="frame" x="0.0" y="0.0" width="414" height="141"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
             <subviews>
-                <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="GuG-U5-9Fk">
+                <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="GuG-U5-9Fk">
                     <rect key="frame" x="0.0" y="0.0" width="414" height="141"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                     <viewLayoutGuide key="contentLayoutGuide" id="ws8-jT-j31"/>
                     <viewLayoutGuide key="frameLayoutGuide" id="NwO-P6-Cqg"/>
                     <connections>
@@ -30,12 +31,6 @@
             </subviews>
             <viewLayoutGuide key="safeArea" id="oAM-nO-DRe"/>
             <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-            <constraints>
-                <constraint firstItem="GuG-U5-9Fk" firstAttribute="top" secondItem="nZC-LO-bHx" secondAttribute="top" id="7MM-9Y-Ip5"/>
-                <constraint firstItem="GuG-U5-9Fk" firstAttribute="leading" secondItem="oAM-nO-DRe" secondAttribute="leading" id="tan-zj-UUb"/>
-                <constraint firstItem="GuG-U5-9Fk" firstAttribute="trailing" secondItem="oAM-nO-DRe" secondAttribute="trailing" id="yIR-WX-g1U"/>
-                <constraint firstItem="GuG-U5-9Fk" firstAttribute="bottom" secondItem="oAM-nO-DRe" secondAttribute="bottom" id="z8R-ht-wN9"/>
-            </constraints>
             <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
             <point key="canvasLocation" x="100" y="-182"/>
         </view>

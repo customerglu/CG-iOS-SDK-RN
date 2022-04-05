@@ -80,30 +80,19 @@ import WebKit
         dict["elementId"] = elementId
         
         let screenHeight = UIScreen.main.bounds.height
-
         let finalHeight = (Int(screenHeight) * height)/100
-        self.frame.size.height = CGFloat(finalHeight)
-
-        self.imgScrollView.frame.size.height = CGFloat(finalHeight)
-        print("final height \(finalHeight)")
-
+        
         // Post notification
-       // NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_Banner_Height").rawValue), object: self, userInfo: dict)
-        if let constraint = (self.imgScrollView.constraints.filter{$0.firstAttribute == .height}.first) {
-            constraint.constant = CGFloat(finalHeight)
-        }
-        else {
-            print("No height constraint found on imageview")
-        }
+        // NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_Banner_Height").rawValue), object: self, userInfo: dict)
+
         if let constraint = (self.constraints.filter{$0.firstAttribute == .height}.first) {
             constraint.constant = CGFloat(finalHeight)
+        } else {
+            self.frame.size.height = CGFloat(finalHeight)
         }
-        else {
-            print("No height constraint found on view--- ")
-        }
-        
-                
-        
+           
+        self.imgScrollView.frame.size.height = CGFloat(finalHeight)
+
         imgScrollView.delegate = self
 
         for i in 0..<arrContent.count {

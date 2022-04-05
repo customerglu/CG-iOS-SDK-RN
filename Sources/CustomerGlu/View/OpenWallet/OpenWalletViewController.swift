@@ -9,7 +9,7 @@ import Foundation
 import UIKit
 
 public class OpenWalletViewController: UIViewController {
-   
+    
     public static let storyboardVC = StoryboardType.main.instantiate(vcType: OpenWalletViewController.self)
     
     var my_url = ""
@@ -23,26 +23,26 @@ public class OpenWalletViewController: UIViewController {
         
         navigationController?.setNavigationBarHidden(true, animated: false)
         CustomerGlu.getInstance.getcontrollerName(viewController: self)
-
+        
         if CustomerGlu.sdk_disable! == true {
             print(CustomerGlu.sdk_disable!)
             self.navigationController?.popViewController(animated: true)
             return
         }
         
-            if ApplicationManager.doValidateToken() == true {
-                callOpenWalletApi()
-            } else {
-                openWalletViewModel.updateProfile { success, _ in
-                    if success {
-                        self.callOpenWalletApi()
-                    } else {
-                        print("error")
-                    }
+        if ApplicationManager.doValidateToken() == true {
+            callOpenWalletApi()
+        } else {
+            openWalletViewModel.updateProfile { success, _ in
+                if success {
+                    self.callOpenWalletApi()
+                } else {
+                    print("error")
                 }
             }
+        }
     }
-   
+    
     private func callOpenWalletApi() {
         CustomerGlu.getInstance.loaderShow(withcoordinate: self.view.frame.midX - 30, y: self.view.frame.midY - 30)
         ApplicationManager.openWalletApi { success, campaignsModel in

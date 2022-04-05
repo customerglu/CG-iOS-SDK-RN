@@ -42,9 +42,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var entryPointdata: [CGData] = []
     public static var isDebugingEnabled = false
     public static var isEntryPointEnabled = false
-
-    
-    var delaySeconds = 0
     
     private override init() {
         super.init()
@@ -64,13 +61,15 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             print(error)
         }
     }
+    
     public func enableDebugging(enabled: Bool) {
         CustomerGlu.isDebugingEnabled =  enabled
     }
+    
     public func enableEntryPoint(enabled: Bool) {
         CustomerGlu.isEntryPointEnabled = enabled
-        
     }
+    
     public func customerGluDidCatchCrash(with model: CrashModel) {
         print("\(model)")
         let dict = [

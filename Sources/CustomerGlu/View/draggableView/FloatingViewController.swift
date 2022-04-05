@@ -27,24 +27,24 @@ class FloatingButtonController: UIViewController {
         let screenHeight = UIScreen.main.bounds.height
         let screenWidth = UIScreen.main.bounds.width
         
-        let heightPer: CGFloat = 50
-        let widthPer:CGFloat = 50
+        let heightPer:Int = Int((floatInfo?.mobile.container.height)!)!
+        let widthPer:Int = Int((floatInfo?.mobile.container.width)!)!
         
-        let finalHeight = (screenHeight * heightPer)/100
-        let finalWidth = (screenWidth * widthPer)/100
+        let finalHeight = (Int(screenHeight) * heightPer)/100
+        let finalWidth = (Int(screenWidth) * widthPer)/100
 
         print("final height\(finalHeight)  and width \(finalWidth)")
 
-        let height: Int = Int((floatInfo?.mobile.container.height)!)!
-        let width: Int = Int((floatInfo?.mobile.container.width)!)!
+//        let height: Int = Int((floatInfo?.mobile.container.height)!)!
+//        let width: Int = Int((floatInfo?.mobile.container.width)!)!
         let imageview = UIImageView()
 
         if floatInfo?.mobile.container.position == "BOTTOM-LEFT" {
-            imageview.frame = CGRect(x: 10, y: CGFloat(Int(UIScreen.main.bounds.height) - (Int(finalHeight) + 20)), width: finalWidth, height: finalHeight)
+            imageview.frame = CGRect(x: 10, y: Int(UIScreen.main.bounds.height) - (finalHeight + 20), width: finalWidth, height: finalHeight)
         } else if floatInfo?.mobile.container.position == "BOTTOM-RIGHT" {
-            imageview.frame = CGRect(x: CGFloat(Int(UIScreen.main.bounds.maxX) - 110), y: CGFloat(Int(UIScreen.main.bounds.height) - (Int(finalHeight) + 20)), width: finalWidth, height: finalHeight)
+            imageview.frame = CGRect(x: Int(UIScreen.main.bounds.maxX) - 110, y: Int(UIScreen.main.bounds.height) - (finalHeight + 20), width: finalWidth, height: finalHeight)
         } else {
-            imageview.frame = CGRect(x: CGFloat(Int(UIScreen.main.bounds.midX) - 50), y: CGFloat(Int(UIScreen.main.bounds.height) - (Int(finalHeight) + 20)), width: finalWidth, height: finalHeight)
+            imageview.frame = CGRect(x: Int(UIScreen.main.bounds.midX) - 50, y: Int(UIScreen.main.bounds.height) - (finalHeight + 20), width: finalWidth, height: finalHeight)
         }
 
         imageview.downloadImage(urlString: (floatInfo?.mobile.content[0].url)!)
@@ -57,19 +57,17 @@ class FloatingButtonController: UIViewController {
         imageview.layer.shadowOffset = CGSize.zero
         imageview.autoresizingMask = []
         imageview.isUserInteractionEnabled = true
+        
         if floatInfo?.mobile.container.borderRadius != nil {
             let radius = NumberFormatter().number(from: (floatInfo?.mobile.container.borderRadius)!)
-
             imageview.layer.cornerRadius = radius as! CGFloat
             imageview.clipsToBounds = true
-            
         }
         
         view.addSubview(imageview)
         self.view = view
         self.imageview = imageview
         window.imageview = imageview
-        
         
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(self.draggedView(_:)))
         imageview.addGestureRecognizer(panGesture)

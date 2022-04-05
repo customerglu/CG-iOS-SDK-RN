@@ -1,7 +1,7 @@
 //
 //	Data.swift
 //
-//	Create by Mukesh Yadav on 24/3/2022
+//	Create by Mukesh Yadav on 5/4/2022
 
 import Foundation
 
@@ -13,7 +13,6 @@ public struct CGData: Codable{
 	var consumer : String!
 	var createdAt : String!
 	var mobile : CGMobile!
-	var name : String!
 	var status : String!
 	var updatedAt : String!
 	var visible : Bool!
@@ -30,7 +29,6 @@ public struct CGData: Codable{
 		if let mobileData = dictionary["mobile"] as? [String:Any]{
 				mobile = CGMobile(fromDictionary: mobileData)
 			}
-		name = dictionary["name"] as? String
 		status = dictionary["status"] as? String
 		updatedAt = dictionary["updatedAt"] as? String
 		visible = dictionary["visible"] as? Bool
@@ -59,9 +57,6 @@ public struct CGData: Codable{
 		}
 		if mobile != nil{
 			dictionary["mobile"] = mobile.toDictionary()
-		}
-		if name != nil{
-			dictionary["name"] = name
 		}
 		if status != nil{
 			dictionary["status"] = status

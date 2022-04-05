@@ -1,26 +1,34 @@
 //
 //	Container.swift
 //
-//	Create by Mukesh Yadav on 24/3/2022
+//	Create by Mukesh Yadav on 5/4/2022
 
 import Foundation
 
 public struct CGContainer: Codable{
 
+	var android : CGAndroid!
 	var elementId : String!
 	var height : String!
+	var ios : CGAndroid!
 	var position : String!
 	var type : String!
 	var width : String!
-    var borderRadius : String!
+    var borderRadius: String!
 
 
 	/**
 	 * Instantiate the instance using the passed dictionary values to set the properties values
 	 */
 	init(fromDictionary dictionary: [String:Any]){
+		if let androidData = dictionary["android"] as? [String:Any]{
+				android = CGAndroid(fromDictionary: androidData)
+			}
 		elementId = dictionary["elementId"] as? String
 		height = dictionary["height"] as? String
+		if let iosData = dictionary["ios"] as? [String:Any]{
+				ios = CGAndroid(fromDictionary: iosData)
+			}
 		position = dictionary["position"] as? String
 		type = dictionary["type"] as? String
 		width = dictionary["width"] as? String
@@ -33,11 +41,17 @@ public struct CGContainer: Codable{
 	func toDictionary() -> [String:Any]
 	{
 		var dictionary = [String:Any]()
+		if android != nil{
+			dictionary["android"] = android.toDictionary()
+		}
 		if elementId != nil{
 			dictionary["elementId"] = elementId
 		}
 		if height != nil{
 			dictionary["height"] = height
+		}
+		if ios != nil{
+			dictionary["ios"] = ios.toDictionary()
 		}
 		if position != nil{
 			dictionary["position"] = position
