@@ -24,29 +24,43 @@ class FloatingButtonController: UIViewController {
     override func loadView() {
         let view = UIView()
         
-        let screenHeight = UIScreen.main.bounds.height
-        let screenWidth = UIScreen.main.bounds.width
+        let screenHeight = Int(UIScreen.main.bounds.height)
+        let screenWidth = Int(UIScreen.main.bounds.width)
         
-        let heightPer:Int = Int((floatInfo?.mobile.container.height)!)!
-        let widthPer:Int = Int((floatInfo?.mobile.container.width)!)!
+        let heightPer = Int((floatInfo?.mobile.container.height)!)!
+        let widthPer = Int((floatInfo?.mobile.container.width)!)!
         
-        let finalHeight = (Int(screenHeight) * heightPer)/100
-        let finalWidth = (Int(screenWidth) * widthPer)/100
+        let finalHeight = (screenHeight * heightPer)/100
+        let finalWidth = (screenWidth * widthPer)/100
+        
+        let bottomSpace = (screenHeight * 5)/100
+        let sideSpace = (screenWidth * 5)/100
+        let topSpace = (screenHeight * 5)/100
+        let midX = Int(UIScreen.main.bounds.midX)
+        let midY = Int(UIScreen.main.bounds.midY)
 
-        print("final height\(finalHeight)  and width \(finalWidth)")
-
-//        let height: Int = Int((floatInfo?.mobile.container.height)!)!
-//        let width: Int = Int((floatInfo?.mobile.container.width)!)!
         let imageview = UIImageView()
 
         if floatInfo?.mobile.container.position == "BOTTOM-LEFT" {
-            imageview.frame = CGRect(x: 10, y: Int(UIScreen.main.bounds.height) - (finalHeight + 20), width: finalWidth, height: finalHeight)
+            imageview.frame = CGRect(x: sideSpace, y: screenHeight - (finalHeight + bottomSpace), width: finalWidth, height: finalHeight)
         } else if floatInfo?.mobile.container.position == "BOTTOM-RIGHT" {
-            imageview.frame = CGRect(x: Int(UIScreen.main.bounds.maxX) - 110, y: Int(UIScreen.main.bounds.height) - (finalHeight + 20), width: finalWidth, height: finalHeight)
+            imageview.frame = CGRect(x: screenWidth - (finalWidth + sideSpace), y: screenHeight - (finalHeight + bottomSpace), width: finalWidth, height: finalHeight)
+        } else if floatInfo?.mobile.container.position == "BOTTOM-CENTER" {
+            imageview.frame = CGRect(x: midX - (finalWidth / 2), y: screenHeight - (finalHeight + bottomSpace), width: finalWidth, height: finalHeight)
+        } else if floatInfo?.mobile.container.position == "TOP-LEFT" {
+            imageview.frame = CGRect(x: sideSpace, y: topSpace, width: finalWidth, height: finalHeight)
+        } else if floatInfo?.mobile.container.position == "TOP-RIGHT" {
+            imageview.frame = CGRect(x: screenWidth - (finalWidth + sideSpace), y: topSpace, width: finalWidth, height: finalHeight)
+        } else if floatInfo?.mobile.container.position == "TOP-CENTER" {
+            imageview.frame = CGRect(x: midX - (finalWidth / 2), y: topSpace, width: finalWidth, height: finalHeight)
+        } else if floatInfo?.mobile.container.position == "CENTER-LEFT" {
+            imageview.frame = CGRect(x: sideSpace, y: midY - (finalHeight / 2), width: finalWidth, height: finalHeight)
+        } else if floatInfo?.mobile.container.position == "CENTER-RIGHT" {
+            imageview.frame = CGRect(x: screenWidth - (finalWidth + sideSpace), y: midY - (finalHeight / 2), width: finalWidth, height: finalHeight)
         } else {
-            imageview.frame = CGRect(x: Int(UIScreen.main.bounds.midX) - 50, y: Int(UIScreen.main.bounds.height) - (finalHeight + 20), width: finalWidth, height: finalHeight)
+            imageview.frame = CGRect(x: midX - (finalWidth / 2), y: midY - (finalHeight / 2), width: finalWidth, height: finalHeight)
         }
-
+        
         imageview.downloadImage(urlString: (floatInfo?.mobile.content[0].url)!)
         imageview.contentMode = .scaleToFill
         imageview.clipsToBounds = true

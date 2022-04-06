@@ -323,18 +323,22 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             switch result {
                                 case .success(let responseGetEntry):
                                     CustomerGlu.entryPointdata = responseGetEntry.data
+                                    // FLOATING Buttons
                                     let floatingButtons = CustomerGlu.entryPointdata.filter {
                                         $0.mobile.container.type == "FLOATING"
                                     }
-                                    
                                     if floatingButtons.count != 0 {
-                                        if floatingButtons.count > 1 {
-                                            
-                                            self.addFloatingButton(btnInfo: floatingButtons[0])
+                                        for floatBtn in floatingButtons {
+                                            self.addFloatingButton(btnInfo: floatBtn)
                                         }
-                                        //                                    for floatBtn in floatingButtons {
-                                        //                                        self.addFloatingButton(floatBtnList: floatingButtons, btnInfo: floatBtn)
-                                        //                                    }
+                                    }
+                                    
+                                    //POPUPS
+                                    let popups = CustomerGlu.entryPointdata.filter {
+                                        $0.mobile.container.type == "POPUP"
+                                    }
+                                    if popups.count != 0 {
+                                        self.showPopupBanners(popups: popups)
                                     }
                                     completion(true, response)
                                     
@@ -407,17 +411,22 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             switch result {
                                 case .success(let responseGetEntry):
                                     CustomerGlu.entryPointdata = responseGetEntry.data
+                                    // FLOATING Buttons
                                     let floatingButtons = CustomerGlu.entryPointdata.filter {
                                         $0.mobile.container.type == "FLOATING"
                                     }
-                                    
                                     if floatingButtons.count != 0 {
-                                        if floatingButtons.count > 1 {
-                                            self.addFloatingButton(btnInfo: floatingButtons[0])
+                                        for floatBtn in floatingButtons {
+                                            self.addFloatingButton(btnInfo: floatBtn)
                                         }
-                                        //                                    for floatBtn in floatingButtons {
-                                        //                                        self.addFloatingButton(floatBtnList: floatingButtons, btnInfo: floatBtn)
-                                        //                                    }
+                                    }
+                                    
+                                    //POPUPS
+                                    let popups = CustomerGlu.entryPointdata.filter {
+                                        $0.mobile.container.type == "POPUP"
+                                    }
+                                    if popups.count != 0 {
+                                        self.showPopupBanners(popups: popups)
                                     }
                                     completion(true, response)
 
@@ -445,22 +454,21 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             switch result {
                 case .success(let response):
                     CustomerGlu.entryPointdata = response.data
+                    // FLOATING Buttons
                     let floatingButtons = CustomerGlu.entryPointdata.filter {
                         $0.mobile.container.type == "FLOATING"
                     }
-                    
                     if floatingButtons.count != 0 {
-                        if floatingButtons.count > 1 {
-                            self.addFloatingButton(btnInfo: floatingButtons[0])
+                        for floatBtn in floatingButtons {
+                            self.addFloatingButton(btnInfo: floatBtn)
                         }
-                        //                                    for floatBtn in floatingButtons {
-                        //                                        self.addFloatingButton(floatBtnList: floatingButtons, btnInfo: floatBtn)
-                        //                                    }
-                        
-                        let popups = CustomerGlu.entryPointdata.filter {
-                            $0.mobile.container.type == "POPUP"
-                        }
-                        
+                    }
+                    
+                    //POPUPS
+                    let popups = CustomerGlu.entryPointdata.filter {
+                        $0.mobile.container.type == "POPUP"
+                    }
+                    if popups.count != 0 {
                         self.showPopupBanners(popups: popups)
                     }
                                         
@@ -636,6 +644,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             self.floatingButton = FloatingButtonController(btnInfo: btnInfo)
         }
     }
+    
     func getcontrollerName(viewController:UIViewController) {
         print("controller name \(viewController)")
         let className = NSStringFromClass(viewController .classForCoder).components(separatedBy: ".").last!
@@ -645,15 +654,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
         else if className == "LoadAllCampaignsViewController"{
             self.floatingButton?.hideFloatingButton(ishidden:false)
-
         }
-
-        
     }
     
-    
     private func showPopupBanners(popups: [CGData]) {
-        
         var popupDict = [PopUpModel]()
         var entryPointPopUpModel = EntryPointPopUpModel()
         
