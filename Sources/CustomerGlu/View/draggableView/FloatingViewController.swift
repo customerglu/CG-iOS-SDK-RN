@@ -1,8 +1,11 @@
 import UIKit
 
+
 class FloatingButtonController: UIViewController {
 
     private(set) var imageview: UIImageView!
+    private(set) var dismisview: UIView!
+    private(set) var dismisimageview: UIImageView!
     var floatInfo: CGData?
 
     required init?(coder aDecoder: NSCoder) {
@@ -64,7 +67,7 @@ class FloatingButtonController: UIViewController {
         imageview.downloadImage(urlString: (floatInfo?.mobile.content[0].url)!)
         imageview.contentMode = .scaleToFill
         imageview.clipsToBounds = true
-        imageview.backgroundColor = UIColor.white
+        imageview.backgroundColor = UIColor.clear
         imageview.layer.shadowColor = UIColor.black.cgColor
         imageview.layer.shadowRadius = 3
         imageview.layer.shadowOpacity = 0.8
@@ -83,6 +86,28 @@ class FloatingButtonController: UIViewController {
         self.imageview = imageview
         window.imageview = imageview
         
+        dismisview = UIView(frame: CGRect(x: Int(0.0), y: screenHeight-(screenHeight * 20)/100, width: screenWidth, height: (screenHeight * 20)/100))
+        dismisview.backgroundColor = UIColor.clear
+        let gradient = CAGradientLayer()
+        gradient.frame = dismisview.bounds
+        gradient.colors = [UIColor.white.withAlphaComponent(0.9).cgColor,UIColor.black.withAlphaComponent(0.9).cgColor]
+        dismisview.layer.insertSublayer(gradient, at: 0)
+        dismisview.isHidden = true
+        view.addSubview(dismisview)
+
+        let lable = UILabel(frame: CGRect(x: 0.0, y: ((dismisview.frame.size.height) / 2), width: dismisview.frame.size.width, height: 20.0))
+        lable.text = "Drag here to dismiss"
+        lable.textColor = UIColor.white
+        lable.textAlignment = .center
+        dismisview.addSubview(lable)
+        
+        dismisimageview = UIImageView(frame: CGRect(x: ((dismisview.frame.size.width) / 2)-25, y: ((dismisview.frame.size.height) / 2)-60, width: 50, height: 50))
+        dismisimageview.image = UIImage(named: "imagedismissblack", in: .module, compatibleWith: nil)
+        dismisview.addSubview(dismisimageview)
+        
+        
+        
+        
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(self.draggedView(_:)))
         imageview.addGestureRecognizer(panGesture)
         
@@ -99,9 +124,26 @@ class FloatingButtonController: UIViewController {
     }
     
     @objc func draggedView(_ sender: UIPanGestureRecognizer) {
+        
+        print("draggedView ===\(sender.state.rawValue)")
         let translation = sender.translation(in: imageview)
         imageview.center = CGPoint(x: imageview.center.x + translation.x, y: imageview.center.y + translation.y)
         sender.setTranslation(CGPoint.zero, in: imageview)
+
+        if dismisimageview.globalFrame!.intersects(imageview.globalFrame!){
+            dismisimageview.image = UIImage(named: "imagedismissred", in: .module, compatibleWith: nil)
+        }else{
+            dismisimageview.image = UIImage(named: "imagedismissblack", in: .module, compatibleWith: nil)
+        }
+        
+        if(sender.state == .began){
+            dismisview.isHidden = false
+        }else if (sender.state == .ended){
+            dismisview.isHidden = true
+            if dismisimageview.globalFrame!.intersects(imageview.globalFrame!){
+                self.imageview.removeFromSuperview()
+            }
+        }
     }
     
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
@@ -138,5 +180,11 @@ private class FloatingButtonWindow: UIWindow {
         guard let imageview = imageview else { return false }
         let imageviewPoint = convert(point, to: imageview)
         return imageview.point(inside: imageviewPoint, with: event)
+    }
+}
+extension UIView {
+    var globalFrame: CGRect? {
+        let rootView = UIApplication.shared.keyWindow?.rootViewController?.view
+        return self.superview?.convert(self.frame, to: rootView)
     }
 }
