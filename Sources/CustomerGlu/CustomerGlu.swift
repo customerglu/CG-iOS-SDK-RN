@@ -21,8 +21,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     // MARK: - Global Variable
     var spinner = SpinnerView()
-    var floatingButton: FloatingButtonController?
-    
+    var arrFloatingButton = [FloatingButtonController]()
     
     // Singleton Instance
     public static var getInstance = CustomerGlu()
@@ -224,7 +223,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
         if page_type == Constants.BOTTOM_SHEET_NOTIFICATION {
             customerWebViewVC.isbottomsheet = true
-        #if compiler(>=5.5)
+            #if compiler(>=5.5)
             if #available(iOS 15.0, *) {
                 if let sheet = customerWebViewVC.sheetPresentationController {
                     sheet.detents = [ .medium(), .large() ]
@@ -232,9 +231,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             } else {
                 customerWebViewVC.modalPresentationStyle = .pageSheet
             }
-        #else
+            #else
             customerWebViewVC.modalPresentationStyle = .pageSheet
-        #endif
+            #endif
         } else if page_type == Constants.BOTTOM_DEFAULT_NOTIFICATION {
             customerWebViewVC.isbottomdefault = true
             customerWebViewVC.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
@@ -429,7 +428,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                         self.showPopupBanners(popups: popups)
                                     }
                                     completion(true, response)
-
+                                    
                                 case .failure(let error):
                                     print(error)
                                     completion(true, response)
@@ -471,7 +470,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     if popups.count != 0 {
                         self.showPopupBanners(popups: popups)
                     }
-                                        
+                    
                 case .failure(let error):
                     print(error)
             }
@@ -641,7 +640,19 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     private func addFloatingButton(btnInfo: CGData) {
         DispatchQueue.main.async {
-            self.floatingButton = FloatingButtonController(btnInfo: btnInfo)
+            self.arrFloatingButton.append(FloatingButtonController(btnInfo: btnInfo))
+        }
+    }
+    
+    internal func hideFloatingButtons() {
+        for floatBtn in self.arrFloatingButton {
+            floatBtn.hideFloatingButton(ishidden: true)
+        }
+    }
+    
+    internal func showFloatingButtons() {
+        for floatBtn in self.arrFloatingButton {
+            floatBtn.hideFloatingButton(ishidden: false)
         }
     }
     
@@ -650,10 +661,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         let className = NSStringFromClass(viewController .classForCoder).components(separatedBy: ".").last!
         print("class name \(className)")
         if className == "OpenWalletViewController"{
-            self.floatingButton?.hideFloatingButton(ishidden: true)
-        }
-        else if className == "LoadAllCampaignsViewController"{
-            self.floatingButton?.hideFloatingButton(ishidden:false)
+            // self.floatingButton?.hideFloatingButton(ishidden: true)
+        } else if className == "LoadAllCampaignsViewController"{
+            // self.floatingButton?.hideFloatingButton(ishidden:false)
         }
     }
     
@@ -667,7 +677,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         } catch {
             print(error.localizedDescription)
         }
-
+        
         for dict in popups {
             if popupDict.contains(where: { $0._id == dict._id }) {
                 print("1 exists in the array")
@@ -696,9 +706,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 }
             }
         }
-                
+        
         let sortedPopup = popupDict.sorted{$0.priority! > $1.priority!}
-
+        
         if sortedPopup.count > 0 {
             for popupShow in sortedPopup {
                 var finalPopupShow = popupShow
@@ -729,11 +739,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     let seconds = DispatchTimeInterval.seconds(finalPopUp[0].mobile.conditions.delay)
                     DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
                         
-                        if finalPopUp[0].mobile.content[0].type == "IMAGE" {                            
+                        if finalPopUp[0].mobile.content[0].type == "IMAGE" {
                             let image_url = finalPopUp[0].mobile.content[0].url
                             let customerImageNudgeVC = StoryboardType.main.instantiate(vcType: CustomerImageNudgeViewController.self)
                             customerImageNudgeVC.urlStr = image_url ?? ""
-//                            customerImageNudgeVC.modalPresentationStyle = .fullScreen
+                            //                            customerImageNudgeVC.modalPresentationStyle = .fullScreen
                             customerImageNudgeVC.alpha = finalPopUp[0].mobile.conditions.backgroundOpacity
                             guard let topController = UIViewController.topViewController() else {
                                 return

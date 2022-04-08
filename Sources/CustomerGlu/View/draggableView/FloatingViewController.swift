@@ -1,29 +1,28 @@
 import UIKit
 
-
 class FloatingButtonController: UIViewController {
-
+    
     private(set) var imageview: UIImageView!
     private(set) var dismisview: UIView!
     private(set) var dismisimageview: UIImageView!
     var floatInfo: CGData?
-
+    
     required init?(coder aDecoder: NSCoder) {
         fatalError()
     }
-
+    
     init(btnInfo: CGData) {
         super.init(nibName: nil, bundle: nil)
         floatInfo = btnInfo
         window.windowLevel = UIWindow.Level(rawValue: CGFloat.greatestFiniteMagnitude)
         window.isHidden = false
         window.rootViewController = self
-
+        
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardDidShow(note:)), name: UIResponder.keyboardDidShowNotification, object: nil)
     }
-
-    private let window = FloatingButtonWindow()
-
+    
+    private var window = FloatingButtonWindow()
+    
     override func loadView() {
         let view = UIView()
         
@@ -41,9 +40,9 @@ class FloatingButtonController: UIViewController {
         let topSpace = (screenHeight * 5)/100
         let midX = Int(UIScreen.main.bounds.midX)
         let midY = Int(UIScreen.main.bounds.midY)
-
+        
         let imageview = UIImageView()
-
+        
         if floatInfo?.mobile.container.position == "BOTTOM-LEFT" {
             imageview.frame = CGRect(x: sideSpace, y: screenHeight - (finalHeight + bottomSpace), width: finalWidth, height: finalHeight)
         } else if floatInfo?.mobile.container.position == "BOTTOM-RIGHT" {
@@ -94,7 +93,7 @@ class FloatingButtonController: UIViewController {
         dismisview.layer.insertSublayer(gradient, at: 0)
         dismisview.isHidden = true
         view.addSubview(dismisview)
-
+        
         let lable = UILabel(frame: CGRect(x: 0.0, y: ((dismisview.frame.size.height) / 2), width: dismisview.frame.size.width, height: 20.0))
         lable.text = "Drag here to dismiss"
         lable.textColor = UIColor.white
@@ -105,20 +104,19 @@ class FloatingButtonController: UIViewController {
         dismisimageview.image = UIImage(named: "imagedismissblack", in: .module, compatibleWith: nil)
         dismisview.addSubview(dismisimageview)
         
-        
-        
-        
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(self.draggedView(_:)))
         imageview.addGestureRecognizer(panGesture)
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
         imageview.addGestureRecognizer(tap)
     }
+    
     public func hideFloatingButton(ishidden:Bool) {
-        window.isHidden = ishidden
+        //        window.isHidden = ishidden
         window.imageview?.isHidden = ishidden
         self.imageview.isHidden = ishidden
     }
+    
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
     }
@@ -129,41 +127,89 @@ class FloatingButtonController: UIViewController {
         let translation = sender.translation(in: imageview)
         imageview.center = CGPoint(x: imageview.center.x + translation.x, y: imageview.center.y + translation.y)
         sender.setTranslation(CGPoint.zero, in: imageview)
-
+        
         if dismisimageview.globalFrame!.intersects(imageview.globalFrame!){
             dismisimageview.image = UIImage(named: "imagedismissred", in: .module, compatibleWith: nil)
-        }else{
+        } else {
             dismisimageview.image = UIImage(named: "imagedismissblack", in: .module, compatibleWith: nil)
         }
         
         if(sender.state == .began){
             dismisview.isHidden = false
-        }else if (sender.state == .ended){
+        } else if (sender.state == .ended) {
             dismisview.isHidden = true
             if dismisimageview.globalFrame!.intersects(imageview.globalFrame!){
-                self.imageview.removeFromSuperview()
+                //                self.imageview.removeFromSuperview()
+                if CustomerGlu.getInstance.arrFloatingButton.contains(self) {
+                    if let index = CustomerGlu.getInstance.arrFloatingButton.firstIndex(where: {$0 === self}) {
+                        CustomerGlu.getInstance.arrFloatingButton.remove(at: index)
+                        window.dismiss()
+                    }
+                }
             }
         }
     }
     
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
-//        self.removeFromSuperview()
+        
         if floatInfo?.mobile.content[0].openLayout == "FULL-DEFAULT" {
-            CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: (floatInfo?.mobile.content[0].url)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5)
+            openCampaignById(campaign_id: (floatInfo?.mobile.content[0].campaignId)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5)
+        } else if floatInfo?.mobile.content[0].openLayout == "BOTTOM-DEFAULT" {
+            openCampaignById(campaign_id: (floatInfo?.mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: 0.5)
+        }  else if floatInfo?.mobile.content[0].openLayout == "BOTTOM-SLIDER" {
+            openCampaignById(campaign_id: (floatInfo?.mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: 0.5)
+        } else {
+            openCampaignById(campaign_id: (floatInfo?.mobile.content[0].campaignId)!, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: 0.5)
         }
+    }
+    
+    private func openCampaignById(campaign_id: String, page_type: String, backgroundAlpha: Double) {
+        
+        let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
+        customerWebViewVC.iscampignId = true
+        customerWebViewVC.alpha = backgroundAlpha
+        customerWebViewVC.campaign_id = campaign_id
+        guard let topController = UIViewController.topViewController() else {
+            return
+        }
+        
+        if page_type == Constants.BOTTOM_SHEET_NOTIFICATION {
+            customerWebViewVC.isbottomsheet = true
+#if compiler(>=5.5)
+            if #available(iOS 15.0, *) {
+                if let sheet = customerWebViewVC.sheetPresentationController {
+                    sheet.detents = [ .medium(), .large() ]
+                }
+            } else {
+                customerWebViewVC.modalPresentationStyle = .pageSheet
+            }
+#else
+            customerWebViewVC.modalPresentationStyle = .pageSheet
+#endif
+        } else if page_type == Constants.BOTTOM_DEFAULT_NOTIFICATION {
+            customerWebViewVC.isbottomdefault = true
+            customerWebViewVC.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
+            customerWebViewVC.navigationController?.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
+        } else if page_type == Constants.MIDDLE_NOTIFICATIONS {
+            customerWebViewVC.ismiddle = true
+            customerWebViewVC.modalPresentationStyle = .overCurrentContext
+        } else {
+            customerWebViewVC.modalPresentationStyle = .fullScreen
+        }
+        CustomerGlu.getInstance.hideFloatingButtons()
+        topController.present(customerWebViewVC, animated: true, completion: nil)
     }
     
     @objc func keyboardDidShow(note: NSNotification) {
         window.windowLevel = UIWindow.Level(rawValue: 0)
         window.windowLevel = UIWindow.Level(rawValue: CGFloat.greatestFiniteMagnitude)
     }
-
 }
 
 private class FloatingButtonWindow: UIWindow {
-
+    
     var imageview: UIImageView?
-
+    
     init() {
         super.init(frame: UIScreen.main.bounds)
         if #available(iOS 13.0, *) {
@@ -171,20 +217,30 @@ private class FloatingButtonWindow: UIWindow {
         }
         backgroundColor = nil
     }
-
+    
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
     fileprivate override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
         guard let imageview = imageview else { return false }
         let imageviewPoint = convert(point, to: imageview)
         return imageview.point(inside: imageviewPoint, with: event)
     }
 }
+
 extension UIView {
     var globalFrame: CGRect? {
         let rootView = UIApplication.shared.keyWindow?.rootViewController?.view
         return self.superview?.convert(self.frame, to: rootView)
+    }
+}
+
+extension UIWindow {
+    func dismiss() {
+        isHidden = true
+        if #available(iOS 13, *) {
+            windowScene = nil
+        }
     }
 }

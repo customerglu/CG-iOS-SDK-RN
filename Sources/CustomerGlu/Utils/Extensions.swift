@@ -37,8 +37,8 @@ extension String {
 
 extension UIViewController {
     static func topViewController() -> UIViewController? {
-        let keyWindow = UIApplication.shared.windows.filter {$0.isKeyWindow}.first
-        if var topController = keyWindow?.rootViewController {
+        let keyWindow = UIApplication.shared.windows[0]
+        if var topController = keyWindow.rootViewController {
             while let presentedViewController = topController.presentedViewController {
                 topController = presentedViewController
             }

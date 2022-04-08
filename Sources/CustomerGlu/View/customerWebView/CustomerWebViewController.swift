@@ -14,7 +14,7 @@ protocol CustomerGluWebViewDelegate: AnyObject {
 }
 
 public class CustomerWebViewController: UIViewController, WKNavigationDelegate, WKScriptMessageHandler {
-        
+    
     public static let storyboardVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
     
     @IBOutlet weak var topSafeArea: UIView!
@@ -34,6 +34,9 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     var documentInteractionController: UIDocumentInteractionController!
     public var alpha = 0.0
     var campaign_id = ""
+    
+    let contentController = WKUserContentController()
+    let config = WKWebViewConfiguration()
     
     public func configureSafeAreaForDevices() {
         let window = UIApplication.shared.keyWindow
@@ -57,48 +60,27 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         
         navigationController?.setNavigationBarHidden(true, animated: false)
         
-        let contentController = WKUserContentController()
         contentController.add(self, name: WebViewsKey.callback) //name is the key you want the app to listen to.
-        let config = WKWebViewConfiguration()
         config.userContentController = contentController
-    
+        
+        topHeight.constant = CGFloat(0.0)
+        bottomHeight.constant = CGFloat(0.0)
+        let black = UIColor.black
+        let blackTrans = UIColor.withAlphaComponent(black)(CGFloat(alpha))
+        self.view.backgroundColor = blackTrans
+        let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
+        self.view.addGestureRecognizer(tap)
+        
         let x = self.view.frame.midX - 30
-        var y = self.view.frame.midY - 30
-
+        let y = self.view.frame.midY - 30
+        
         self.configureSafeAreaForDevices()
         
         if notificationHandler {
-            topHeight.constant = CGFloat(0.0)
-            bottomHeight.constant = CGFloat(0.0)
-            let black = UIColor.black
-            let blackTrans = UIColor.withAlphaComponent(black)(CGFloat(alpha))
-            self.view.backgroundColor = blackTrans
-            let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
-            self.view.addGestureRecognizer(tap)
-            
-            let height = (self.view.frame.height) / 1.4
-            if ismiddle {
-                webView = WKWebView(frame: CGRect(x: 20, y: (self.view.frame.height - height)/2, width: self.view.frame.width - 40, height: height), configuration: config) //set your own frame
-                webView.layer.cornerRadius = 20
-                webView.clipsToBounds = true
-                y = webView.frame.midY - 30
-            } else if isbottomdefault {
-                webView = WKWebView(frame: CGRect(x: 0, y: self.view.frame.height - height, width: self.view.frame.width, height: height), configuration: config) //set your own frame
-                webView.layer.cornerRadius = 20
-                webView.clipsToBounds = true
-                y = webView.frame.midY - 30
-            } else if isbottomsheet {
-                webView = WKWebView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: UIScreen.main.bounds.height), configuration: config) //set your own frame
-                y = self.view.frame.midY - 30
-            } else {
-                topHeight.constant = CGFloat(CustomerGlu.topSafeAreaHeight)
-                bottomHeight.constant = CGFloat(CustomerGlu.bottomSafeAreaHeight)
-                webView = WKWebView(frame: CGRect(x: 0, y: topHeight.constant, width: self.view.frame.width, height: self.view.frame.height - (topHeight.constant + bottomHeight.constant)), configuration: config) //set your own frame
-                y = self.view.frame.midY - 30
-            }
-            setwebView(url: urlStr, x: x, y: y)
+            setupWebViewCustomFrame(url: urlStr)
         } else if iscampignId {
-            CustomerGlu.getInstance.loaderShow(withcoordinate: x, y: y)
+            
+            CustomerGlu.getInstance.loaderShow(withcoordinate: self.view.frame.midX - 30, y: self.view.frame.midY - 30)
             
             campaign_id = campaign_id.trimSpace()
             
@@ -109,16 +91,12 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                     let filteredArray = campaigns.filter{($0.campaignId.elementsEqual(self.campaign_id)) || ($0.banner != nil && $0.banner?.tag != nil && $0.banner?.tag != "" && ($0.banner!.tag!.elementsEqual(self.campaign_id)))}
                     if filteredArray.count > 0 {
                         DispatchQueue.main.async {
-                            self.webView = WKWebView(frame: CGRect(x: 0, y: self.topHeight.constant, width: self.view.frame.width, height: self.view.frame.height - (self.topHeight.constant + self.bottomHeight.constant)), configuration: config) //set your own frame
-                            self.setwebView(url: filteredArray[0].url, x: x, y: y)
+                            self.setupWebViewCustomFrame(url: filteredArray[0].url)
                         }
                     } else {
-
-                            DispatchQueue.main.async { [self] in // Make sure you're on the main thread here
-                                self.webView = WKWebView(frame: CGRect(x: 0, y: self.topHeight.constant, width: self.view.frame.width, height: self.view.frame.height - (self.topHeight.constant + self.bottomHeight.constant)), configuration: config) //set your own frame
-                                self.setwebView(url: campaignsModel?.defaultUrl ?? "", x: x, y: y)
-                            }
-
+                        DispatchQueue.main.async { [self] in // Make sure you're on the main thread here
+                            self.setupWebViewCustomFrame(url: campaignsModel?.defaultUrl ?? "")
+                        }
                     }
                 } else {
                     CustomerGlu.getInstance.loaderHide()
@@ -127,28 +105,59 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }
         } else {
             webView = WKWebView(frame: CGRect(x: 0, y: topHeight.constant, width: self.view.frame.width, height: self.view.frame.height - (topHeight.constant + bottomHeight.constant)), configuration: config) //set your own frame
-            setwebView(url: urlStr, x: x, y: y)
+            loadwebView(url: urlStr, x: x, y: y)
         }
         webView.scrollView.contentInsetAdjustmentBehavior = .never
+    }
+    
+    private func setupWebViewCustomFrame(url: String) {
+        let x = self.view.frame.midX - 30
+        var y = self.view.frame.midY - 30
+        
+        let height = (self.view.frame.height) / 1.4
+        if ismiddle {
+            webView = WKWebView(frame: CGRect(x: 20, y: (self.view.frame.height - height)/2, width: self.view.frame.width - 40, height: height), configuration: config) //set your own frame
+            webView.layer.cornerRadius = 20
+            webView.clipsToBounds = true
+            y = webView.frame.midY - 30
+        } else if isbottomdefault {
+            webView = WKWebView(frame: CGRect(x: 0, y: self.view.frame.height - height, width: self.view.frame.width, height: height), configuration: config) //set your own frame
+            webView.layer.cornerRadius = 20
+            webView.clipsToBounds = true
+            y = webView.frame.midY - 30
+        } else if isbottomsheet {
+            webView = WKWebView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: UIScreen.main.bounds.height), configuration: config) //set your own frame
+            y = self.view.frame.midY - 30
+        } else {
+            topHeight.constant = CGFloat(CustomerGlu.topSafeAreaHeight)
+            bottomHeight.constant = CGFloat(CustomerGlu.bottomSafeAreaHeight)
+            webView = WKWebView(frame: CGRect(x: 0, y: topHeight.constant, width: self.view.frame.width, height: self.view.frame.height - (topHeight.constant + bottomHeight.constant)), configuration: config) //set your own frame
+            y = self.view.frame.midY - 30
+        }
+        loadwebView(url: url, x: x, y: y)
     }
     
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(false)
     }
-        
-    func setwebView(url: String, x: CGFloat, y: CGFloat) {
+    
+    func loadwebView(url: String, x: CGFloat, y: CGFloat) {
         webView.navigationDelegate = self
         if url != "" || !url.isEmpty {
             webView.load(URLRequest(url: URL(string: url)!))
         } else {
-            self.dismiss(animated: false, completion: nil)
+            self.dismiss(animated: false, completion: {
+                CustomerGlu.getInstance.showFloatingButtons()
+            })
         }
         self.view.addSubview(webView)
         CustomerGlu.getInstance.loaderShow(withcoordinate: x, y: y)
     }
     
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
-        self.dismiss(animated: false, completion: nil)
+        self.dismiss(animated: false, completion: {
+            CustomerGlu.getInstance.showFloatingButtons()
+        })
     }
     
     public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
@@ -182,7 +191,9 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 if openWallet {
                     delegate?.closeClicked(true)
                 } else if notificationHandler || iscampignId {
-                    self.dismiss(animated: true, completion: nil)
+                    self.dismiss(animated: true, completion: {
+                        CustomerGlu.getInstance.showFloatingButtons()
+                    })
                 } else {
                     self.navigationController?.popViewController(animated: true)
                 }
@@ -223,17 +234,16 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }
             
             if bodyStruct?.eventName == WebViewsKey.analytics {
-                if (true == CustomerGlu.analyticsEvent)
-                {
+                if (true == CustomerGlu.analyticsEvent) {
                     let dict = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!)
                     if(dict != nil && dict!.count>0 && dict?["data"] != nil){
-                      NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_ANALYTICS_EVENT").rawValue), object: nil, userInfo: dict?["data"] as? [String: Any])
+                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_ANALYTICS_EVENT").rawValue), object: nil, userInfo: dict?["data"] as? [String: Any])
                     }
                 }
             }
         }
     }
-        
+    
     private func sendToOtherApps(shareText: String) {
         // set up activity view controller
         let textToShare = [ shareText ]
@@ -246,7 +256,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         // present the view controller
         self.present(activityViewController, animated: true, completion: nil)
     }
- 
+    
     private func sendToWhatsapp(shareText: String) {
         let urlWhats = "whatsapp://send?text=\(shareText)"
         if let urlString = urlWhats.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) {
