@@ -738,17 +738,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     
                     let seconds = DispatchTimeInterval.seconds(finalPopUp[0].mobile.conditions.delay)
                     DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
-                        
-                        if finalPopUp[0].mobile.content[0].type == "IMAGE" {
-                            let image_url = finalPopUp[0].mobile.content[0].url
-                            let customerImageNudgeVC = StoryboardType.main.instantiate(vcType: CustomerImageNudgeViewController.self)
-                            customerImageNudgeVC.urlStr = image_url ?? ""
-                            //                            customerImageNudgeVC.modalPresentationStyle = .fullScreen
-                            customerImageNudgeVC.alpha = finalPopUp[0].mobile.conditions.backgroundOpacity
-                            guard let topController = UIViewController.topViewController() else {
-                                return
-                            }
-                            topController.present(customerImageNudgeVC, animated: false, completion: nil)
+                        if finalPopUp[0].mobile.content[0].openLayout == "FULL-DEFAULT" {
+                            CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5)
+                        } else if finalPopUp[0].mobile.content[0].openLayout == "BOTTOM-DEFAULT" {
+                            CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: 0.5)
+                        }  else if finalPopUp[0].mobile.content[0].openLayout == "BOTTOM-SLIDER" {
+                            CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: 0.5)
+                        } else {
+                            CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: 0.5)
                         }
                     }
                 }
@@ -763,5 +760,42 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         } catch {
             print(error.localizedDescription)
         }
+    }
+    
+    internal func openCampaignById(campaign_id: String, page_type: String, backgroundAlpha: Double) {
+        
+        let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
+        customerWebViewVC.iscampignId = true
+        customerWebViewVC.alpha = backgroundAlpha
+        customerWebViewVC.campaign_id = campaign_id
+        guard let topController = UIViewController.topViewController() else {
+            return
+        }
+        
+        if page_type == Constants.BOTTOM_SHEET_NOTIFICATION {
+            customerWebViewVC.isbottomsheet = true
+            #if compiler(>=5.5)
+            if #available(iOS 15.0, *) {
+                if let sheet = customerWebViewVC.sheetPresentationController {
+                    sheet.detents = [ .medium(), .large() ]
+                }
+            } else {
+                customerWebViewVC.modalPresentationStyle = .pageSheet
+            }
+            #else
+            customerWebViewVC.modalPresentationStyle = .pageSheet
+            #endif
+        } else if page_type == Constants.BOTTOM_DEFAULT_NOTIFICATION {
+            customerWebViewVC.isbottomdefault = true
+            customerWebViewVC.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
+            customerWebViewVC.navigationController?.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
+        } else if page_type == Constants.MIDDLE_NOTIFICATIONS {
+            customerWebViewVC.ismiddle = true
+            customerWebViewVC.modalPresentationStyle = .overCurrentContext
+        } else {
+            customerWebViewVC.modalPresentationStyle = .fullScreen
+        }
+        CustomerGlu.getInstance.hideFloatingButtons()
+        topController.present(customerWebViewVC, animated: true, completion: nil)
     }
 }
