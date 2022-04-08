@@ -59,7 +59,11 @@ class APIManager {
     // Singleton Instance
     static let shared = APIManager()
     
-    private static func performRequest<T: Decodable>(baseurl: String, methodandpath: MethodandPath, parametersDict: NSDictionary?, completion: @escaping (Result<T, Error>) -> Void) {
+    private static func performRequest<T: Decodable>(baseurl: String, methodandpath: MethodandPath, parametersDict: NSDictionary?,dispatchGroup:DispatchGroup = DispatchGroup() ,completion: @escaping (Result<T, Error>) -> Void) {
+        
+        //Grouped compelete API-call work flow into a DispatchGroup so that it can maintanted the oprational queue for task completion
+        // Enter into DispatchGroup
+        dispatchGroup.enter()
         
         var urlRequest: URLRequest!
         var url: URL!
@@ -97,6 +101,9 @@ class APIManager {
         }
         
         let task = shared.session.dataTask(with: urlRequest) { data, response, error in
+            
+            // Leave from dispachgroup
+            dispatchGroup.leave()
             if let httpResponse = response as? HTTPURLResponse {
                 if httpResponse.statusCode == 401 {
                     resetDefaults()
@@ -116,6 +123,8 @@ class APIManager {
             }
         }
         task.resume()
+        // wait untill dispatchGroup.leave() not called
+        dispatchGroup.wait()
     }
     
     static func userRegister(queryParameters: NSDictionary, completion: @escaping (Result<RegistrationModel, Error>) -> Void) {
@@ -125,7 +134,24 @@ class APIManager {
     
     static func getWalletRewards(queryParameters: NSDictionary, completion: @escaping (Result<CampaignsModel, Error>) -> Void) {
         // Call Get Wallet and Rewards List
-        performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.getWalletRewards, parametersDict: queryParameters, completion: completion)
+
+        // create a blockOperation for avoiding miltiple API call at same time
+        let blockOperation = BlockOperation()
+        
+        // Added Task into Queue
+        blockOperation.addExecutionBlock {
+            
+            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.getWalletRewards, parametersDict: queryParameters,completion: completion)
+            
+        }
+        
+//        // Add dependency to finish previus task before starting new one
+//        if(ApplicationManager.operationQueue.operations.count > 0){
+//            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
+//        }
+        
+        //Added task into Queue
+        ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
     static func addToCart(queryParameters: NSDictionary, completion: @escaping (Result<AddCartModel, Error>) -> Void) {
