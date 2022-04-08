@@ -145,10 +145,10 @@ class APIManager {
             
         }
         
-//        // Add dependency to finish previus task before starting new one
-//        if(ApplicationManager.operationQueue.operations.count > 0){
-//            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-//        }
+       // Add dependency to finish previus task before starting new one
+       if(ApplicationManager.operationQueue.operations.count > 0){
+           blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
+       }
         
         //Added task into Queue
         ApplicationManager.operationQueue.addOperation(blockOperation)
