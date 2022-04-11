@@ -51,6 +51,14 @@ struct APIParameterKey {
     static let platform = "platform"
     static let device_id = "device_id"
     static let timezone = "timezone"
+    static let actionStore = "actionStore"
+    static let pageName = "pageName"
+    static let nudgeType = "nudgeType"
+    static let nudgeId = "nudgeId"
+    static let actionName = "actionName"
+    static let actionType = "actionType"
+    static let openType = "openType"
+    static let campaignId = "campaignId"
 }
 
 // Default NotificationsKey

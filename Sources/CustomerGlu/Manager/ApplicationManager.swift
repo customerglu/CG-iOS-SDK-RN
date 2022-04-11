@@ -10,6 +10,7 @@ import Foundation
 class ApplicationManager {
     public static var baseUrl = "api.customerglu.com/"
     public static var streamUrl = "stream.customerglu.com/"
+    public static var analyticsUrl = "analytics.customerglu.com/"
     public static var accessToken: String?
     
     public static func openWalletApi(completion: @escaping (Bool, CampaignsModel?) -> Void) {
@@ -64,11 +65,8 @@ class ApplicationManager {
             print(CustomerGlu.sdk_disable!)
             return
         }
-        let date = Date()
         let event_id = UUID().uuidString
-        let dateformatter = DateFormatter()
-        dateformatter.dateFormat = Constants.DATE_FORMAT
-        let timestamp = dateformatter.string(from: date)
+        let timestamp = fetchTimeStamp()
         let user_id = UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_USERID)
         
         let eventData = [
@@ -146,5 +144,35 @@ class ApplicationManager {
             }
         }
         return false
+    }
+    
+    public static func publishNudge(eventNudge: [String: AnyHashable], completion: @escaping (Bool, PublishNudgeModel?) -> Void) {
+        if CustomerGlu.sdk_disable! == true {
+            print(CustomerGlu.sdk_disable!)
+            return
+        }
+     
+        var eventInfo = eventNudge
+        eventInfo[APIParameterKey.timestamp] = fetchTimeStamp()
+        eventInfo[APIParameterKey.actionStore] = "NUDGE"
+        
+        APIManager.publishNudge(queryParameters: eventInfo as NSDictionary) { result in
+            switch result {
+            case .success(let response):
+                completion(true, response)
+                    
+            case .failure(let error):
+                print(error)
+                ApplicationManager.callCrashReport(methodName: "publishNudge")
+                completion(false, nil)
+            }
+        }
+    }
+    
+    private static func fetchTimeStamp() -> String {
+        let date = Date()
+        let dateformatter = DateFormatter()
+        dateformatter.dateFormat = Constants.DATE_FORMAT
+        return dateformatter.string(from: date)
     }
 }

@@ -736,6 +736,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         popupDict.insert(finalPopupShow, at: index)
                     }
                     
+                    guard let topController = UIApplication.getTopViewController() else {
+                        return
+                    }
+                  
+                    eventPublishNudge(pageName: topController.nibName ?? "", nudgeId: finalPopUp[0].mobile._id, actionName: "OPEN", actionType: "WALLET", openType: finalPopUp[0].mobile.content[0].openLayout, campaignId: finalPopUp[0].mobile.content[0].campaignId)
+                    
                     let seconds = DispatchTimeInterval.seconds(finalPopUp[0].mobile.conditions.delay)
                     DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
                         if finalPopUp[0].mobile.content[0].openLayout == "FULL-DEFAULT" {
@@ -797,5 +803,25 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
         CustomerGlu.getInstance.hideFloatingButtons()
         topController.present(customerWebViewVC, animated: true, completion: nil)
+    }
+    
+    private func eventPublishNudge(pageName: String, nudgeId: String, actionName: String, actionType: String, openType: String, campaignId: String) {
+        var eventInfo = [String: AnyHashable]()
+        eventInfo[APIParameterKey.nudgeType] = "POPUP"
+
+        eventInfo[APIParameterKey.pageName] = pageName
+        eventInfo[APIParameterKey.nudgeId] = nudgeId
+        eventInfo[APIParameterKey.actionName] = actionName
+        eventInfo[APIParameterKey.actionType] = actionType
+        eventInfo[APIParameterKey.openType] = openType
+        eventInfo[APIParameterKey.campaignId] = campaignId
+        
+        ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
+            if success {
+                print("success")
+            } else {
+                print("error")
+            }
+        }
     }
 }

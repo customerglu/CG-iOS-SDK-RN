@@ -109,6 +109,12 @@ class FloatingButtonController: UIViewController {
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
         imageview.addGestureRecognizer(tap)
+        
+        guard let topController = UIApplication.getTopViewController() else {
+            return
+        }
+      
+        eventPublishNudge(pageName: topController.nibName ?? "", nudgeId: (floatInfo?.mobile._id)!, actionName: "LOADED", actionType: "WALLET", openType: (floatInfo?.mobile.content[0].openLayout)!, campaignId: (floatInfo?.mobile.content[0].campaignId)!)
     }
     
     public func hideFloatingButton(ishidden:Bool) {
@@ -152,6 +158,12 @@ class FloatingButtonController: UIViewController {
     
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
         
+        guard let topController = UIApplication.getTopViewController() else {
+            return
+        }
+        
+        eventPublishNudge(pageName: topController.nibName ?? "", nudgeId: (floatInfo?.mobile._id)!, actionName: "OPEN", actionType: "WALLET", openType: (floatInfo?.mobile.content[0].openLayout)!, campaignId: (floatInfo?.mobile.content[0].campaignId)!)
+        
         if floatInfo?.mobile.content[0].openLayout == "FULL-DEFAULT" {
             CustomerGlu.getInstance.openCampaignById(campaign_id: (floatInfo?.mobile.content[0].campaignId)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5)
         } else if floatInfo?.mobile.content[0].openLayout == "BOTTOM-DEFAULT" {
@@ -166,6 +178,26 @@ class FloatingButtonController: UIViewController {
     @objc func keyboardDidShow(note: NSNotification) {
         window.windowLevel = UIWindow.Level(rawValue: 0)
         window.windowLevel = UIWindow.Level(rawValue: CGFloat.greatestFiniteMagnitude)
+    }
+    
+    private func eventPublishNudge(pageName: String, nudgeId: String, actionName: String, actionType: String, openType: String, campaignId: String) {
+        var eventInfo = [String: AnyHashable]()
+        eventInfo[APIParameterKey.nudgeType] = "FLOATING"
+
+        eventInfo[APIParameterKey.pageName] = pageName
+        eventInfo[APIParameterKey.nudgeId] = nudgeId
+        eventInfo[APIParameterKey.actionName] = actionName
+        eventInfo[APIParameterKey.actionType] = actionType
+        eventInfo[APIParameterKey.openType] = openType
+        eventInfo[APIParameterKey.campaignId] = campaignId
+        
+        ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
+            if success {
+                print("success")
+            } else {
+                print("error")
+            }
+        }
     }
 }
 

@@ -41,12 +41,14 @@ private struct MethodNameandPath {
     static let addToCart = MethodandPath(method: "POST", path: "v3/server")
     static let crashReport = MethodandPath(method: "PUT", path: "api/v1/report")
     static let entryPointdata = MethodandPath(method: "GET", path: "entrypoints/v1/list?consumer=MOBILE")
+    static let publish_nudge = MethodandPath(method: "PUT", path: "api/v1/event/publish/nudge")
 }
 
 // Parameter Key's for all API's
 private struct BaseUrls {
     static let baseurl = ApplicationManager.baseUrl
     static let streamurl = ApplicationManager.streamUrl
+    static let analyticsUrl = ApplicationManager.analyticsUrl
 }
 
 // Class contain Helper Methods Used in Overall Application Related to API Calls
@@ -142,6 +144,11 @@ class APIManager {
     static func getEntryPointdata(queryParameters: NSDictionary, completion: @escaping (Result<CGEntryPoint, Error>) -> Void) {
         // Call Get Wallet and Rewards List
         performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.entryPointdata, parametersDict: queryParameters, completion: completion)
+    }
+    
+    static func publishNudge(queryParameters: NSDictionary, completion: @escaping (Result<PublishNudgeModel, Error>) -> Void) {
+        // Call Put PublishNudge
+        performRequest(baseurl: BaseUrls.analyticsUrl, methodandpath: MethodNameandPath.publish_nudge, parametersDict: queryParameters, completion: completion)
     }
     
     // MARK: - Private Class Methods

@@ -144,6 +144,9 @@ extension LoadAllCampaignsViewController: UITableViewDataSource, UITableViewDele
         // Deselect Table Row
         tableView.deselectRow(at: indexPath, animated: true)
         if campaigns.count != 0 {
+            if let topVC = UIApplication.getTopViewController() {
+                print(topVC)
+            }
             let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
             customerWebViewVC.urlStr = campaigns[indexPath.row].url
             self.navigationController?.pushViewController(customerWebViewVC, animated: true)

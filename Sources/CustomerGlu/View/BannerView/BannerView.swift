@@ -69,6 +69,12 @@ import WebKit
                 }
                 
                 self.setBannerView(height: Int(mobile.container.height)!, isAutoScrollEnabled: mobile.conditions.autoScroll, autoScrollSpeed: mobile.conditions.autoScrollSpeed)
+                
+                guard let topController = UIApplication.getTopViewController() else {
+                    return
+                }
+              
+                eventPublishNudge(pageName: topController.nibName ?? "", nudgeId: mobile._id, actionName: "LOADED", actionType: "WALLET", openType: mobile.content[0].openLayout, campaignId: mobile.content[0].campaignId)
             }
         }
     }
@@ -82,9 +88,6 @@ import WebKit
         let screenHeight = UIScreen.main.bounds.height
         let finalHeight = (Int(screenHeight) * height)/100
         
-        // Post notification
-        // NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_Banner_Height").rawValue), object: self, userInfo: dict)
-
         if let constraint = (self.constraints.filter{$0.firstAttribute == .height}.first) {
             constraint.constant = CGFloat(finalHeight)
         } else {
@@ -151,6 +154,32 @@ import WebKit
         let dict = arrContent[tag]
         if dict.campaignId != nil {
             CustomerGlu.getInstance.loadCampaignById(campaign_id: dict.campaignId)
+            
+            guard let topController = UIApplication.getTopViewController() else {
+                return
+            }
+          
+            eventPublishNudge(pageName: topController.nibName ?? "", nudgeId: dict._id, actionName: "OPEN", actionType: "WALLET", openType: dict.openLayout, campaignId: dict.campaignId)
+        }
+    }
+    
+    private func eventPublishNudge(pageName: String, nudgeId: String, actionName: String, actionType: String, openType: String, campaignId: String) {
+        var eventInfo = [String: AnyHashable]()
+        eventInfo[APIParameterKey.nudgeType] = "BANNER"
+
+        eventInfo[APIParameterKey.pageName] = pageName
+        eventInfo[APIParameterKey.nudgeId] = nudgeId
+        eventInfo[APIParameterKey.actionName] = actionName
+        eventInfo[APIParameterKey.actionType] = actionType
+        eventInfo[APIParameterKey.openType] = openType
+        eventInfo[APIParameterKey.campaignId] = campaignId
+        
+        ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
+            if success {
+                print("success")
+            } else {
+                print("error")
+            }
         }
     }
 }
