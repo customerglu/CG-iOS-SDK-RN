@@ -115,6 +115,7 @@ import WebKit
                 imageView.addGestureRecognizer(tap)
             } else {
                 let containerView =  UIView()
+                containerView.tag = i
                 var webView: WKWebView
                 let xOrigin = self.imgScrollView.frame.size.width * CGFloat(i)
                 webView = WKWebView(frame: CGRect(x: xOrigin, y: 0, width: self.imgScrollView.frame.size.width, height: self.imgScrollView.frame.size.height))
