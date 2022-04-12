@@ -73,8 +73,9 @@ import WebKit
                 guard let topController = UIApplication.getTopViewController() else {
                     return
                 }
+                let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
               
-                eventPublishNudge(pageName: topController.nibName ?? "", nudgeId: mobile._id, actionName: "LOADED", actionType: "WALLET", openType: mobile.content[0].openLayout, campaignId: mobile.content[0].campaignId)
+                eventPublishNudge(pageName: className, nudgeId: mobile._id, actionName: "LOADED", actionType: "WALLET", openType: mobile.content[0].openLayout, campaignId: mobile.content[0].campaignId)
             }
         }
     }
@@ -158,8 +159,9 @@ import WebKit
             guard let topController = UIApplication.getTopViewController() else {
                 return
             }
+            let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
           
-            eventPublishNudge(pageName: topController.nibName ?? "", nudgeId: dict._id, actionName: "OPEN", actionType: "WALLET", openType: dict.openLayout, campaignId: dict.campaignId)
+            eventPublishNudge(pageName: className, nudgeId: dict._id, actionName: "OPEN", actionType: "WALLET", openType: dict.openLayout, campaignId: dict.campaignId)
         }
     }
     

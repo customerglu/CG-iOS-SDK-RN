@@ -41,7 +41,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var entryPointdata: [CGData] = []
     public static var isDebugingEnabled = false
     public static var isEntryPointEnabled = false
-    
+    public static var activeViewController = ""
+
     private override init() {
         super.init()
         
@@ -244,7 +245,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         } else {
             customerWebViewVC.modalPresentationStyle = .fullScreen
         }
-        topController.present(customerWebViewVC, animated: true, completion: nil)
+        topController.present(customerWebViewVC, animated: true, completion: {
+            self.hideFloatingButtons()
+        })
     }
     
     public func displayBackgroundNotification(remoteMessage: [String: AnyHashable]) {
@@ -261,7 +264,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         guard let topController = UIViewController.topViewController() else {
             return
         }
-        topController.present(customerWebViewVC, animated: false, completion: nil)
+        topController.present(customerWebViewVC, animated: false, completion: {
+            self.hideFloatingButtons()
+        })
     }
     
     public func notificationFromCustomerGlu(remoteMessage: [String: AnyHashable]) -> Bool {
@@ -332,13 +337,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                         }
                                     }
                                     
-                                    //POPUPS
-                                    let popups = CustomerGlu.entryPointdata.filter {
-                                        $0.mobile.container.type == "POPUP"
-                                    }
-                                    if popups.count != 0 {
-                                        self.showPopupBanners(popups: popups)
-                                    }
                                     completion(true, response)
                                     
                                 case .failure(let error):
@@ -540,7 +538,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             customerWebViewVC.modalPresentationStyle = .fullScreen
             customerWebViewVC.iscampignId = true
             customerWebViewVC.campaign_id = campaign_id
-            topController.present(customerWebViewVC, animated: false, completion: nil)
+            topController.present(customerWebViewVC, animated: false, completion: {
+                self.hideFloatingButtons()
+            })
         }
     }
     
@@ -656,14 +656,26 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    func getcontrollerName(viewController:UIViewController) {
-        print("controller name \(viewController)")
+    public func setCurrentController(viewController: UIViewController) {
         let className = NSStringFromClass(viewController .classForCoder).components(separatedBy: ".").last!
         print("class name \(className)")
-        if className == "OpenWalletViewController"{
-            // self.floatingButton?.hideFloatingButton(ishidden: true)
-        } else if className == "LoadAllCampaignsViewController"{
-            // self.floatingButton?.hideFloatingButton(ishidden:false)
+        
+        let arr = ["OpenWalletViewController", "LoadAllCampaignsViewController"]
+        
+        for floatBtn in self.arrFloatingButton {
+//            if floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.contains(className)
+            if arr.contains(className) {
+                floatBtn.hideFloatingButton(ishidden: false)
+                //POPUPS
+                let popups = CustomerGlu.entryPointdata.filter {
+                    $0.mobile.container.type == "POPUP"
+                }
+                if popups.count != 0 {
+                    self.showPopupBanners(popups: popups)
+                }
+            } else {
+                floatBtn.hideFloatingButton(ishidden: true)
+            }
         }
     }
     
@@ -739,8 +751,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     guard let topController = UIApplication.getTopViewController() else {
                         return
                     }
-                  
-                    eventPublishNudge(pageName: topController.nibName ?? "", nudgeId: finalPopUp[0].mobile._id, actionName: "OPEN", actionType: "WALLET", openType: finalPopUp[0].mobile.content[0].openLayout, campaignId: finalPopUp[0].mobile.content[0].campaignId)
+                    let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
+                    
+                    eventPublishNudge(pageName: className, nudgeId: finalPopUp[0].mobile._id, actionName: "OPEN", actionType: "WALLET", openType: finalPopUp[0].mobile.content[0].openLayout, campaignId: finalPopUp[0].mobile.content[0].campaignId)
                     
                     let seconds = DispatchTimeInterval.seconds(finalPopUp[0].mobile.conditions.delay)
                     DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
@@ -802,7 +815,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             customerWebViewVC.modalPresentationStyle = .fullScreen
         }
         CustomerGlu.getInstance.hideFloatingButtons()
-        topController.present(customerWebViewVC, animated: true, completion: nil)
+        topController.present(customerWebViewVC, animated: true, completion: {
+            self.hideFloatingButtons()
+        })
     }
     
     private func eventPublishNudge(pageName: String, nudgeId: String, actionName: String, actionType: String, openType: String, campaignId: String) {
