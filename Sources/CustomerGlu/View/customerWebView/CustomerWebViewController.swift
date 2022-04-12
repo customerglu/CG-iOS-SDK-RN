@@ -87,15 +87,25 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             ApplicationManager.loadAllCampaignsApi(type: "", value: campaign_id, loadByparams: [:]) { success, campaignsModel in
                 if success {
                     CustomerGlu.getInstance.loaderHide()
-                    let campaigns: [Campaigns] = (campaignsModel?.campaigns)!
-                    let filteredArray = campaigns.filter{($0.campaignId.elementsEqual(self.campaign_id)) || ($0.banner != nil && $0.banner?.tag != nil && $0.banner?.tag != "" && ($0.banner!.tag!.elementsEqual(self.campaign_id)))}
-                    if filteredArray.count > 0 {
-                        DispatchQueue.main.async {
-                            self.setupWebViewCustomFrame(url: filteredArray[0].url)
-                        }
-                    } else {
+                    if self.campaign_id.count == 0 {
                         DispatchQueue.main.async { [self] in // Make sure you're on the main thread here
                             self.setupWebViewCustomFrame(url: campaignsModel?.defaultUrl ?? "")
+                        }
+                    } else if self.campaign_id.contains("http://") {
+                        DispatchQueue.main.async { [self] in // Make sure you're on the main thread here
+                            self.setupWebViewCustomFrame(url: self.campaign_id)
+                        }
+                    } else {
+                        let campaigns: [Campaigns] = (campaignsModel?.campaigns)!
+                        let filteredArray = campaigns.filter{($0.campaignId.elementsEqual(self.campaign_id)) || ($0.banner != nil && $0.banner?.tag != nil && $0.banner?.tag != "" && ($0.banner!.tag!.elementsEqual(self.campaign_id)))}
+                        if filteredArray.count > 0 {
+                            DispatchQueue.main.async {
+                                self.setupWebViewCustomFrame(url: filteredArray[0].url)
+                            }
+                        } else {
+                            DispatchQueue.main.async { [self] in // Make sure you're on the main thread here
+                                self.setupWebViewCustomFrame(url: campaignsModel?.defaultUrl ?? "")
+                            }
                         }
                     }
                 } else {

@@ -408,23 +408,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             switch result {
                                 case .success(let responseGetEntry):
                                     CustomerGlu.entryPointdata = responseGetEntry.data
-                                    // FLOATING Buttons
-                                    let floatingButtons = CustomerGlu.entryPointdata.filter {
-                                        $0.mobile.container.type == "FLOATING"
-                                    }
-                                    if floatingButtons.count != 0 {
-                                        for floatBtn in floatingButtons {
-                                            self.addFloatingButton(btnInfo: floatBtn)
-                                        }
-                                    }
-                                    
-                                    //POPUPS
-                                    let popups = CustomerGlu.entryPointdata.filter {
-                                        $0.mobile.container.type == "POPUP"
-                                    }
-                                    if popups.count != 0 {
-                                        self.showPopupBanners(popups: popups)
-                                    }
                                     completion(true, response)
                                     
                                 case .failure(let error):
@@ -451,23 +434,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             switch result {
                 case .success(let response):
                     CustomerGlu.entryPointdata = response.data
-                    // FLOATING Buttons
-                    let floatingButtons = CustomerGlu.entryPointdata.filter {
-                        $0.mobile.container.type == "FLOATING"
-                    }
-                    if floatingButtons.count != 0 {
-                        for floatBtn in floatingButtons {
-                            self.addFloatingButton(btnInfo: floatBtn)
-                        }
-                    }
-                    
-                    //POPUPS
-                    let popups = CustomerGlu.entryPointdata.filter {
-                        $0.mobile.container.type == "POPUP"
-                    }
-                    if popups.count != 0 {
-                        self.showPopupBanners(popups: popups)
-                    }
                     
                 case .failure(let error):
                     print(error)
@@ -663,23 +629,34 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         let arr = ["OpenWalletViewController", "LoadAllCampaignsViewController"]
         
         for floatBtn in self.arrFloatingButton {
-//            if floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.contains(className)
-            if arr.contains(className) {
-                floatBtn.hideFloatingButton(ishidden: false)
-                //POPUPS
-                let popups = CustomerGlu.entryPointdata.filter {
-                    $0.mobile.container.type == "POPUP"
+            
+            if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 && (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
+                
+                if  !(floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className))! {
+                    floatBtn.hideFloatingButton(ishidden: false)
+                } else if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 {
+                    if ((floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.contains(className)) != nil) {
+                        floatBtn.hideFloatingButton(ishidden: false)
+                    }
+                } else if (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
+                    if !((floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className)) != nil) {
+                        floatBtn.hideFloatingButton(ishidden: false)
+                    }
                 }
-                if popups.count != 0 {
-                    self.showPopupBanners(popups: popups)
-                }
-            } else {
-                floatBtn.hideFloatingButton(ishidden: true)
             }
+        }
+        
+        
+        //POPUPS
+        let popups = CustomerGlu.entryPointdata.filter {
+            $0.mobile.container.type == "POPUP"
+        }
+        if popups.count != 0 {
+            self.showPopupBanners(popups: popups, className: className)
         }
     }
     
-    private func showPopupBanners(popups: [CGData]) {
+    private func showPopupBanners(popups: [CGData], className: String) {
         var popupDict = [PopUpModel]()
         var entryPointPopUpModel = EntryPointPopUpModel()
         
@@ -729,42 +706,129 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         $0._id == popupShow._id
                     }
                     
-                    finalPopupShow.showcount?.count -= 1
-                    
-                    if finalPopupShow.showcount?.dailyRefresh == true {
-                        if finalPopupShow.popupdate == Date() {
-                            let today = Date()
-                            if let tomorrow = today.tomorrow {
-                                print("\(tomorrow)")
-                                finalPopupShow.popupdate = tomorrow
+                    if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 && finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
+                        
+                        if  !finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
+                            finalPopupShow.showcount?.count -= 1
+                            
+                            if finalPopupShow.showcount?.dailyRefresh == true {
+                                if finalPopupShow.popupdate == Date() {
+                                    let today = Date()
+                                    if let tomorrow = today.tomorrow {
+                                        print("\(tomorrow)")
+                                        finalPopupShow.popupdate = tomorrow
+                                    }
+                                } else {
+                                    return
+                                }
                             }
-                        } else {
-                            return
-                        }
-                    }
-                    
-                    if let index = popupDict.firstIndex(where: {$0._id == finalPopupShow._id}) {
-                        popupDict.remove(at: index)
-                        popupDict.insert(finalPopupShow, at: index)
-                    }
-                    
-                    guard let topController = UIApplication.getTopViewController() else {
-                        return
-                    }
-                    let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
-                    
-                    eventPublishNudge(pageName: className, nudgeId: finalPopUp[0].mobile._id, actionName: "OPEN", actionType: "WALLET", openType: finalPopUp[0].mobile.content[0].openLayout, campaignId: finalPopUp[0].mobile.content[0].campaignId)
-                    
-                    let seconds = DispatchTimeInterval.seconds(finalPopUp[0].mobile.conditions.delay)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
-                        if finalPopUp[0].mobile.content[0].openLayout == "FULL-DEFAULT" {
-                            CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5)
-                        } else if finalPopUp[0].mobile.content[0].openLayout == "BOTTOM-DEFAULT" {
-                            CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: 0.5)
-                        }  else if finalPopUp[0].mobile.content[0].openLayout == "BOTTOM-SLIDER" {
-                            CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: 0.5)
-                        } else {
-                            CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: 0.5)
+                            
+                            if let index = popupDict.firstIndex(where: {$0._id == finalPopupShow._id}) {
+                                popupDict.remove(at: index)
+                                popupDict.insert(finalPopupShow, at: index)
+                            }
+                            
+                            guard let topController = UIApplication.getTopViewController() else {
+                                return
+                            }
+                            let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
+                            
+                            eventPublishNudge(pageName: className, nudgeId: finalPopUp[0].mobile._id, actionName: "OPEN", actionType: "WALLET", openType: finalPopUp[0].mobile.content[0].openLayout, campaignId: finalPopUp[0].mobile.content[0].campaignId)
+                            
+                            let seconds = DispatchTimeInterval.seconds(finalPopUp[0].mobile.conditions.delay)
+                            DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
+                                if finalPopUp[0].mobile.content[0].openLayout == "FULL-DEFAULT" {
+                                    CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5)
+                                } else if finalPopUp[0].mobile.content[0].openLayout == "BOTTOM-DEFAULT" {
+                                    CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: 0.5)
+                                }  else if finalPopUp[0].mobile.content[0].openLayout == "BOTTOM-SLIDER" {
+                                    CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: 0.5)
+                                } else {
+                                    CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: 0.5)
+                                }
+                            }
+                        } else if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 {
+                            if finalPopUp[0].mobile.container.ios.allowedActitivityList.contains(className) {
+                                finalPopupShow.showcount?.count -= 1
+                                
+                                if finalPopupShow.showcount?.dailyRefresh == true {
+                                    if finalPopupShow.popupdate == Date() {
+                                        let today = Date()
+                                        if let tomorrow = today.tomorrow {
+                                            print("\(tomorrow)")
+                                            finalPopupShow.popupdate = tomorrow
+                                        }
+                                    } else {
+                                        return
+                                    }
+                                }
+                                
+                                if let index = popupDict.firstIndex(where: {$0._id == finalPopupShow._id}) {
+                                    popupDict.remove(at: index)
+                                    popupDict.insert(finalPopupShow, at: index)
+                                }
+                                
+                                guard let topController = UIApplication.getTopViewController() else {
+                                    return
+                                }
+                                let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
+                                
+                                eventPublishNudge(pageName: className, nudgeId: finalPopUp[0].mobile._id, actionName: "OPEN", actionType: "WALLET", openType: finalPopUp[0].mobile.content[0].openLayout, campaignId: finalPopUp[0].mobile.content[0].campaignId)
+                                
+                                let seconds = DispatchTimeInterval.seconds(finalPopUp[0].mobile.conditions.delay)
+                                DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
+                                    if finalPopUp[0].mobile.content[0].openLayout == "FULL-DEFAULT" {
+                                        CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5)
+                                    } else if finalPopUp[0].mobile.content[0].openLayout == "BOTTOM-DEFAULT" {
+                                        CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: 0.5)
+                                    }  else if finalPopUp[0].mobile.content[0].openLayout == "BOTTOM-SLIDER" {
+                                        CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: 0.5)
+                                    } else {
+                                        CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: 0.5)
+                                    }
+                                }
+                            }
+                        } else if finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
+                            if finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
+                                finalPopupShow.showcount?.count -= 1
+                                
+                                if finalPopupShow.showcount?.dailyRefresh == true {
+                                    if finalPopupShow.popupdate == Date() {
+                                        let today = Date()
+                                        if let tomorrow = today.tomorrow {
+                                            print("\(tomorrow)")
+                                            finalPopupShow.popupdate = tomorrow
+                                        }
+                                    } else {
+                                        return
+                                    }
+                                }
+                                
+                                if let index = popupDict.firstIndex(where: {$0._id == finalPopupShow._id}) {
+                                    popupDict.remove(at: index)
+                                    popupDict.insert(finalPopupShow, at: index)
+                                }
+                                
+                                guard let topController = UIApplication.getTopViewController() else {
+                                    return
+                                }
+                                let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
+                                
+                                eventPublishNudge(pageName: className, nudgeId: finalPopUp[0].mobile._id, actionName: "OPEN", actionType: "WALLET", openType: finalPopUp[0].mobile.content[0].openLayout, campaignId: finalPopUp[0].mobile.content[0].campaignId)
+                                
+                                let seconds = DispatchTimeInterval.seconds(finalPopUp[0].mobile.conditions.delay)
+                                DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
+                                    if finalPopUp[0].mobile.content[0].openLayout == "FULL-DEFAULT" {
+                                        CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5)
+                                    } else if finalPopUp[0].mobile.content[0].openLayout == "BOTTOM-DEFAULT" {
+                                        CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: 0.5)
+                                    }  else if finalPopUp[0].mobile.content[0].openLayout == "BOTTOM-SLIDER" {
+                                        CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: 0.5)
+                                    } else {
+                                        CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: 0.5)
+                                    }
+                                }
+                            }
                         }
                     }
                 }

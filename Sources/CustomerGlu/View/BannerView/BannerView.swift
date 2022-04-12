@@ -114,16 +114,19 @@ import WebKit
                 let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
                 imageView.addGestureRecognizer(tap)
             } else {
+                let containerView =  UIView()
                 var webView: WKWebView
                 let xOrigin = self.imgScrollView.frame.size.width * CGFloat(i)
                 webView = WKWebView(frame: CGRect(x: xOrigin, y: 0, width: self.imgScrollView.frame.size.width, height: self.imgScrollView.frame.size.height))
-                webView.isUserInteractionEnabled = true
+                containerView.frame  = CGRect.init(x: xOrigin, y: 0, width: self.imgScrollView.frame.size.width, height: self.imgScrollView.frame.size.height)
+                webView.isUserInteractionEnabled = false
                 webView.tag = i
                 let urlStr = dict.url
                 webView.load(URLRequest(url: URL(string: urlStr!)!))
-                self.imgScrollView.addSubview(webView)
+                containerView.addSubview(webView)
+                self.imgScrollView.addSubview(containerView)
                 let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
-                self.imgScrollView.addGestureRecognizer(tap)
+                containerView.addGestureRecognizer(tap)
             }
         }
         self.imgScrollView.isPagingEnabled = true
