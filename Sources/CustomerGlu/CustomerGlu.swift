@@ -455,7 +455,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 case .success(let response):
                     CustomerGlu.entryPointdata = response.data
                     for i in 0...CustomerGlu.entryPointdata.count - 1 {
-                        CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList = ["OpenWalletViewController", "LoadAllCampaignsViewController"]
+                        CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList = ["OpenWalletViewController"]
+                        CustomerGlu.entryPointdata[i].mobile.container.ios.disallowedActitivityList = ["OpenWalletViewController", "LoadAllCampaignsViewController","HomeScreen","CartScreen","ShopScreen"]
                     }
                     
                     // FLOATING Buttons
@@ -654,10 +655,44 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func setCurrentController(viewController: UIViewController) {
+//    public func setCurrentController(viewController: UIViewController) {
+//        if CustomerGlu.isEntryPointEnabled {
+//            let className = NSStringFromClass(viewController .classForCoder).components(separatedBy: ".").last!
+//            print("class name \(className)")
+//
+////            let arr = ["OpenWalletViewController", "LoadAllCampaignsViewController"]
+//
+//            for floatBtn in self.arrFloatingButton {
+//                floatBtn.hideFloatingButton(ishidden: true)
+//                if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 && (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
+//                    if  !(floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className))! {
+//                        floatBtn.hideFloatingButton(ishidden: false)
+//                    }
+//                } else if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 {
+//                    if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.contains(className))! {
+//                        floatBtn.hideFloatingButton(ishidden: false)
+//                    }
+//                } else if (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
+//                    if !(floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className))! {
+//                        floatBtn.hideFloatingButton(ishidden: false)
+//                    }
+//                }
+//            }
+//
+//            //POPUPS
+//            let popups = CustomerGlu.entryPointdata.filter {
+//                $0.mobile.container.type == "POPUP"
+//            }
+//            if popups.count != 0 {
+//                self.showPopupBanners(popups: popups, className: className)
+//            }
+//        }
+//    }
+    
+    public func setCurrentClassNeme(className: String) {
         if CustomerGlu.isEntryPointEnabled {
-            let className = NSStringFromClass(viewController .classForCoder).components(separatedBy: ".").last!
-            print("class name \(className)")
+//            let className = NSStringFromClass(viewController .classForCoder).components(separatedBy: ".").last!
+//            print("class name \(className)")
             
 //            let arr = ["OpenWalletViewController", "LoadAllCampaignsViewController"]
             

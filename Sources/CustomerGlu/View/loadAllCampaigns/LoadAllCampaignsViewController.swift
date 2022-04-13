@@ -47,7 +47,8 @@ public class LoadAllCampaignsViewController: UIViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
         navigationController?.setNavigationBarHidden(true, animated: false)
-        CustomerGlu.getInstance.setCurrentController(viewController: self)
+//        CustomerGlu.getInstance.setCurrentController(viewController: self)
+        CustomerGlu.getInstance.setCurrentClassNeme(className: String(describing: type(of: self)))
 
         self.configureSafeAreaForDevices()
                 

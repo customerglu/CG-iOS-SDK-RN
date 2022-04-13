@@ -22,7 +22,7 @@ public class OpenWalletViewController: UIViewController {
         super.viewDidLoad()
         
         navigationController?.setNavigationBarHidden(true, animated: false)
-        CustomerGlu.getInstance.setCurrentController(viewController: self)
+        CustomerGlu.getInstance.setCurrentClassNeme(className: String(describing: type(of: self)))
         
         if CustomerGlu.sdk_disable! == true {
             print(CustomerGlu.sdk_disable!)
