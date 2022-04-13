@@ -47,7 +47,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         super.init()
         
         if UserDefaults.standard.object(forKey: Constants.CUSTOMERGLU_TOKEN) != nil {
-            getEntryPointData()
+            if CustomerGlu.isEntryPointEnabled {
+                getEntryPointData()
+            }
         }
         
         CustomerGluCrash.add(delegate: self)
@@ -323,26 +325,20 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         self.userDefaults.set(response.data?.token, forKey: Constants.CUSTOMERGLU_TOKEN)
                         self.userDefaults.set(response.data?.user?.userId, forKey: Constants.CUSTOMERGLU_USERID)
                         
-                        APIManager.getEntryPointdata(queryParameters: [:]) { result in
-                            switch result {
-                                case .success(let responseGetEntry):
-                                    CustomerGlu.entryPointdata = responseGetEntry.data
-                                    // FLOATING Buttons
-                                    let floatingButtons = CustomerGlu.entryPointdata.filter {
-                                        $0.mobile.container.type == "FLOATING"
-                                    }
-                                    if floatingButtons.count != 0 {
-                                        for floatBtn in floatingButtons {
-                                            self.addFloatingButton(btnInfo: floatBtn)
-                                        }
-                                    }
-                                    
-                                    completion(true, response)
-                                    
-                                case .failure(let error):
-                                    print(error)
-                                    completion(true, response)
+                        if CustomerGlu.isEntryPointEnabled {
+                            APIManager.getEntryPointdata(queryParameters: [:]) { result in
+                                switch result {
+                                    case .success(let responseGetEntry):
+                                        CustomerGlu.entryPointdata = responseGetEntry.data
+                                        completion(true, response)
+                                        
+                                    case .failure(let error):
+                                        print(error)
+                                        completion(true, response)
+                                }
                             }
+                        } else {
+                            completion(true, response)
                         }
                         
                         if loadcampaigns == true {
@@ -403,21 +399,24 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             switch result {
                 case .success(let response):
                     if response.success! {
-                        
-                        APIManager.getEntryPointdata(queryParameters: [:]) { result in
-                            switch result {
-                                case .success(let responseGetEntry):
-                                    CustomerGlu.entryPointdata = responseGetEntry.data
-                                    completion(true, response)
-                                    
-                                case .failure(let error):
-                                    print(error)
-                                    completion(true, response)
-                            }
-                        }
-                        
                         self.userDefaults.set(response.data?.token, forKey: Constants.CUSTOMERGLU_TOKEN)
                         self.userDefaults.set(response.data?.user?.userId, forKey: Constants.CUSTOMERGLU_USERID)
+                        
+                        if CustomerGlu.isEntryPointEnabled {
+                            APIManager.getEntryPointdata(queryParameters: [:]) { result in
+                                switch result {
+                                    case .success(let responseGetEntry):
+                                        CustomerGlu.entryPointdata = responseGetEntry.data
+                                        completion(true, response)
+                                        
+                                    case .failure(let error):
+                                        print(error)
+                                        completion(true, response)
+                                }
+                            }
+                        } else {
+                            completion(true, response)
+                        }
                     } else {
                         ApplicationManager.callCrashReport(methodName: "updateProfile")
                     }
@@ -623,36 +622,37 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     public func setCurrentController(viewController: UIViewController) {
-        let className = NSStringFromClass(viewController .classForCoder).components(separatedBy: ".").last!
-        print("class name \(className)")
-        
-        let arr = ["OpenWalletViewController", "LoadAllCampaignsViewController"]
-        
-        for floatBtn in self.arrFloatingButton {
+        if CustomerGlu.isEntryPointEnabled {
+            let className = NSStringFromClass(viewController .classForCoder).components(separatedBy: ".").last!
+            print("class name \(className)")
             
-            if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 && (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
+            let arr = ["OpenWalletViewController", "LoadAllCampaignsViewController"]
+            
+            for floatBtn in self.arrFloatingButton {
                 
-                if  !(floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className))! {
-                    floatBtn.hideFloatingButton(ishidden: false)
-                } else if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 {
-                    if ((floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.contains(className)) != nil) {
+                if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 && (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
+                    
+                    if  !(floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className))! {
                         floatBtn.hideFloatingButton(ishidden: false)
-                    }
-                } else if (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
-                    if !((floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className)) != nil) {
-                        floatBtn.hideFloatingButton(ishidden: false)
+                    } else if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 {
+                        if ((floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.contains(className)) != nil) {
+                            floatBtn.hideFloatingButton(ishidden: false)
+                        }
+                    } else if (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
+                        if !((floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className)) != nil) {
+                            floatBtn.hideFloatingButton(ishidden: false)
+                        }
                     }
                 }
             }
-        }
-        
-        
-        //POPUPS
-        let popups = CustomerGlu.entryPointdata.filter {
-            $0.mobile.container.type == "POPUP"
-        }
-        if popups.count != 0 {
-            self.showPopupBanners(popups: popups, className: className)
+            
+            //POPUPS
+            let popups = CustomerGlu.entryPointdata.filter {
+                $0.mobile.container.type == "POPUP"
+            }
+            if popups.count != 0 {
+                self.showPopupBanners(popups: popups, className: className)
+            }
         }
     }
     

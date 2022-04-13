@@ -41,6 +41,7 @@ import WebKit
         view.frame = bounds
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.translatesAutoresizingMaskIntoConstraints = true
+        self.frame.size.height = 0
         // Adding custom subview on top of our view (over any custom drawing > see note below)
         imgScrollView.frame = bounds
         imgScrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
