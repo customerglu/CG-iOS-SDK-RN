@@ -454,13 +454,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             switch result {
                 case .success(let response):
                     CustomerGlu.entryPointdata = response.data
-                    
                     for i in 0...CustomerGlu.entryPointdata.count - 1 {
-                        print(CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList)
                         CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList = ["OpenWalletViewController", "LoadAllCampaignsViewController"]
-                        print(CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList)
                     }
-                    
                     
                     // FLOATING Buttons
                     let floatingButtons = CustomerGlu.entryPointdata.filter {
@@ -668,7 +664,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             for floatBtn in self.arrFloatingButton {
                 floatBtn.hideFloatingButton(ishidden: true)
                 if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 && (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
-                    
                     if  !(floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className))! {
                         floatBtn.hideFloatingButton(ishidden: false)
                     }
@@ -770,7 +765,16 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             }
                             let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
                             
-                            eventPublishNudge(pageName: className, nudgeId: finalPopUp[0].mobile._id, actionName: "OPEN", actionType: "WALLET", openType: finalPopUp[0].mobile.content[0].openLayout, campaignId: finalPopUp[0].mobile.content[0].campaignId)
+                            var actionType = ""
+                            if finalPopUp[0].mobile.content[0].campaignId.count == 0 {
+                                actionType = "WALLET"
+                            } else if finalPopUp[0].mobile.content[0].campaignId.contains("http://") {
+                                actionType = "CUSTOM_URL"
+                            } else {
+                                actionType = "CAMPAIGN"
+                            }
+                            
+                            eventPublishNudge(pageName: className, nudgeId: finalPopUp[0].mobile._id, actionName: "OPEN", actionType: actionType, openType: finalPopUp[0].mobile.content[0].openLayout, campaignId: finalPopUp[0].mobile.content[0].campaignId)
                             
                             let seconds = DispatchTimeInterval.seconds(finalPopUp[0].mobile.conditions.delay)
                             DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
@@ -810,7 +814,16 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                 }
                                 let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
                                 
-                                eventPublishNudge(pageName: className, nudgeId: finalPopUp[0].mobile._id, actionName: "OPEN", actionType: "WALLET", openType: finalPopUp[0].mobile.content[0].openLayout, campaignId: finalPopUp[0].mobile.content[0].campaignId)
+                                var actionType = ""
+                                if finalPopUp[0].mobile.content[0].campaignId.count == 0 {
+                                    actionType = "WALLET"
+                                } else if finalPopUp[0].mobile.content[0].campaignId.contains("http://") {
+                                    actionType = "CUSTOM_URL"
+                                } else {
+                                    actionType = "CAMPAIGN"
+                                }
+                                
+                                eventPublishNudge(pageName: className, nudgeId: finalPopUp[0].mobile._id, actionName: "OPEN", actionType: actionType, openType: finalPopUp[0].mobile.content[0].openLayout, campaignId: finalPopUp[0].mobile.content[0].campaignId)
                                 
                                 let seconds = DispatchTimeInterval.seconds(finalPopUp[0].mobile.conditions.delay)
                                 DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
@@ -851,7 +864,16 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                 }
                                 let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
                                 
-                                eventPublishNudge(pageName: className, nudgeId: finalPopUp[0].mobile._id, actionName: "OPEN", actionType: "WALLET", openType: finalPopUp[0].mobile.content[0].openLayout, campaignId: finalPopUp[0].mobile.content[0].campaignId)
+                                var actionType = ""
+                                if finalPopUp[0].mobile.content[0].campaignId.count == 0 {
+                                    actionType = "WALLET"
+                                } else if finalPopUp[0].mobile.content[0].campaignId.contains("http://") {
+                                    actionType = "CUSTOM_URL"
+                                } else {
+                                    actionType = "CAMPAIGN"
+                                }
+                                
+                                eventPublishNudge(pageName: className, nudgeId: finalPopUp[0].mobile._id, actionName: "OPEN", actionType: actionType, openType: finalPopUp[0].mobile.content[0].openLayout, campaignId: finalPopUp[0].mobile.content[0].campaignId)
                                 
                                 let seconds = DispatchTimeInterval.seconds(finalPopUp[0].mobile.conditions.delay)
                                 DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {

@@ -75,8 +75,17 @@ import WebKit
                     return
                 }
                 let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
+                
+                var actionType = ""
+                if mobile.content[0].campaignId.count == 0 {
+                    actionType = "WALLET"
+                } else if mobile.content[0].campaignId.contains("http://") {
+                    actionType = "CUSTOM_URL"
+                } else {
+                    actionType = "CAMPAIGN"
+                }
               
-                eventPublishNudge(pageName: className, nudgeId: mobile._id, actionName: "LOADED", actionType: "WALLET", openType: mobile.content[0].openLayout, campaignId: mobile.content[0].campaignId)
+                eventPublishNudge(pageName: className, nudgeId: mobile._id, actionName: "LOADED", actionType: actionType, openType: mobile.content[0].openLayout, campaignId: mobile.content[0].campaignId)
             }
         }
     }
@@ -165,8 +174,17 @@ import WebKit
                 return
             }
             let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
+            
+            var actionType = ""
+            if dict.campaignId.count == 0 {
+                actionType = "WALLET"
+            } else if dict.campaignId.contains("http://") {
+                actionType = "CUSTOM_URL"
+            } else {
+                actionType = "CAMPAIGN"
+            }
           
-            eventPublishNudge(pageName: className, nudgeId: dict._id, actionName: "OPEN", actionType: "WALLET", openType: dict.openLayout, campaignId: dict.campaignId)
+            eventPublishNudge(pageName: className, nudgeId: dict._id, actionName: "OPEN", actionType: actionType, openType: dict.openLayout, campaignId: dict.campaignId)
         }
     }
     
