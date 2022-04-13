@@ -70,6 +70,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     public func enableEntryPoint(enabled: Bool) {
         CustomerGlu.isEntryPointEnabled = enabled
+            if CustomerGlu.isEntryPointEnabled {
+                getEntryPointData()
+        }
     }
     
     public func customerGluDidCatchCrash(with model: CrashModel) {
@@ -433,7 +436,13 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             switch result {
                 case .success(let response):
                     CustomerGlu.entryPointdata = response.data
+
                     
+                    for i in 0...CustomerGlu.entryPointdata.count-1 {
+
+                        CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList = ["OpenWalletViewController", "LoadAllCampaignsViewController"]
+                    }
+
                 case .failure(let error):
                     print(error)
             }
@@ -626,7 +635,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             let className = NSStringFromClass(viewController .classForCoder).components(separatedBy: ".").last!
             print("class name \(className)")
             
-            let arr = ["OpenWalletViewController", "LoadAllCampaignsViewController"]
+//            let arr = ["OpenWalletViewController", "LoadAllCampaignsViewController"]
             
             for floatBtn in self.arrFloatingButton {
                 
