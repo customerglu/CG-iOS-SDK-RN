@@ -70,8 +70,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     public func enableEntryPoint(enabled: Bool) {
         CustomerGlu.isEntryPointEnabled = enabled
-            if CustomerGlu.isEntryPointEnabled {
-                getEntryPointData()
+        if CustomerGlu.isEntryPointEnabled {
+            getEntryPointData()
         }
     }
     
@@ -333,6 +333,15 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                 switch result {
                                     case .success(let responseGetEntry):
                                         CustomerGlu.entryPointdata = responseGetEntry.data
+                                        // FLOATING Buttons
+                                        let floatingButtons = CustomerGlu.entryPointdata.filter {
+                                            $0.mobile.container.type == "FLOATING"
+                                        }
+                                        if floatingButtons.count != 0 {
+                                            for floatBtn in floatingButtons {
+                                                self.addFloatingButton(btnInfo: floatBtn)
+                                            }
+                                        }
                                         completion(true, response)
                                         
                                     case .failure(let error):
@@ -410,6 +419,15 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                 switch result {
                                     case .success(let responseGetEntry):
                                         CustomerGlu.entryPointdata = responseGetEntry.data
+                                        // FLOATING Buttons
+                                        let floatingButtons = CustomerGlu.entryPointdata.filter {
+                                            $0.mobile.container.type == "FLOATING"
+                                        }
+                                        if floatingButtons.count != 0 {
+                                            for floatBtn in floatingButtons {
+                                                self.addFloatingButton(btnInfo: floatBtn)
+                                            }
+                                        }
                                         completion(true, response)
                                         
                                     case .failure(let error):
@@ -436,10 +454,17 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             switch result {
                 case .success(let response):
                     CustomerGlu.entryPointdata = response.data
-
+                    // FLOATING Buttons
+                    let floatingButtons = CustomerGlu.entryPointdata.filter {
+                        $0.mobile.container.type == "FLOATING"
+                    }
+                    if floatingButtons.count != 0 {
+                        for floatBtn in floatingButtons {
+                            self.addFloatingButton(btnInfo: floatBtn)
+                        }
+                    }
                     
-                    for i in 0...CustomerGlu.entryPointdata.count-1 {
-
+                    for i in 0...CustomerGlu.entryPointdata.count - 1 {
                         CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList = ["OpenWalletViewController", "LoadAllCampaignsViewController"]
                     }
 
