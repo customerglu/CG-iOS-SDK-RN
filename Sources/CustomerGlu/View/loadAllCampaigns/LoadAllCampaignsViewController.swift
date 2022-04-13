@@ -47,8 +47,6 @@ public class LoadAllCampaignsViewController: UIViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
         navigationController?.setNavigationBarHidden(true, animated: false)
-//        CustomerGlu.getInstance.setCurrentController(viewController: self)
-        CustomerGlu.getInstance.setCurrentClassNeme(className: String(describing: type(of: self)))
 
         self.configureSafeAreaForDevices()
                 
@@ -66,9 +64,12 @@ public class LoadAllCampaignsViewController: UIViewController {
     }
     
     @IBAction func backButton(sender: UIButton) {
-        self.dismiss(animated: true, completion: nil)
+        self.closePage(animated: true)
     }
-    
+    private func closePage(animated: Bool){
+        self.dismiss(animated: animated, completion: nil)
+        CustomerGlu.getInstance.showFloatingButtons()
+    }
     func getCampaign() {
         CustomerGlu.getInstance.loaderShow(withcoordinate: self.view.frame.midX - 30, y: self.view.frame.midY - 30)
                 

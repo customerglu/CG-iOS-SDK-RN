@@ -88,13 +88,18 @@ public class CustomerImageNudgeViewController: UIViewController {
         if url != "" || !url.isEmpty {
             imgView.downloadImage(urlString: url)
         } else {
-            self.dismiss(animated: false, completion: nil)
+            self.closePage(animated: false)
         }
         self.view.addSubview(imgView)
 //        CustomerGlu.getInstance.loaderShow(withcoordinate: x, y: y)
     }
     
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
-        self.dismiss(animated: false, completion: nil)
+        self.closePage(animated: false)
+    }
+    
+    private func closePage(animated: Bool){
+        self.dismiss(animated: animated, completion: nil)
+        CustomerGlu.getInstance.showFloatingButtons()
     }
 }

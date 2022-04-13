@@ -22,7 +22,7 @@ public class OpenWalletViewController: UIViewController {
         super.viewDidLoad()
         
         navigationController?.setNavigationBarHidden(true, animated: false)
-        CustomerGlu.getInstance.setCurrentClassNeme(className: String(describing: type(of: self)))
+
         
         if CustomerGlu.sdk_disable! == true {
             print(CustomerGlu.sdk_disable!)
@@ -55,6 +55,7 @@ public class OpenWalletViewController: UIViewController {
                     customerWebViewVC.openWallet = true
                     customerWebViewVC.delegate = self
                     customerWebViewVC.modalPresentationStyle = .overCurrentContext
+                    CustomerGlu.getInstance.hideFloatingButtons()
                     self.present(customerWebViewVC, animated: false)
                 }
             } else {
@@ -69,6 +70,7 @@ extension OpenWalletViewController: CustomerGluWebViewDelegate {
     func closeClicked(_ success: Bool) {
         dismiss(animated: false, completion: {
             self.dismiss(animated: true, completion: nil)
+            CustomerGlu.getInstance.showFloatingButtons()
         })
     }
 }

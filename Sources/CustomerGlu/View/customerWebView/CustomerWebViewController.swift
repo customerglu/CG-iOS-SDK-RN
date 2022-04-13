@@ -156,14 +156,19 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         if url != "" || !url.isEmpty {
             webView.load(URLRequest(url: URL(string: url)!))
         } else {
-            self.dismiss(animated: false, completion: nil)
+            self.closePage(animated: false)
         }
         self.view.addSubview(webView)
         CustomerGlu.getInstance.loaderShow(withcoordinate: x, y: y)
     }
     
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
-        self.dismiss(animated: false, completion: nil)
+        self.closePage(animated: false)
+    }
+    
+    private func closePage(animated: Bool){
+        self.dismiss(animated: animated, completion: nil)
+        CustomerGlu.getInstance.showFloatingButtons()
     }
     
     public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
@@ -197,7 +202,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 if openWallet {
                     delegate?.closeClicked(true)
                 } else if notificationHandler || iscampignId {
-                    self.dismiss(animated: true, completion: nil)
+                    self.closePage(animated: true)
                 } else {
                     self.navigationController?.popViewController(animated: true)
                 }

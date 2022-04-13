@@ -42,6 +42,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var isDebugingEnabled = false
     public static var isEntryPointEnabled = false
     public static var activeViewController = ""
+    internal var activescreenname = ""
 
     private override init() {
         super.init()
@@ -455,8 +456,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 case .success(let response):
                     CustomerGlu.entryPointdata = response.data
                     for i in 0...CustomerGlu.entryPointdata.count - 1 {
-                        CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList = ["OpenWalletViewController"]
-                        CustomerGlu.entryPointdata[i].mobile.container.ios.disallowedActitivityList = ["OpenWalletViewController", "LoadAllCampaignsViewController","HomeScreen","CartScreen","ShopScreen"]
+                        CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList = ["OpenWalletViewController", "LoadAllCampaignsViewController","HomeScreen","CartScreen"]
+                        //"OpenWalletViewController", "LoadAllCampaignsViewController","HomeScreen",
+//                        CustomerGlu.entryPointdata[i].mobile.container.ios.disallowedActitivityList = ["CartScreen"]
+                        
+//                        CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList = ["HomeScreen"]
+//                        CustomerGlu.entryPointdata[i].mobile.container.ios.disallowedActitivityList = ["HomeScreen"]
                     }
                     
                     // FLOATING Buttons
@@ -650,9 +655,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     internal func showFloatingButtons() {
-        for floatBtn in self.arrFloatingButton {
-            floatBtn.hideFloatingButton(ishidden: false)
-        }
+        
+        CustomerGlu.getInstance.setCurrentClassNeme(className: CustomerGlu.getInstance.activescreenname)
+//        for floatBtn in self.arrFloatingButton {
+//            floatBtn.hideFloatingButton(ishidden: floatBtn.previous)
+//        }
     }
     
 //    public func setCurrentController(viewController: UIViewController) {
@@ -690,12 +697,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
 //    }
     
     public func setCurrentClassNeme(className: String) {
+        
+        CustomerGlu.getInstance.activescreenname = className
         if CustomerGlu.isEntryPointEnabled {
-//            let className = NSStringFromClass(viewController .classForCoder).components(separatedBy: ".").last!
-//            print("class name \(className)")
-            
-//            let arr = ["OpenWalletViewController", "LoadAllCampaignsViewController"]
-            
+
+
             for floatBtn in self.arrFloatingButton {
                 floatBtn.hideFloatingButton(ishidden: true)
                 if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 && (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
@@ -973,9 +979,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             customerWebViewVC.modalPresentationStyle = .fullScreen
         }
         CustomerGlu.getInstance.hideFloatingButtons()
-        topController.present(customerWebViewVC, animated: true, completion: {
-            self.hideFloatingButtons()
-        })
+        topController.present(customerWebViewVC, animated: true, completion: nil)
     }
     
     private func eventPublishNudge(pageName: String, nudgeId: String, actionName: String, actionType: String, openType: String, campaignId: String) {
