@@ -454,6 +454,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             switch result {
                 case .success(let response):
                     CustomerGlu.entryPointdata = response.data
+                    
+                    for i in 0...CustomerGlu.entryPointdata.count - 1 {
+                        print(CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList)
+                        CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList = ["OpenWalletViewController", "LoadAllCampaignsViewController"]
+                        print(CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList)
+                    }
+                    
+                    
                     // FLOATING Buttons
                     let floatingButtons = CustomerGlu.entryPointdata.filter {
                         $0.mobile.container.type == "FLOATING"
@@ -463,11 +471,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             self.addFloatingButton(btnInfo: floatBtn)
                         }
                     }
-                    
-                    for i in 0...CustomerGlu.entryPointdata.count - 1 {
-                        CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList = ["OpenWalletViewController", "LoadAllCampaignsViewController"]
-                    }
-
                 case .failure(let error):
                     print(error)
             }
@@ -663,19 +666,19 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
 //            let arr = ["OpenWalletViewController", "LoadAllCampaignsViewController"]
             
             for floatBtn in self.arrFloatingButton {
-                
+                floatBtn.hideFloatingButton(ishidden: true)
                 if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 && (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
                     
                     if  !(floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className))! {
                         floatBtn.hideFloatingButton(ishidden: false)
-                    } else if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 {
-                        if ((floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.contains(className)) != nil) {
-                            floatBtn.hideFloatingButton(ishidden: false)
-                        }
-                    } else if (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
-                        if !((floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className)) != nil) {
-                            floatBtn.hideFloatingButton(ishidden: false)
-                        }
+                    }
+                } else if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 {
+                    if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.contains(className))! {
+                        floatBtn.hideFloatingButton(ishidden: false)
+                    }
+                } else if (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
+                    if !(floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className))! {
+                        floatBtn.hideFloatingButton(ishidden: false)
                     }
                 }
             }
