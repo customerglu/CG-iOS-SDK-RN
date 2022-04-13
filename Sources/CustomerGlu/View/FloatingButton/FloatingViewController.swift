@@ -109,25 +109,9 @@ class FloatingButtonController: UIViewController {
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
         imageview.addGestureRecognizer(tap)
-        
-        guard let topController = UIApplication.getTopViewController() else {
-            return
-        }
-        let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
-        
+       
         window.imageview?.isHidden = true
         self.imageview.isHidden = true
-        
-        var actionType = ""
-        if floatInfo?.mobile.content[0].campaignId.count == 0 {
-            actionType = "WALLET"
-        } else if (floatInfo?.mobile.content[0].campaignId.contains("http://"))! {
-            actionType = "CUSTOM_URL"
-        } else {
-            actionType = "CAMPAIGN"
-        }
-        
-        eventPublishNudge(pageName: className, nudgeId: (floatInfo?.mobile._id)!, actionName: "LOADED", actionType: actionType, openType: (floatInfo?.mobile.content[0].openLayout)!, campaignId: (floatInfo?.mobile.content[0].campaignId)!)
     }
     
     public func hideFloatingButton(ishidden: Bool) {

@@ -655,8 +655,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     internal func showFloatingButtons() {
-        
-        CustomerGlu.getInstance.setCurrentClassNeme(className: CustomerGlu.getInstance.activescreenname)
+        CustomerGlu.getInstance.setCurrentClassName(className: CustomerGlu.getInstance.activescreenname)
 //        for floatBtn in self.arrFloatingButton {
 //            floatBtn.hideFloatingButton(ishidden: floatBtn.previous)
 //        }
@@ -696,25 +695,26 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
 //        }
 //    }
     
-    public func setCurrentClassNeme(className: String) {
+    public func setCurrentClassName(className: String) {
         
         CustomerGlu.getInstance.activescreenname = className
         if CustomerGlu.isEntryPointEnabled {
-
-
             for floatBtn in self.arrFloatingButton {
                 floatBtn.hideFloatingButton(ishidden: true)
                 if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 && (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
                     if  !(floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className))! {
                         floatBtn.hideFloatingButton(ishidden: false)
+                        callEventPublishNudge(floatInfo: floatBtn.floatInfo!, className: className)
                     }
                 } else if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 {
                     if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.contains(className))! {
                         floatBtn.hideFloatingButton(ishidden: false)
+                        callEventPublishNudge(floatInfo: floatBtn.floatInfo!, className: className)
                     }
                 } else if (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
                     if !(floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className))! {
                         floatBtn.hideFloatingButton(ishidden: false)
+                        callEventPublishNudge(floatInfo: floatBtn.floatInfo!, className: className)
                     }
                 }
             }
@@ -727,6 +727,19 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 self.showPopupBanners(popups: popups, className: className)
             }
         }
+    }
+    
+    private func callEventPublishNudge(floatInfo: CGData, className: String) {
+        var actionType = ""
+        if floatInfo.mobile.content[0].campaignId.count == 0 {
+            actionType = "WALLET"
+        } else if floatInfo.mobile.content[0].campaignId.contains("http://") {
+            actionType = "CUSTOM_URL"
+        } else {
+            actionType = "CAMPAIGN"
+        }
+        
+        eventPublishNudge(pageName: className, nudgeId: floatInfo.mobile._id, actionName: "LOADED", actionType: actionType, openType: floatInfo.mobile.content[0].openLayout, campaignId: floatInfo.mobile.content[0].campaignId)
     }
     
     private func showPopupBanners(popups: [CGData], className: String) {
