@@ -43,6 +43,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var isEntryPointEnabled = false
     public static var activeViewController = ""
     internal var activescreenname = ""
+//    internal var popUptoShow: CFData?
+    
+    internal var popupDict = [PopUpModel]()
+    internal var entryPointPopUpModel = EntryPointPopUpModel()
 
     private override init() {
         super.init()
@@ -451,7 +455,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     private func getEntryPointData() {
-        APIManager.getEntryPointdata(queryParameters: [:]) { result in
+        APIManager.getEntryPointdata(queryParameters: [:]) { [self] result in
             switch result {
                 case .success(let response):
                     CustomerGlu.entryPointdata = response.data
@@ -473,6 +477,57 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             self.addFloatingButton(btnInfo: floatBtn)
                         }
                     }
+                    
+                    //POPUPS
+                    let popups = CustomerGlu.entryPointdata.filter {
+                        $0.mobile.container.type == "POPUP"
+                    }
+                    if popups.count != 0 {
+                        do {
+                            let popupItems = try userDefaults.getObject(forKey: Constants.CustomerGluPopupDict, castTo: EntryPointPopUpModel.self)
+                            popupDict = popupItems.popups!
+                        } catch {
+                            print(error.localizedDescription)
+                        }
+                        
+                        for dict in popups {
+                            if popupDict.contains(where: { $0._id == dict._id }) {
+                                print("1 exists in the array")
+                            } else {
+                                print("1 does not exists in the array")
+                                var popupInfo = PopUpModel()
+                                popupInfo._id = dict._id
+                                popupInfo.showcount = dict.mobile.conditions.showCount
+                                popupInfo.delay = dict.mobile.conditions.delay
+                                popupInfo.backgroundopacity = dict.mobile.conditions.backgroundOpacity
+                                popupInfo.priority = dict.mobile.conditions.priority
+                                popupInfo.popupdate = Date()
+                                
+                                popupDict.append(popupInfo)
+                            }
+                        }
+                        
+                        for item in popupDict {
+                            if popups.contains(where: { $0._id == item._id }) {
+                                print("1 exists in the array")
+                            } else {
+                                print("1 does not exists in the array")
+                                // remove item from popupDict
+                                if let index = popupDict.firstIndex(where: {$0._id == item._id}) {
+                                    popupDict.remove(at: index)
+                                }
+                            }
+                        }
+                        
+                        entryPointPopUpModel.popups = popupDict
+                        
+                        do {
+                            try userDefaults.setObject(entryPointPopUpModel, forKey: Constants.CustomerGluPopupDict)
+                        } catch {
+                            print(error.localizedDescription)
+                        }
+                    }
+                    
                 case .failure(let error):
                     print(error)
             }
@@ -656,45 +711,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     internal func showFloatingButtons() {
         CustomerGlu.getInstance.setCurrentClassName(className: CustomerGlu.getInstance.activescreenname)
-//        for floatBtn in self.arrFloatingButton {
-//            floatBtn.hideFloatingButton(ishidden: floatBtn.previous)
-//        }
     }
-    
-//    public func setCurrentController(viewController: UIViewController) {
-//        if CustomerGlu.isEntryPointEnabled {
-//            let className = NSStringFromClass(viewController .classForCoder).components(separatedBy: ".").last!
-//            print("class name \(className)")
-//
-////            let arr = ["OpenWalletViewController", "LoadAllCampaignsViewController"]
-//
-//            for floatBtn in self.arrFloatingButton {
-//                floatBtn.hideFloatingButton(ishidden: true)
-//                if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 && (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
-//                    if  !(floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className))! {
-//                        floatBtn.hideFloatingButton(ishidden: false)
-//                    }
-//                } else if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 {
-//                    if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.contains(className))! {
-//                        floatBtn.hideFloatingButton(ishidden: false)
-//                    }
-//                } else if (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
-//                    if !(floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className))! {
-//                        floatBtn.hideFloatingButton(ishidden: false)
-//                    }
-//                }
-//            }
-//
-//            //POPUPS
-//            let popups = CustomerGlu.entryPointdata.filter {
-//                $0.mobile.container.type == "POPUP"
-//            }
-//            if popups.count != 0 {
-//                self.showPopupBanners(popups: popups, className: className)
-//            }
-//        }
-//    }
-    
+
     public func setCurrentClassName(className: String) {
         
         CustomerGlu.getInstance.activescreenname = className
@@ -704,249 +722,79 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 && (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
                     if  !(floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className))! {
                         floatBtn.hideFloatingButton(ishidden: false)
-                        callEventPublishNudge(floatInfo: floatBtn.floatInfo!, className: className)
+                        callEventPublishNudge(data: floatBtn.floatInfo!, className: className, actionName: "LOADED")
                     }
                 } else if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 {
                     if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.contains(className))! {
                         floatBtn.hideFloatingButton(ishidden: false)
-                        callEventPublishNudge(floatInfo: floatBtn.floatInfo!, className: className)
+                        callEventPublishNudge(data: floatBtn.floatInfo!, className: className, actionName: "LOADED")
                     }
                 } else if (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
                     if !(floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className))! {
                         floatBtn.hideFloatingButton(ishidden: false)
-                        callEventPublishNudge(floatInfo: floatBtn.floatInfo!, className: className)
+                        callEventPublishNudge(data: floatBtn.floatInfo!, className: className, actionName: "LOADED")
                     }
                 }
             }
             
-            //POPUPS
-            let popups = CustomerGlu.entryPointdata.filter {
-                $0.mobile.container.type == "POPUP"
-            }
-            if popups.count != 0 {
-                self.showPopupBanners(popups: popups, className: className)
-            }
+            showPopup(className: className)
         }
     }
     
-    private func callEventPublishNudge(floatInfo: CGData, className: String) {
-        var actionType = ""
-        if floatInfo.mobile.content[0].campaignId.count == 0 {
-            actionType = "WALLET"
-        } else if floatInfo.mobile.content[0].campaignId.contains("http://") {
-            actionType = "CUSTOM_URL"
-        } else {
-            actionType = "CAMPAIGN"
-        }
-        
-        eventPublishNudge(pageName: className, nudgeId: floatInfo.mobile._id, actionName: "LOADED", actionType: actionType, openType: floatInfo.mobile.content[0].openLayout, campaignId: floatInfo.mobile.content[0].campaignId)
-    }
-    
-    private func showPopupBanners(popups: [CGData], className: String) {
-        var popupDict = [PopUpModel]()
-        var entryPointPopUpModel = EntryPointPopUpModel()
-        
-        do {
-            let popupItems = try userDefaults.getObject(forKey: Constants.CustomerGluPopupDict, castTo: EntryPointPopUpModel.self)
-            popupDict = popupItems.popups!
-        } catch {
-            print(error.localizedDescription)
-        }
-        
-        for dict in popups {
-            if popupDict.contains(where: { $0._id == dict._id }) {
-                print("1 exists in the array")
-            } else {
-                print("1 does not exists in the array")
-                var popupInfo = PopUpModel()
-                popupInfo._id = dict._id
-                popupInfo.showcount = dict.mobile.conditions.showCount
-                popupInfo.delay = dict.mobile.conditions.delay
-                popupInfo.backgroundopacity = dict.mobile.conditions.backgroundOpacity
-                popupInfo.priority = dict.mobile.conditions.priority
-                popupInfo.popupdate = Date()
-                
-                popupDict.append(popupInfo)
-            }
-        }
-        
-        for item in popupDict {
-            if popups.contains(where: { $0._id == item._id }) {
-                print("1 exists in the array")
-            } else {
-                print("1 does not exists in the array")
-                // remove item from popupDict
-                if let index = popupDict.firstIndex(where: {$0._id == item._id}) {
-                    popupDict.remove(at: index)
-                }
-            }
-        }
-        
+    private func showPopup(className: String) {
+       
         let sortedPopup = popupDict.sorted{$0.priority! > $1.priority!}
         
         if sortedPopup.count > 0 {
             for popupShow in sortedPopup {
-                var finalPopupShow = popupShow
-                if finalPopupShow.showcount?.count != 0 {
+                if popupShow.showcount?.count != 0 {
                     let finalPopUp = CustomerGlu.entryPointdata.filter {
                         $0._id == popupShow._id
                     }
                     
                     if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 && finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
-                        
-                        if  !finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
-                            finalPopupShow.showcount?.count -= 1
-                            
-                            if finalPopupShow.showcount?.dailyRefresh == true {
-                                if finalPopupShow.popupdate == Date() {
-                                    let today = Date()
-                                    if let tomorrow = today.tomorrow {
-                                        print("\(tomorrow)")
-                                        finalPopupShow.popupdate = tomorrow
-                                    }
-                                } else {
-                                    return
-                                }
-                            }
-                            
-                            if let index = popupDict.firstIndex(where: {$0._id == finalPopupShow._id}) {
-                                popupDict.remove(at: index)
-                                popupDict.insert(finalPopupShow, at: index)
-                            }
-                            
-                            guard let topController = UIApplication.getTopViewController() else {
-                                return
-                            }
-                            let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
-                            
-                            var actionType = ""
-                            if finalPopUp[0].mobile.content[0].campaignId.count == 0 {
-                                actionType = "WALLET"
-                            } else if finalPopUp[0].mobile.content[0].campaignId.contains("http://") {
-                                actionType = "CUSTOM_URL"
-                            } else {
-                                actionType = "CAMPAIGN"
-                            }
-                            
-                            eventPublishNudge(pageName: className, nudgeId: finalPopUp[0].mobile._id, actionName: "OPEN", actionType: actionType, openType: finalPopUp[0].mobile.content[0].openLayout, campaignId: finalPopUp[0].mobile.content[0].campaignId)
-                            
-                            let seconds = DispatchTimeInterval.seconds(finalPopUp[0].mobile.conditions.delay)
-                            DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
-                                if finalPopUp[0].mobile.content[0].openLayout == "FULL-DEFAULT" {
-                                    CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5)
-                                } else if finalPopUp[0].mobile.content[0].openLayout == "BOTTOM-DEFAULT" {
-                                    CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: 0.5)
-                                }  else if finalPopUp[0].mobile.content[0].openLayout == "BOTTOM-SLIDER" {
-                                    CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: 0.5)
-                                } else {
-                                    CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: 0.5)
-                                }
-                            }
-                        } else if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 {
-                            if finalPopUp[0].mobile.container.ios.allowedActitivityList.contains(className) {
-                                finalPopupShow.showcount?.count -= 1
-                                
-                                if finalPopupShow.showcount?.dailyRefresh == true {
-                                    if finalPopupShow.popupdate == Date() {
-                                        let today = Date()
-                                        if let tomorrow = today.tomorrow {
-                                            print("\(tomorrow)")
-                                            finalPopupShow.popupdate = tomorrow
-                                        }
-                                    } else {
-                                        return
-                                    }
-                                }
-                                
-                                if let index = popupDict.firstIndex(where: {$0._id == finalPopupShow._id}) {
-                                    popupDict.remove(at: index)
-                                    popupDict.insert(finalPopupShow, at: index)
-                                }
-                                
-                                guard let topController = UIApplication.getTopViewController() else {
-                                    return
-                                }
-                                let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
-                                
-                                var actionType = ""
-                                if finalPopUp[0].mobile.content[0].campaignId.count == 0 {
-                                    actionType = "WALLET"
-                                } else if finalPopUp[0].mobile.content[0].campaignId.contains("http://") {
-                                    actionType = "CUSTOM_URL"
-                                } else {
-                                    actionType = "CAMPAIGN"
-                                }
-                                
-                                eventPublishNudge(pageName: className, nudgeId: finalPopUp[0].mobile._id, actionName: "OPEN", actionType: actionType, openType: finalPopUp[0].mobile.content[0].openLayout, campaignId: finalPopUp[0].mobile.content[0].campaignId)
-                                
-                                let seconds = DispatchTimeInterval.seconds(finalPopUp[0].mobile.conditions.delay)
-                                DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
-                                    if finalPopUp[0].mobile.content[0].openLayout == "FULL-DEFAULT" {
-                                        CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5)
-                                    } else if finalPopUp[0].mobile.content[0].openLayout == "BOTTOM-DEFAULT" {
-                                        CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: 0.5)
-                                    }  else if finalPopUp[0].mobile.content[0].openLayout == "BOTTOM-SLIDER" {
-                                        CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: 0.5)
-                                    } else {
-                                        CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: 0.5)
-                                    }
-                                }
-                            }
-                        } else if finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
-                            if finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
-                                finalPopupShow.showcount?.count -= 1
-                                
-                                if finalPopupShow.showcount?.dailyRefresh == true {
-                                    if finalPopupShow.popupdate == Date() {
-                                        let today = Date()
-                                        if let tomorrow = today.tomorrow {
-                                            print("\(tomorrow)")
-                                            finalPopupShow.popupdate = tomorrow
-                                        }
-                                    } else {
-                                        return
-                                    }
-                                }
-                                
-                                if let index = popupDict.firstIndex(where: {$0._id == finalPopupShow._id}) {
-                                    popupDict.remove(at: index)
-                                    popupDict.insert(finalPopupShow, at: index)
-                                }
-                                
-                                guard let topController = UIApplication.getTopViewController() else {
-                                    return
-                                }
-                                let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
-                                
-                                var actionType = ""
-                                if finalPopUp[0].mobile.content[0].campaignId.count == 0 {
-                                    actionType = "WALLET"
-                                } else if finalPopUp[0].mobile.content[0].campaignId.contains("http://") {
-                                    actionType = "CUSTOM_URL"
-                                } else {
-                                    actionType = "CAMPAIGN"
-                                }
-                                
-                                eventPublishNudge(pageName: className, nudgeId: finalPopUp[0].mobile._id, actionName: "OPEN", actionType: actionType, openType: finalPopUp[0].mobile.content[0].openLayout, campaignId: finalPopUp[0].mobile.content[0].campaignId)
-                                
-                                let seconds = DispatchTimeInterval.seconds(finalPopUp[0].mobile.conditions.delay)
-                                DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
-                                    if finalPopUp[0].mobile.content[0].openLayout == "FULL-DEFAULT" {
-                                        CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5)
-                                    } else if finalPopUp[0].mobile.content[0].openLayout == "BOTTOM-DEFAULT" {
-                                        CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: 0.5)
-                                    }  else if finalPopUp[0].mobile.content[0].openLayout == "BOTTOM-SLIDER" {
-                                        CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: 0.5)
-                                    } else {
-                                        CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp[0].mobile.content[0].campaignId)!, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: 0.5)
-                                    }
-                                }
-                            }
+                        if !finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
+                            updatePopupShowCount(popupShow: popupShow)
+                            callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
+                            openPopup(finalPopUp: finalPopUp[0])
+                        }
+                    } else if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 {
+                        if finalPopUp[0].mobile.container.ios.allowedActitivityList.contains(className) {
+                            updatePopupShowCount(popupShow: popupShow)
+                            callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
+                            openPopup(finalPopUp: finalPopUp[0])
+                        }
+                    } else if finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
+                        if finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
+                            updatePopupShowCount(popupShow: popupShow)
+                            callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
+                            openPopup(finalPopUp: finalPopUp[0])
                         }
                     }
                 }
                 break
             }
+        }
+    }
+    
+    private func updatePopupShowCount(popupShow: PopUpModel) {
+        var popupShowNew = popupShow
+        popupShowNew.showcount?.count -= 1
+        
+        if popupShowNew.showcount?.dailyRefresh == true {
+            if popupShowNew.popupdate == Date() {
+                let today = Date()
+                if let tomorrow = today.tomorrow {
+                    popupShowNew.popupdate = tomorrow
+                }
+            } else {
+                return
+            }
+        }
+        
+        if let index = popupDict.firstIndex(where: {$0._id == popupShowNew._id}) {
+            popupDict.remove(at: index)
+            popupDict.insert(popupShowNew, at: index)
         }
         
         entryPointPopUpModel.popups = popupDict
@@ -958,6 +806,34 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
+    private func openPopup(finalPopUp: CGData) {
+        let seconds = DispatchTimeInterval.seconds(finalPopUp.mobile.conditions.delay)
+        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
+            if finalPopUp.mobile.content[0].openLayout == "FULL-DEFAULT" {
+                CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp.mobile.content[0].campaignId)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5)
+            } else if finalPopUp.mobile.content[0].openLayout == "BOTTOM-DEFAULT" {
+                CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp.mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: 0.5)
+            }  else if finalPopUp.mobile.content[0].openLayout == "BOTTOM-SLIDER" {
+                CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp.mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: 0.5)
+            } else {
+                CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp.mobile.content[0].campaignId)!, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: 0.5)
+            }
+        }
+    }
+    
+    private func callEventPublishNudge(data: CGData, className: String, actionName: String) {
+        var actionType = ""
+        if data.mobile.content[0].campaignId.count == 0 {
+            actionType = "WALLET"
+        } else if data.mobile.content[0].campaignId.contains("http://") {
+            actionType = "CUSTOM_URL"
+        } else {
+            actionType = "CAMPAIGN"
+        }
+        
+        eventPublishNudge(pageName: className, nudgeId: data.mobile._id, actionName: actionName, actionType: actionType, openType: data.mobile.content[0].openLayout, campaignId: data.mobile.content[0].campaignId)
+    }
+  
     internal func openCampaignById(campaign_id: String, page_type: String, backgroundAlpha: Double) {
         
         let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
