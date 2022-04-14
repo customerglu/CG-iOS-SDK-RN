@@ -15,9 +15,9 @@ public struct CGContainer: Codable{
 	var type : String!
 	var width : String!
     var borderRadius: String!
+    var popupArr: [String]!
 
-
-	/**
+    /**
 	 * Instantiate the instance using the passed dictionary values to set the properties values
 	 */
 	init(fromDictionary dictionary: [String:Any]){

@@ -463,7 +463,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList = ["OpenWalletViewController", "LoadAllCampaignsViewController","HomeScreen","CartScreen"]
                         //"OpenWalletViewController", "LoadAllCampaignsViewController","HomeScreen",
 //                        CustomerGlu.entryPointdata[i].mobile.container.ios.disallowedActitivityList = ["CartScreen"]
-                        
 //                        CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList = ["HomeScreen"]
 //                        CustomerGlu.entryPointdata[i].mobile.container.ios.disallowedActitivityList = ["HomeScreen"]
                     }
@@ -748,27 +747,64 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         if sortedPopup.count > 0 {
             for popupShow in sortedPopup {
                 if popupShow.showcount?.count != 0 {
-                    let finalPopUp = CustomerGlu.entryPointdata.filter {
+                    var finalPopUp = CustomerGlu.entryPointdata.filter {
                         $0._id == popupShow._id
                     }
                     
-                    if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 && finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
-                        if !finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
-                            updatePopupShowCount(popupShow: popupShow)
-                            callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
-                            openPopup(finalPopUp: finalPopUp[0])
+                    if finalPopUp[0].mobile.container.popupArr == nil {
+                        
+                        var arr = [String]()
+                        arr.append(className)
+                        
+                        finalPopUp[0].mobile.container.popupArr = arr
+                         
+                        if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 && finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
+                            if !finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
+                                updatePopupShowCount(popupShow: popupShow)
+                                callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
+                                openPopup(finalPopUp: finalPopUp[0])
+                            }
+                        } else if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 {
+                            if finalPopUp[0].mobile.container.ios.allowedActitivityList.contains(className) {
+                                updatePopupShowCount(popupShow: popupShow)
+                                callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
+                                openPopup(finalPopUp: finalPopUp[0])
+                            }
+                        } else if finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
+                            if finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
+                                updatePopupShowCount(popupShow: popupShow)
+                                callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
+                                openPopup(finalPopUp: finalPopUp[0])
+                            }
                         }
-                    } else if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 {
-                        if finalPopUp[0].mobile.container.ios.allowedActitivityList.contains(className) {
-                            updatePopupShowCount(popupShow: popupShow)
-                            callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
-                            openPopup(finalPopUp: finalPopUp[0])
-                        }
-                    } else if finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
-                        if finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
-                            updatePopupShowCount(popupShow: popupShow)
-                            callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
-                            openPopup(finalPopUp: finalPopUp[0])
+                        
+                    } else {
+                        if !finalPopUp[0].mobile.container.popupArr.contains(className) {
+                            
+                            var arr = finalPopUp[0].mobile.container.popupArr
+                            arr?.append(className)
+                            
+                            finalPopUp[0].mobile.container.popupArr = arr
+                                                        
+                            if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 && finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
+                                if !finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
+                                    updatePopupShowCount(popupShow: popupShow)
+                                    callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
+                                    openPopup(finalPopUp: finalPopUp[0])
+                                }
+                            } else if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 {
+                                if finalPopUp[0].mobile.container.ios.allowedActitivityList.contains(className) {
+                                    updatePopupShowCount(popupShow: popupShow)
+                                    callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
+                                    openPopup(finalPopUp: finalPopUp[0])
+                                }
+                            } else if finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
+                                if finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
+                                    updatePopupShowCount(popupShow: popupShow)
+                                    callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
+                                    openPopup(finalPopUp: finalPopUp[0])
+                                }
+                            }
                         }
                     }
                 }
