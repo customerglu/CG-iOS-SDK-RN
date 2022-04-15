@@ -43,10 +43,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var isEntryPointEnabled = false
     public static var activeViewController = ""
     internal var activescreenname = ""
-//    internal var popUptoShow: CFData?
-    
+        
     internal var popupDict = [PopUpModel]()
     internal var entryPointPopUpModel = EntryPointPopUpModel()
+    internal var popupDisplayScreens = [String]()
 
     private override init() {
         super.init()
@@ -460,7 +460,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 case .success(let response):
                     CustomerGlu.entryPointdata = response.data
                     for i in 0...CustomerGlu.entryPointdata.count - 1 {
-                        CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList = ["OpenWalletViewController", "LoadAllCampaignsViewController","HomeScreen","CartScreen"]
+                        CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList = ["OpenWalletViewController", "LoadAllCampaignsViewController","CartScreen"]
                         //"OpenWalletViewController", "LoadAllCampaignsViewController","HomeScreen",
 //                        CustomerGlu.entryPointdata[i].mobile.container.ios.disallowedActitivityList = ["CartScreen"]
 //                        CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList = ["HomeScreen"]
@@ -747,63 +747,39 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         if sortedPopup.count > 0 {
             for popupShow in sortedPopup {
                 if popupShow.showcount?.count != 0 {
-                    var finalPopUp = CustomerGlu.entryPointdata.filter {
+                    let finalPopUp = CustomerGlu.entryPointdata.filter {
                         $0._id == popupShow._id
                     }
                     
-                    if finalPopUp[0].mobile.container.popupArr == nil {
-                        
-                        var arr = [String]()
-                        arr.append(className)
-                        
-                        finalPopUp[0].mobile.container.popupArr = arr
-                         
-                        if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 && finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
-                            if !finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
-                                updatePopupShowCount(popupShow: popupShow)
-                                callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
-                                openPopup(finalPopUp: finalPopUp[0])
-                            }
-                        } else if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 {
-                            if finalPopUp[0].mobile.container.ios.allowedActitivityList.contains(className) {
-                                updatePopupShowCount(popupShow: popupShow)
-                                callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
-                                openPopup(finalPopUp: finalPopUp[0])
-                            }
-                        } else if finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
-                            if finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
+                    if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 && finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
+                        if !finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
+                            if !popupDisplayScreens.contains(className) {
+                                popupDisplayScreens.append(className)
+                                
                                 updatePopupShowCount(popupShow: popupShow)
                                 callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
                                 openPopup(finalPopUp: finalPopUp[0])
                             }
                         }
-                        
-                    } else {
-                        if !finalPopUp[0].mobile.container.popupArr.contains(className) {
+                    }  else if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 {
+                        if finalPopUp[0].mobile.container.ios.allowedActitivityList.contains(className) {
+                            if !popupDisplayScreens.contains(className) {
+                                popupDisplayScreens.append(className)
+                                
+                                updatePopupShowCount(popupShow: popupShow)
+                                callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
+                                openPopup(finalPopUp: finalPopUp[0])
+                            }
+                        }
+                    } else if finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
+                        if !finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
                             
-                            var arr = finalPopUp[0].mobile.container.popupArr
-                            arr?.append(className)
-                            
-                            finalPopUp[0].mobile.container.popupArr = arr
-                                                        
-                            if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 && finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
-                                if !finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
-                                    updatePopupShowCount(popupShow: popupShow)
-                                    callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
-                                    openPopup(finalPopUp: finalPopUp[0])
-                                }
-                            } else if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 {
-                                if finalPopUp[0].mobile.container.ios.allowedActitivityList.contains(className) {
-                                    updatePopupShowCount(popupShow: popupShow)
-                                    callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
-                                    openPopup(finalPopUp: finalPopUp[0])
-                                }
-                            } else if finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
-                                if finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
-                                    updatePopupShowCount(popupShow: popupShow)
-                                    callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
-                                    openPopup(finalPopUp: finalPopUp[0])
-                                }
+                            if !popupDisplayScreens.contains(className) {
+                                popupDisplayScreens.append(className)
+                                
+                                updatePopupShowCount(popupShow: popupShow)
+                                callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
+                                openPopup(finalPopUp: finalPopUp[0])
                             }
                         }
                     }
