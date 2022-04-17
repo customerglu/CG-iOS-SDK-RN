@@ -460,11 +460,17 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 case .success(let response):
                     CustomerGlu.entryPointdata = response.data
                     for i in 0...CustomerGlu.entryPointdata.count - 1 {
-                        CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList = ["OpenWalletViewController", "LoadAllCampaignsViewController","CartScreen"]
+//                        CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList = ["OpenWalletViewController", "LoadAllCampaignsViewController","CartScreen"]
                         //"OpenWalletViewController", "LoadAllCampaignsViewController","HomeScreen",
 //                        CustomerGlu.entryPointdata[i].mobile.container.ios.disallowedActitivityList = ["CartScreen"]
 //                        CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList = ["HomeScreen"]
 //                        CustomerGlu.entryPointdata[i].mobile.container.ios.disallowedActitivityList = ["HomeScreen"]
+                        
+                        CustomerGlu.entryPointdata[i].mobile.container.ios.disallowedActitivityList = ["HomeScreen"]
+                        CustomerGlu.entryPointdata[i].mobile.conditions.showCount.count = 2
+                        CustomerGlu.entryPointdata[i].mobile.conditions.showCount.dailyRefresh = false
+                        CustomerGlu.entryPointdata[i].mobile.conditions.delay = 0
+                        
                     }
                     
                     // FLOATING Buttons
@@ -481,7 +487,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     let popups = CustomerGlu.entryPointdata.filter {
                         $0.mobile.container.type == "POPUP"
                     }
-                    if popups.count != 0 {
+                    if popups.count > 0 {
                         do {
                             let popupItems = try userDefaults.getObject(forKey: Constants.CustomerGluPopupDict, castTo: EntryPointPopUpModel.self)
                             popupDict = popupItems.popups!
@@ -746,45 +752,50 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
         if sortedPopup.count > 0 {
             for popupShow in sortedPopup {
-                if popupShow.showcount?.count != 0 {
+                if (popupShow.showcount?.count)! > 0 {
                     let finalPopUp = CustomerGlu.entryPointdata.filter {
                         $0._id == popupShow._id
                     }
-                    
-                    if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 && finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
-                        if !finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
-                            if !popupDisplayScreens.contains(className) {
-                                popupDisplayScreens.append(className)
-                                
-                                updatePopupShowCount(popupShow: popupShow)
-                                callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
-                                openPopup(finalPopUp: finalPopUp[0])
+
+                    if ((popupShow.showcount?.dailyRefresh == false) || ((popupShow.showcount?.dailyRefresh == true) && (Calendar.current.isDate(popupShow.popupdate!, equalTo: Date(), toGranularity: .day)))){
+                        
+                        if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 && finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
+                            if !finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
+                                if !popupDisplayScreens.contains(className) {
+                                    popupDisplayScreens.append(className)
+                                    updatePopupShowCount(popupShow: popupShow)
+                                    callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
+                                    openPopup(finalPopUp: finalPopUp[0])
+                                    return
+                                }
                             }
-                        }
-                    }  else if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 {
-                        if finalPopUp[0].mobile.container.ios.allowedActitivityList.contains(className) {
-                            if !popupDisplayScreens.contains(className) {
-                                popupDisplayScreens.append(className)
-                                
-                                updatePopupShowCount(popupShow: popupShow)
-                                callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
-                                openPopup(finalPopUp: finalPopUp[0])
+                        }  else if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 {
+                            if finalPopUp[0].mobile.container.ios.allowedActitivityList.contains(className) {
+                                if !popupDisplayScreens.contains(className) {
+                                    popupDisplayScreens.append(className)
+                                    
+                                    updatePopupShowCount(popupShow: popupShow)
+                                    callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
+                                    openPopup(finalPopUp: finalPopUp[0])
+                                    return
+                                }
                             }
-                        }
-                    } else if finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
-                        if !finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
-                            
-                            if !popupDisplayScreens.contains(className) {
-                                popupDisplayScreens.append(className)
+                        } else if finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
+                            if !finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
                                 
-                                updatePopupShowCount(popupShow: popupShow)
-                                callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
-                                openPopup(finalPopUp: finalPopUp[0])
+                                if !popupDisplayScreens.contains(className) {
+                                    popupDisplayScreens.append(className)
+                                    
+                                    updatePopupShowCount(popupShow: popupShow)
+                                    callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
+                                    openPopup(finalPopUp: finalPopUp[0])
+                                    return
+                                }
                             }
-                        }
+                    }
+                        
                     }
                 }
-                break
             }
         }
     }
@@ -793,16 +804,29 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         var popupShowNew = popupShow
         popupShowNew.showcount?.count -= 1
         
-        if popupShowNew.showcount?.dailyRefresh == true {
-            if popupShowNew.popupdate == Date() {
-                let today = Date()
-                if let tomorrow = today.tomorrow {
-                    popupShowNew.popupdate = tomorrow
+        
+//        if popupShowNew.showcount?.dailyRefresh == true {
+//            if popupShowNew.popupdate == Date() {
+//                let today = Date()
+//                if let tomorrow = today.tomorrow {
+//                    popupShowNew.popupdate = tomorrow
+//                }
+//            } else {
+//                return
+//            }
+//        }
+        
+                if popupShowNew.showcount?.dailyRefresh == true {
+                    
+                    var dateComponent = DateComponents()
+                    dateComponent.day = 1
+                    popupShowNew.popupdate = Calendar.current.date(byAdding: dateComponent, to: popupShow.popupdate!)
+//                        let today = Date()
+//                        if let tomorrow = today.tomorrow {
+//                            popupShowNew.popupdate = tomorrow
+//                        }
+
                 }
-            } else {
-                return
-            }
-        }
         
         if let index = popupDict.firstIndex(where: {$0._id == popupShowNew._id}) {
             popupDict.remove(at: index)

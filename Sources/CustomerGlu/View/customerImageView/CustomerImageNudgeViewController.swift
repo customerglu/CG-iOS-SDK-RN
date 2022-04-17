@@ -99,7 +99,9 @@ public class CustomerImageNudgeViewController: UIViewController {
     }
     
     private func closePage(animated: Bool){
-        self.dismiss(animated: animated, completion: nil)
-        CustomerGlu.getInstance.showFloatingButtons()
+        self.dismiss(animated: animated) {
+            CustomerGlu.getInstance.showFloatingButtons()
+        }
+
     }
 }

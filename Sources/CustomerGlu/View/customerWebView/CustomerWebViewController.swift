@@ -167,8 +167,10 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     private func closePage(animated: Bool){
-        self.dismiss(animated: animated, completion: nil)
-        CustomerGlu.getInstance.showFloatingButtons()
+        self.dismiss(animated: animated) {
+            CustomerGlu.getInstance.showFloatingButtons()
+        }
+        
     }
     
     public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
