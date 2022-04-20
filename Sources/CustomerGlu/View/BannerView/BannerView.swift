@@ -13,23 +13,21 @@ import WebKit
     
     var view = UIView()
     var arrContent = [CGContent]()
-    var elementID = ""
     private var code = true
 
     @IBOutlet weak private var imgScrollView: UIScrollView!
 
-    @IBInspectable var elementId: String = "er" {
+    @IBInspectable var elementId: String? {
         didSet {
-            self.elementID = elementId
         }
     }
-    
-    public override init(frame: CGRect) {
+        
+    public init(frame: CGRect, elementId: String) {
         //CODE
         super.init(frame: frame)
         backgroundColor = UIColor.clear
+        self.elementId = elementId
         code = true
-        xibSetup()
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -37,9 +35,18 @@ import WebKit
         super.init(coder: aDecoder)
         backgroundColor = UIColor.clear
         code = false
+    }
+
+    public override func layoutSubviews() {
+        if((imgScrollView) != nil){
+            imgScrollView.removeFromSuperview()
+        }
+        if((view) != nil){
+            view.removeFromSuperview()
+        }
         xibSetup()
     }
-        
+    
     // MARK: - Nib handlers
     private func xibSetup() {
         view = loadViewFromNib()
@@ -50,6 +57,7 @@ import WebKit
         imgScrollView.frame = bounds
         imgScrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         addSubview(view)
+        reloadBannerView(element_id: self.elementId ?? "")
     }
     
     private func loadViewFromNib() -> UIView {
@@ -62,7 +70,7 @@ import WebKit
     public func reloadBannerView(element_id: String) {
                 
         let bannerViews = CustomerGlu.entryPointdata.filter {
-            $0.mobile.container.type == "BANNER" && $0.mobile.container.elementId == element_id
+            $0.mobile.container.type == "BANNER" && $0.mobile.container.bannerId == element_id
         }
         
         if bannerViews.count != 0 {
@@ -110,9 +118,8 @@ import WebKit
     
     private func setBannerView(height: Int, isAutoScrollEnabled: Bool, autoScrollSpeed: Int){
         
-        var dict = [String: AnyHashable]()
-        dict["height"] = height
-        dict["elementId"] = elementId
+//        var screenWidth = UIScreen.main.bounds.width //self.imgScrollView.frame.size.width
+        var screenWidth = self.frame.size.width
         
         let screenHeight = UIScreen.main.bounds.height
         let finalHeight = (Int(screenHeight) * height)/100
@@ -138,8 +145,9 @@ import WebKit
             let dict = arrContent[i]
             if dict.type == "IMAGE" {
                 var imageView: UIImageView
-                let xOrigin = self.imgScrollView.frame.size.width * CGFloat(i)
-                imageView = UIImageView(frame: CGRect(x: xOrigin, y: 0, width: self.imgScrollView.frame.size.width, height: self.imgScrollView.frame.size.height))
+                let xOrigin = screenWidth * CGFloat(i)
+               
+                imageView = UIImageView(frame: CGRect(x: xOrigin, y: 0, width: screenWidth, height: self.imgScrollView.frame.size.height))
                 imageView.isUserInteractionEnabled = true
                 imageView.tag = i
                 let urlStr = dict.url
@@ -152,9 +160,9 @@ import WebKit
                 let containerView =  UIView()
                 containerView.tag = i
                 var webView: WKWebView
-                let xOrigin = self.imgScrollView.frame.size.width * CGFloat(i)
-                webView = WKWebView(frame: CGRect(x: xOrigin, y: 0, width: self.imgScrollView.frame.size.width, height: self.imgScrollView.frame.size.height))
-                containerView.frame  = CGRect.init(x: xOrigin, y: 0, width: self.imgScrollView.frame.size.width, height: self.imgScrollView.frame.size.height)
+                let xOrigin = screenWidth * CGFloat(i)
+                webView = WKWebView(frame: CGRect(x: xOrigin, y: 0, width: screenWidth, height: self.imgScrollView.frame.size.height))
+                containerView.frame  = CGRect.init(x: xOrigin, y: 0, width: screenWidth, height: self.imgScrollView.frame.size.height)
                 webView.isUserInteractionEnabled = false
                 webView.tag = i
                 let urlStr = dict.url
@@ -169,7 +177,7 @@ import WebKit
         self.imgScrollView.bounces = false
         self.imgScrollView.showsVerticalScrollIndicator = false
         self.imgScrollView.showsHorizontalScrollIndicator = false
-        self.imgScrollView.contentSize = CGSize(width: self.imgScrollView.frame.size.width * CGFloat(arrContent.count), height: self.imgScrollView.frame.size.height)
+        self.imgScrollView.contentSize = CGSize(width: screenWidth * CGFloat(arrContent.count), height: self.imgScrollView.frame.size.height)
         
         // Timer in viewdidload()
         if isAutoScrollEnabled {
@@ -194,11 +202,6 @@ import WebKit
         let dict = arrContent[sender?.view?.tag ?? 0]
         if dict.campaignId != nil {
             CustomerGlu.getInstance.loadCampaignById(campaign_id: dict.campaignId)
-            print(dict.campaignId)
-//            guard let topController = UIApplication.getTopViewController() else {
-//                return
-//            }
-//            let className = String(describing: type(of: topController))
                         
             var actionType = ""
             if dict.campaignId.count == 0 {

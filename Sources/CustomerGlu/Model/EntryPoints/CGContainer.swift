@@ -8,7 +8,7 @@ import Foundation
 public struct CGContainer: Codable{
 
 	var android : CGAndroid!
-	var elementId : String!
+	var bannerId : String!
 	var height : String!
 	var ios : CGAndroid!
 	var position : String!
@@ -23,7 +23,7 @@ public struct CGContainer: Codable{
 		if let androidData = dictionary["android"] as? [String:Any]{
 				android = CGAndroid(fromDictionary: androidData)
 			}
-		elementId = dictionary["elementId"] as? String
+        bannerId = dictionary["bannerId"] as? String
 		height = dictionary["height"] as? String
 		if let iosData = dictionary["ios"] as? [String:Any]{
 				ios = CGAndroid(fromDictionary: iosData)
@@ -43,8 +43,8 @@ public struct CGContainer: Codable{
 		if android != nil{
 			dictionary["android"] = android.toDictionary()
 		}
-		if elementId != nil{
-			dictionary["elementId"] = elementId
+		if bannerId != nil{
+			dictionary["bannerId"] = bannerId
 		}
 		if height != nil{
 			dictionary["height"] = height
