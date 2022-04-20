@@ -14,8 +14,9 @@ import WebKit
     var view = UIView()
     var arrContent = [CGContent]()
     var elementID = ""
+    private var code = true
 
-    @IBOutlet weak var imgScrollView: UIScrollView!
+    @IBOutlet weak private var imgScrollView: UIScrollView!
 
     @IBInspectable var elementId: String = "er" {
         didSet {
@@ -24,14 +25,18 @@ import WebKit
     }
     
     public override init(frame: CGRect) {
+        //CODE
         super.init(frame: frame)
         backgroundColor = UIColor.clear
+        code = true
         xibSetup()
     }
     
     required init?(coder aDecoder: NSCoder) {
+        // XIB
         super.init(coder: aDecoder)
         backgroundColor = UIColor.clear
+        code = false
         xibSetup()
     }
         
@@ -41,7 +46,6 @@ import WebKit
         view.frame = bounds
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.translatesAutoresizingMaskIntoConstraints = true
-        self.frame.size.height = 0
         // Adding custom subview on top of our view (over any custom drawing > see note below)
         imgScrollView.frame = bounds
         imgScrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -56,6 +60,7 @@ import WebKit
     }
        
     public func reloadBannerView(element_id: String) {
+                
         let bannerViews = CustomerGlu.entryPointdata.filter {
             $0.mobile.container.type == "BANNER" && $0.mobile.container.elementId == element_id
         }
@@ -87,6 +92,19 @@ import WebKit
               
                 eventPublishNudge(pageName: className, nudgeId: mobile._id, actionName: "LOADED", actionType: actionType, openType: mobile.content[0].openLayout, campaignId: mobile.content[0].campaignId)
             }
+        } else {
+            if code == true {
+                self.frame.size.height = CGFloat(0)
+                self.imgScrollView.frame.size.height = CGFloat(0)
+            } else {
+                if let heightconstraint = (self.constraints.filter{$0.firstAttribute == .height}.first) {
+                    heightconstraint.constant = CGFloat(0)
+                    self.imgScrollView.frame.size.height = CGFloat(0)
+                } else {
+                    self.frame.size.height = CGFloat(0)
+                    self.imgScrollView.frame.size.height = CGFloat(0)
+                }
+            }
         }
     }
     
@@ -99,14 +117,21 @@ import WebKit
         let screenHeight = UIScreen.main.bounds.height
         let finalHeight = (Int(screenHeight) * height)/100
         
-        if let constraint = (self.constraints.filter{$0.firstAttribute == .height}.first) {
-            constraint.constant = CGFloat(finalHeight)
-        } else {
+        if code == true {
             self.frame.size.height = CGFloat(finalHeight)
+            self.imgScrollView.frame.size.height = CGFloat(finalHeight)
+        } else {
+            if let heightconstraint = (self.constraints.filter{$0.firstAttribute == .height}.first) {
+                heightconstraint.constant = CGFloat(finalHeight)
+                self.imgScrollView.frame.size.height = CGFloat(heightconstraint.constant)
+            } else {
+                self.frame.size.height = CGFloat(finalHeight)
+                self.imgScrollView.frame.size.height = CGFloat(finalHeight)
+            }
         }
-           
-        self.imgScrollView.frame.size.height = CGFloat(finalHeight)
 
+        self.frame.size.height = CGFloat(finalHeight)
+        self.imgScrollView.frame.size.height = CGFloat(finalHeight)
         imgScrollView.delegate = self
 
         for i in 0..<arrContent.count {
@@ -173,8 +198,8 @@ import WebKit
             guard let topController = UIApplication.getTopViewController() else {
                 return
             }
-            let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
-            
+            let className = String(describing: type(of: topController))
+                        
             var actionType = ""
             if dict.campaignId.count == 0 {
                 actionType = "WALLET"

@@ -19,11 +19,8 @@
             <rect key="frame" x="0.0" y="0.0" width="414" height="141"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
             <subviews>
-                <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="GuG-U5-9Fk">
+                <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="GuG-U5-9Fk">
                     <rect key="frame" x="0.0" y="0.0" width="414" height="141"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                    <viewLayoutGuide key="contentLayoutGuide" id="ws8-jT-j31"/>
-                    <viewLayoutGuide key="frameLayoutGuide" id="NwO-P6-Cqg"/>
                     <connections>
                         <outlet property="delegate" destination="-1" id="rWH-Xe-z1h"/>
                     </connections>
@@ -31,8 +28,14 @@
             </subviews>
             <viewLayoutGuide key="safeArea" id="oAM-nO-DRe"/>
             <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+            <constraints>
+                <constraint firstItem="GuG-U5-9Fk" firstAttribute="bottom" secondItem="oAM-nO-DRe" secondAttribute="bottom" id="5DY-S6-bie"/>
+                <constraint firstItem="GuG-U5-9Fk" firstAttribute="top" secondItem="nZC-LO-bHx" secondAttribute="top" id="AeE-Oq-y2G"/>
+                <constraint firstItem="GuG-U5-9Fk" firstAttribute="leading" secondItem="oAM-nO-DRe" secondAttribute="leading" id="GFj-oY-f5j"/>
+                <constraint firstItem="GuG-U5-9Fk" firstAttribute="trailing" secondItem="oAM-nO-DRe" secondAttribute="trailing" id="NXg-gp-cO2"/>
+            </constraints>
             <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
-            <point key="canvasLocation" x="100" y="-182"/>
+            <point key="canvasLocation" x="100.00000000000001" y="-182.47767857142856"/>
         </view>
     </objects>
     <resources>

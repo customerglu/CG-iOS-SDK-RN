@@ -22,7 +22,6 @@ public class OpenWalletViewController: UIViewController {
         super.viewDidLoad()
         
         navigationController?.setNavigationBarHidden(true, animated: false)
-
         
         if CustomerGlu.sdk_disable! == true {
             print(CustomerGlu.sdk_disable!)

@@ -902,7 +902,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    private func callEventPublishNudge(data: CGData, className: String, actionName: String) {
+    internal func callEventPublishNudge(data: CGData, className: String, actionName: String) {
         var actionType = ""
         if data.mobile.content[0].campaignId.count == 0 {
             actionType = "WALLET"
