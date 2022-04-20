@@ -102,6 +102,5 @@ public class CustomerImageNudgeViewController: UIViewController {
         self.dismiss(animated: animated) {
             CustomerGlu.getInstance.showFloatingButtons()
         }
-
     }
 }

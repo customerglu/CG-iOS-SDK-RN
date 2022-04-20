@@ -14,6 +14,7 @@ private enum HTTPHeaderField: String {
     case contentType = "Content-Type"
     case authorization = "Authorization"
     case xapikey = "x-api-key"
+    case platform = "platform"
 }
 
 // HTTP Header Value's for API's
@@ -42,6 +43,7 @@ private struct MethodNameandPath {
     static let crashReport = MethodandPath(method: "PUT", path: "api/v1/report")
     static let entryPointdata = MethodandPath(method: "GET", path: "entrypoints/v1/list?consumer=MOBILE")
     static let publish_nudge = MethodandPath(method: "PUT", path: "api/v1/event/publish/nudge")
+    static let entrypoints_config = MethodandPath(method: "POST", path: "entrypoints/v1/config")
 }
 
 // Parameter Key's for all API's
@@ -80,6 +82,7 @@ class APIManager {
         if UserDefaults.standard.object(forKey: Constants.CUSTOMERGLU_TOKEN) != nil {
             urlRequest.setValue("\(APIParameterKey.bearer) " + UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_TOKEN)!, forHTTPHeaderField: HTTPHeaderField.authorization.rawValue)
             urlRequest.setValue(Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String, forHTTPHeaderField: HTTPHeaderField.xapikey.rawValue)
+            urlRequest.setValue("ios", forHTTPHeaderField: HTTPHeaderField.platform.rawValue)
         }
         
         if parametersDict!.count > 0 { // Check Parameters & Move Accordingly
@@ -149,6 +152,11 @@ class APIManager {
     static func publishNudge(queryParameters: NSDictionary, completion: @escaping (Result<PublishNudgeModel, Error>) -> Void) {
         // Call Put PublishNudge
         performRequest(baseurl: BaseUrls.analyticsUrl, methodandpath: MethodNameandPath.publish_nudge, parametersDict: queryParameters, completion: completion)
+    }
+    
+    static func entrypoints_config(queryParameters: NSDictionary, completion: @escaping (Result<EntryConfig, Error>) -> Void) {
+        // Call Put EntryPoints_Config
+        performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.entrypoints_config, parametersDict: queryParameters, completion: completion)
     }
     
     // MARK: - Private Class Methods

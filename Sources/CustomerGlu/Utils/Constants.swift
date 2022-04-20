@@ -13,6 +13,7 @@ struct Constants {
     static let CUSTOMERGLU_TOKEN = "CustomerGlu_Token"
     static let CUSTOMERGLU_USERID = "CustomerGlu_user_id"
     static let DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ"
+    static let Analitics_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
     static let MIDDLE_NOTIFICATIONS = "middle-default"
     static let FULL_SCREEN_NOTIFICATION = "full-default"
     static let BOTTOM_SHEET_NOTIFICATION = "bottom-slider"
@@ -59,6 +60,7 @@ struct APIParameterKey {
     static let actionType = "actionType"
     static let openType = "openType"
     static let campaignId = "campaignId"
+    static let activityIdList = "activityIdList"
 }
 
 // Default NotificationsKey

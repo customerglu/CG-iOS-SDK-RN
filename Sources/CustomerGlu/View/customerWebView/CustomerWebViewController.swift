@@ -170,7 +170,6 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         self.dismiss(animated: animated) {
             CustomerGlu.getInstance.showFloatingButtons()
         }
-        
     }
     
     public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {

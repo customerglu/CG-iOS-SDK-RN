@@ -15,6 +15,7 @@ struct PopUpModel: Codable {
     public var backgroundopacity: Double?
     public var priority: Int?
     public var popupdate: Date?
+    public var type: String?
 }
 
 public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
@@ -47,7 +48,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     internal var popupDict = [PopUpModel]()
     internal var entryPointPopUpModel = EntryPointPopUpModel()
     internal var popupDisplayScreens = [String]()
-
+    private var configScreens = [String]()
+    
     private override init() {
         super.init()
         
@@ -70,7 +72,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     public func enableDebugging(enabled: Bool) {
-        CustomerGlu.isDebugingEnabled =  enabled
+        CustomerGlu.isDebugingEnabled = enabled
     }
     
     public func enableEntryPoint(enabled: Bool) {
@@ -338,15 +340,21 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                 switch result {
                                     case .success(let responseGetEntry):
                                         CustomerGlu.entryPointdata = responseGetEntry.data
+//                                        for i in 0...CustomerGlu.entryPointdata.count - 1 {
+//                                            CustomerGlu.entryPointdata[i].mobile.container.ios.disallowedActitivityList = ["HomeScreen"]
+//                                            CustomerGlu.entryPointdata[i].mobile.conditions.showCount.count = 3
+//                                            CustomerGlu.entryPointdata[i].mobile.conditions.showCount.dailyRefresh = false
+//                                            CustomerGlu.entryPointdata[i].mobile.conditions.delay = 0
+//                                        }
+                                        
                                         // FLOATING Buttons
                                         let floatingButtons = CustomerGlu.entryPointdata.filter {
-                                            $0.mobile.container.type == "FLOATING"
+                                            $0.mobile.container.type == "FLOATING" || $0.mobile.container.type == "POPUP"
                                         }
-                                        if floatingButtons.count != 0 {
-                                            for floatBtn in floatingButtons {
-                                                self.addFloatingButton(btnInfo: floatBtn)
-                                            }
-                                        }
+                                                            
+                                        self.entryPointInfoAddDelete(entryPoint: floatingButtons)
+                                        self.addFloatingBtns()
+                                        
                                         completion(true, response)
                                         
                                     case .failure(let error):
@@ -424,15 +432,21 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                 switch result {
                                     case .success(let responseGetEntry):
                                         CustomerGlu.entryPointdata = responseGetEntry.data
+//                                        for i in 0...CustomerGlu.entryPointdata.count - 1 {
+//                                            CustomerGlu.entryPointdata[i].mobile.container.ios.disallowedActitivityList = ["HomeScreen"]
+//                                            CustomerGlu.entryPointdata[i].mobile.conditions.showCount.count = 2
+//                                            CustomerGlu.entryPointdata[i].mobile.conditions.showCount.dailyRefresh = false
+//                                            CustomerGlu.entryPointdata[i].mobile.conditions.delay = 0
+//                                        }
+                                        
                                         // FLOATING Buttons
                                         let floatingButtons = CustomerGlu.entryPointdata.filter {
-                                            $0.mobile.container.type == "FLOATING"
+                                            $0.mobile.container.type == "FLOATING" || $0.mobile.container.type == "POPUP"
                                         }
-                                        if floatingButtons.count != 0 {
-                                            for floatBtn in floatingButtons {
-                                                self.addFloatingButton(btnInfo: floatBtn)
-                                            }
-                                        }
+                                                            
+                                        self.entryPointInfoAddDelete(entryPoint: floatingButtons)
+                                        self.addFloatingBtns()
+                                        
                                         completion(true, response)
                                         
                                     case .failure(let error):
@@ -455,86 +469,86 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     private func getEntryPointData() {
+        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
+            if CustomerGlu.sdk_disable! {
+                print(CustomerGlu.sdk_disable!)
+            } else {
+                print("Please registered first")
+            }
+            return
+        }
+        
         APIManager.getEntryPointdata(queryParameters: [:]) { [self] result in
             switch result {
                 case .success(let response):
                     CustomerGlu.entryPointdata = response.data
-                    for i in 0...CustomerGlu.entryPointdata.count - 1 {
-//                        CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList = ["OpenWalletViewController", "LoadAllCampaignsViewController","CartScreen"]
-                        //"OpenWalletViewController", "LoadAllCampaignsViewController","HomeScreen",
-//                        CustomerGlu.entryPointdata[i].mobile.container.ios.disallowedActitivityList = ["CartScreen"]
-//                        CustomerGlu.entryPointdata[i].mobile.container.ios.allowedActitivityList = ["HomeScreen"]
+//                    for i in 0...CustomerGlu.entryPointdata.count - 1 {
 //                        CustomerGlu.entryPointdata[i].mobile.container.ios.disallowedActitivityList = ["HomeScreen"]
-                        
-                        CustomerGlu.entryPointdata[i].mobile.container.ios.disallowedActitivityList = ["HomeScreen"]
-                        CustomerGlu.entryPointdata[i].mobile.conditions.showCount.count = 2
-                        CustomerGlu.entryPointdata[i].mobile.conditions.showCount.dailyRefresh = false
-                        CustomerGlu.entryPointdata[i].mobile.conditions.delay = 0
-                        
-                    }
+//                        CustomerGlu.entryPointdata[i].mobile.conditions.showCount.count = 6
+//                        CustomerGlu.entryPointdata[i].mobile.conditions.showCount.dailyRefresh = false
+//                        CustomerGlu.entryPointdata[i].mobile.conditions.delay = 0
+//                    }
                     
                     // FLOATING Buttons
                     let floatingButtons = CustomerGlu.entryPointdata.filter {
-                        $0.mobile.container.type == "FLOATING"
+                        $0.mobile.container.type == "FLOATING" || $0.mobile.container.type == "POPUP"
                     }
-                    if floatingButtons.count != 0 {
-                        for floatBtn in floatingButtons {
-                            self.addFloatingButton(btnInfo: floatBtn)
-                        }
-                    }
-                    
-                    //POPUPS
-                    let popups = CustomerGlu.entryPointdata.filter {
-                        $0.mobile.container.type == "POPUP"
-                    }
-                    if popups.count > 0 {
-                        do {
-                            let popupItems = try userDefaults.getObject(forKey: Constants.CustomerGluPopupDict, castTo: EntryPointPopUpModel.self)
-                            popupDict = popupItems.popups!
-                        } catch {
-                            print(error.localizedDescription)
-                        }
-                        
-                        for dict in popups {
-                            if popupDict.contains(where: { $0._id == dict._id }) {
-                                print("1 exists in the array")
-                            } else {
-                                print("1 does not exists in the array")
-                                var popupInfo = PopUpModel()
-                                popupInfo._id = dict._id
-                                popupInfo.showcount = dict.mobile.conditions.showCount
-                                popupInfo.delay = dict.mobile.conditions.delay
-                                popupInfo.backgroundopacity = dict.mobile.conditions.backgroundOpacity
-                                popupInfo.priority = dict.mobile.conditions.priority
-                                popupInfo.popupdate = Date()
-                                
-                                popupDict.append(popupInfo)
-                            }
-                        }
-                        
-                        for item in popupDict {
-                            if popups.contains(where: { $0._id == item._id }) {
-                                print("1 exists in the array")
-                            } else {
-                                print("1 does not exists in the array")
-                                // remove item from popupDict
-                                if let index = popupDict.firstIndex(where: {$0._id == item._id}) {
-                                    popupDict.remove(at: index)
-                                }
-                            }
-                        }
-                        
-                        entryPointPopUpModel.popups = popupDict
-                        
-                        do {
-                            try userDefaults.setObject(entryPointPopUpModel, forKey: Constants.CustomerGluPopupDict)
-                        } catch {
-                            print(error.localizedDescription)
-                        }
-                    }
+                                        
+                    entryPointInfoAddDelete(entryPoint: floatingButtons)
+                    addFloatingBtns()
                     
                 case .failure(let error):
                     print(error)
+            }
+        }
+    }
+    
+    private func entryPointInfoAddDelete(entryPoint: [CGData]) {
+                
+        if entryPoint.count > 0 {
+            do {
+                let popupItems = try userDefaults.getObject(forKey: Constants.CustomerGluPopupDict, castTo: EntryPointPopUpModel.self)
+                popupDict = popupItems.popups!
+            } catch {
+                print(error.localizedDescription)
+            }
+            
+            for dict in entryPoint {
+                if popupDict.contains(where: { $0._id == dict._id }) {
+                    print("1 exists in the array")
+                } else {
+                    print("1 does not exists in the array")
+                    var popupInfo = PopUpModel()
+                    popupInfo._id = dict._id
+                    popupInfo.showcount = dict.mobile.conditions.showCount
+                    popupInfo.showcount?.count = 0
+                    popupInfo.delay = dict.mobile.conditions.delay
+                    popupInfo.backgroundopacity = dict.mobile.conditions.backgroundOpacity
+                    popupInfo.priority = dict.mobile.conditions.priority
+                    popupInfo.popupdate = Date()
+                    popupInfo.type = dict.mobile.container.type
+                    popupDict.append(popupInfo)
+                }
+            }
+            
+            for item in popupDict {
+                if entryPoint.contains(where: { $0._id == item._id }) {
+                    print("1 exists in the array")
+                } else {
+                    print("1 does not exists in the array")
+                    // remove item from popupDict
+                    if let index = popupDict.firstIndex(where: {$0._id == item._id}) {
+                        popupDict.remove(at: index)
+                    }
+                }
+            }
+            
+            entryPointPopUpModel.popups = popupDict
+            
+            do {
+                try userDefaults.setObject(entryPointPopUpModel, forKey: Constants.CustomerGluPopupDict)
+            } catch {
+                print(error.localizedDescription)
             }
         }
     }
@@ -719,9 +733,31 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
 
     public func setCurrentClassName(className: String) {
-        
-        CustomerGlu.getInstance.activescreenname = className
         if CustomerGlu.isEntryPointEnabled {
+            if CustomerGlu.isDebugingEnabled {
+                // API Call Collect ViewController Name & Post
+                
+                if !configScreens.contains(className) {
+                    configScreens.append(className)
+                    
+                    var eventInfo = [String: AnyHashable]()
+                    eventInfo[APIParameterKey.activityIdList] = configScreens
+                    
+                    APIManager.entrypoints_config(queryParameters: eventInfo as NSDictionary) { result in
+                        switch result {
+                        case .success(let response):
+                            print(response)
+                                
+                        case .failure(let error):
+                            print(error)
+                            ApplicationManager.callCrashReport(methodName: "publishNudge")
+                        }
+                    }
+                }
+            }
+            
+            CustomerGlu.getInstance.activescreenname = className
+
             for floatBtn in self.arrFloatingButton {
                 floatBtn.hideFloatingButton(ishidden: true)
                 if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 && (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
@@ -746,24 +782,52 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
+    private func addFloatingBtns() {
+        // FLOATING Buttons
+        let floatingButtons = popupDict.filter {
+            $0.type == "FLOATING"
+        }
+        
+        if floatingButtons.count != 0 {
+            for floatBtn in floatingButtons {
+                let floatButton = CustomerGlu.entryPointdata.filter {
+                    $0._id == floatBtn._id
+                }
+                if (floatBtn.showcount?.count)! < floatButton[0].mobile.conditions.showCount.count {
+                    
+                    if ((floatButton[0].mobile.conditions.showCount.dailyRefresh == false) || ((floatButton[0].mobile.conditions.showCount.dailyRefresh == true) && (Calendar.current.isDate(floatBtn.popupdate!, equalTo: Date(), toGranularity: .day)))) {
+                        self.addFloatingButton(btnInfo: floatButton[0])
+                    }
+                }
+            }
+        }
+    }
+    
     private func showPopup(className: String) {
-       
-        let sortedPopup = popupDict.sorted{$0.priority! > $1.priority!}
+     
+        //POPUPS
+        let popups = popupDict.filter {
+            $0.type == "POPUP"
+        }
+        
+        let sortedPopup = popups.sorted{$0.priority! > $1.priority!}
         
         if sortedPopup.count > 0 {
             for popupShow in sortedPopup {
-                if (popupShow.showcount?.count)! > 0 {
-                    let finalPopUp = CustomerGlu.entryPointdata.filter {
-                        $0._id == popupShow._id
-                    }
-
-                    if ((popupShow.showcount?.dailyRefresh == false) || ((popupShow.showcount?.dailyRefresh == true) && (Calendar.current.isDate(popupShow.popupdate!, equalTo: Date(), toGranularity: .day)))){
+                
+                let finalPopUp = CustomerGlu.entryPointdata.filter {
+                    $0._id == popupShow._id
+                }
+                
+                if (popupShow.showcount?.count)! < finalPopUp[0].mobile.conditions.showCount.count {
+                    
+                    if ((finalPopUp[0].mobile.conditions.showCount.dailyRefresh == false) || ((finalPopUp[0].mobile.conditions.showCount.dailyRefresh == true) && (Calendar.current.isDate(popupShow.popupdate!, equalTo: Date(), toGranularity: .day)))) {
                         
                         if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 && finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
                             if !finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
                                 if !popupDisplayScreens.contains(className) {
                                     popupDisplayScreens.append(className)
-                                    updatePopupShowCount(popupShow: popupShow)
+                                    updateShowCount(showCount: popupShow, eventData: finalPopUp[0])
                                     callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
                                     openPopup(finalPopUp: finalPopUp[0])
                                     return
@@ -774,7 +838,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                 if !popupDisplayScreens.contains(className) {
                                     popupDisplayScreens.append(className)
                                     
-                                    updatePopupShowCount(popupShow: popupShow)
+                                    updateShowCount(showCount: popupShow, eventData: finalPopUp[0])
                                     callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
                                     openPopup(finalPopUp: finalPopUp[0])
                                     return
@@ -786,51 +850,32 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                 if !popupDisplayScreens.contains(className) {
                                     popupDisplayScreens.append(className)
                                     
-                                    updatePopupShowCount(popupShow: popupShow)
+                                    updateShowCount(showCount: popupShow, eventData: finalPopUp[0])
                                     callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
                                     openPopup(finalPopUp: finalPopUp[0])
                                     return
                                 }
                             }
-                    }
-                        
+                        }
                     }
                 }
             }
         }
     }
     
-    private func updatePopupShowCount(popupShow: PopUpModel) {
-        var popupShowNew = popupShow
-        popupShowNew.showcount?.count -= 1
+    internal func updateShowCount(showCount: PopUpModel, eventData: CGData) {
+        var showCountNew = showCount
+        showCountNew.showcount?.count += 1
         
+        if eventData.mobile.conditions.showCount.dailyRefresh == true {
+            var dateComponent = DateComponents()
+            dateComponent.day = 1
+            showCountNew.popupdate = Calendar.current.date(byAdding: dateComponent, to: showCount.popupdate!)
+        }
         
-//        if popupShowNew.showcount?.dailyRefresh == true {
-//            if popupShowNew.popupdate == Date() {
-//                let today = Date()
-//                if let tomorrow = today.tomorrow {
-//                    popupShowNew.popupdate = tomorrow
-//                }
-//            } else {
-//                return
-//            }
-//        }
-        
-                if popupShowNew.showcount?.dailyRefresh == true {
-                    
-                    var dateComponent = DateComponents()
-                    dateComponent.day = 1
-                    popupShowNew.popupdate = Calendar.current.date(byAdding: dateComponent, to: popupShow.popupdate!)
-//                        let today = Date()
-//                        if let tomorrow = today.tomorrow {
-//                            popupShowNew.popupdate = tomorrow
-//                        }
-
-                }
-        
-        if let index = popupDict.firstIndex(where: {$0._id == popupShowNew._id}) {
+        if let index = popupDict.firstIndex(where: {$0._id == showCountNew._id}) {
             popupDict.remove(at: index)
-            popupDict.insert(popupShowNew, at: index)
+            popupDict.insert(showCountNew, at: index)
         }
         
         entryPointPopUpModel.popups = popupDict

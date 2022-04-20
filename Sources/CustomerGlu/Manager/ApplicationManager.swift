@@ -66,7 +66,7 @@ class ApplicationManager {
             return
         }
         let event_id = UUID().uuidString
-        let timestamp = fetchTimeStamp()
+        let timestamp = fetchTimeStamp(dateFormat: Constants.DATE_FORMAT)
         let user_id = UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_USERID)
         
         let eventData = [
@@ -153,7 +153,7 @@ class ApplicationManager {
         }
      
         var eventInfo = eventNudge
-        eventInfo[APIParameterKey.timestamp] = fetchTimeStamp()
+        eventInfo[APIParameterKey.timestamp] = fetchTimeStamp(dateFormat: Constants.Analitics_DATE_FORMAT)
         eventInfo[APIParameterKey.actionStore] = "NUDGE"
         
         APIManager.publishNudge(queryParameters: eventInfo as NSDictionary) { result in
@@ -169,10 +169,10 @@ class ApplicationManager {
         }
     }
     
-    private static func fetchTimeStamp() -> String {
+    private static func fetchTimeStamp(dateFormat: String) -> String {
         let date = Date()
         let dateformatter = DateFormatter()
-        dateformatter.dateFormat = Constants.DATE_FORMAT
+        dateformatter.dateFormat = dateFormat
         return dateformatter.string(from: date)
     }
 }
