@@ -191,14 +191,14 @@ import WebKit
     
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
         print(sender?.view?.tag ?? 0)
-        let dict = arrContent[tag]
+        let dict = arrContent[sender?.view?.tag ?? 0]
         if dict.campaignId != nil {
             CustomerGlu.getInstance.loadCampaignById(campaign_id: dict.campaignId)
-            
-            guard let topController = UIApplication.getTopViewController() else {
-                return
-            }
-            let className = String(describing: type(of: topController))
+            print(dict.campaignId)
+//            guard let topController = UIApplication.getTopViewController() else {
+//                return
+//            }
+//            let className = String(describing: type(of: topController))
                         
             var actionType = ""
             if dict.campaignId.count == 0 {
@@ -209,7 +209,7 @@ import WebKit
                 actionType = "CAMPAIGN"
             }
           
-            eventPublishNudge(pageName: className, nudgeId: dict._id, actionName: "OPEN", actionType: actionType, openType: dict.openLayout, campaignId: dict.campaignId)
+            eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: dict._id, actionName: "OPEN", actionType: actionType, openType: dict.openLayout, campaignId: dict.campaignId)
         }
     }
     
