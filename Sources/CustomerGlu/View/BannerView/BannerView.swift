@@ -38,12 +38,10 @@ import WebKit
     }
 
     public override func layoutSubviews() {
-        if((imgScrollView) != nil){
+        if imgScrollView != nil {
             imgScrollView.removeFromSuperview()
         }
-        if((view) != nil){
-            view.removeFromSuperview()
-        }
+        view.removeFromSuperview()
         xibSetup()
     }
     
@@ -92,7 +90,7 @@ import WebKit
                 var actionType = ""
                 if mobile.content[0].campaignId.count == 0 {
                     actionType = "WALLET"
-                } else if mobile.content[0].campaignId.contains("http://") {
+                } else if mobile.content[0].campaignId.contains("http://") || mobile.content[0].campaignId.contains("https://"){
                     actionType = "CUSTOM_URL"
                 } else {
                     actionType = "CAMPAIGN"
@@ -118,9 +116,7 @@ import WebKit
     
     private func setBannerView(height: Int, isAutoScrollEnabled: Bool, autoScrollSpeed: Int){
         
-//        var screenWidth = UIScreen.main.bounds.width //self.imgScrollView.frame.size.width
-        var screenWidth = self.frame.size.width
-        
+        let screenWidth = self.frame.size.width
         let screenHeight = UIScreen.main.bounds.height
         let finalHeight = (Int(screenHeight) * height)/100
         
@@ -137,8 +133,6 @@ import WebKit
             }
         }
 
-        self.frame.size.height = CGFloat(finalHeight)
-        self.imgScrollView.frame.size.height = CGFloat(finalHeight)
         imgScrollView.delegate = self
 
         for i in 0..<arrContent.count {
@@ -206,7 +200,7 @@ import WebKit
             var actionType = ""
             if dict.campaignId.count == 0 {
                 actionType = "WALLET"
-            } else if dict.campaignId.contains("http://") {
+            } else if dict.campaignId.contains("http://") || dict.campaignId.contains("https://"){
                 actionType = "CUSTOM_URL"
             } else {
                 actionType = "CAMPAIGN"

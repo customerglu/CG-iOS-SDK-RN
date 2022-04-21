@@ -91,7 +91,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                         DispatchQueue.main.async { [self] in // Make sure you're on the main thread here
                             self.setupWebViewCustomFrame(url: campaignsModel?.defaultUrl ?? "")
                         }
-                    } else if self.campaign_id.contains("http://") {
+                    } else if self.campaign_id.contains("http://") || self.campaign_id.contains("https://") {
                         DispatchQueue.main.async { [self] in // Make sure you're on the main thread here
                             self.setupWebViewCustomFrame(url: self.campaign_id)
                         }

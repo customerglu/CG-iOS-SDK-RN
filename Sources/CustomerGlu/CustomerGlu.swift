@@ -906,7 +906,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         var actionType = ""
         if data.mobile.content[0].campaignId.count == 0 {
             actionType = "WALLET"
-        } else if data.mobile.content[0].campaignId.contains("http://") {
+        } else if data.mobile.content[0].campaignId.contains("http://") || data.mobile.content[0].campaignId.contains("https://") {
             actionType = "CUSTOM_URL"
         } else {
             actionType = "CAMPAIGN"

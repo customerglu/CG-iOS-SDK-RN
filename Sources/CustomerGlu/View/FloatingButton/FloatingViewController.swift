@@ -159,12 +159,7 @@ class FloatingButtonController: UIViewController {
     }
     
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
-        
-//        guard let topController = UIApplication.getTopViewController() else {
-//            return
-//        }
-//        let className = String(describing: type(of: topController))
-        
+
         CustomerGlu.getInstance.callEventPublishNudge(data: floatInfo!, className: CustomerGlu.getInstance.activescreenname, actionName: "OPEN")
         
         if floatInfo?.mobile.content[0].openLayout == "FULL-DEFAULT" {
