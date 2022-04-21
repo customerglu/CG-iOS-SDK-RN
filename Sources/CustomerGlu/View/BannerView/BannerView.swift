@@ -96,7 +96,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
                     eventPublishNudge(pageName: className, nudgeId: content._id, actionName: "LOADED", actionType: actionType, openType: content.openLayout, campaignId: content.campaignId)
                 }
                 
-                self.setBannerView(height: Int(mobile.container.height)!, isAutoScrollEnabled: true, autoScrollSpeed: mobile.conditions.autoScrollSpeed)
+                self.setBannerView(height: Int(mobile.container.height)!, isAutoScrollEnabled: mobile.conditions.autoScroll, autoScrollSpeed: mobile.conditions.autoScrollSpeed)
             }
         } else {
             if code == true {
