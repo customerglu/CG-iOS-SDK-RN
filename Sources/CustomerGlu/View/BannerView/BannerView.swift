@@ -13,6 +13,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
     
     var view = UIView()
     var arrContent = [CGContent]()
+    var timer : Timer?
     private var code = true
 
     @IBOutlet weak private var imgScrollView: UIScrollView!
@@ -42,8 +43,10 @@ public class BannerView: UIView, UIScrollViewDelegate {
             imgScrollView.removeFromSuperview()
         }
         view.removeFromSuperview()
+        
         xibSetup()
     }
+    
     
     // MARK: - Nib handlers
     private func xibSetup() {
@@ -175,7 +178,11 @@ public class BannerView: UIView, UIScrollViewDelegate {
         
         // Timer in viewdidload()
         if isAutoScrollEnabled {
-            Timer.scheduledTimer(timeInterval: TimeInterval(autoScrollSpeed), target: self, selector: #selector(moveToNextImage), userInfo: nil, repeats: true)
+            if(timer != nil){
+                timer?.invalidate()
+                timer = nil
+            }
+            timer = Timer.scheduledTimer(timeInterval: TimeInterval(autoScrollSpeed), target: self, selector: #selector(moveToNextImage), userInfo: nil, repeats: true)
         }
     }
 
@@ -187,8 +194,11 @@ public class BannerView: UIView, UIScrollViewDelegate {
         var slideToX = contentOffset + pageWidth
         if  contentOffset + pageWidth == maxWidth {
             slideToX = 0
+            self.imgScrollView.scrollRectToVisible(CGRect(x: slideToX, y: 0, width: pageWidth, height: self.imgScrollView.frame.height), animated: false)
+        }else{
+            self.imgScrollView.scrollRectToVisible(CGRect(x: slideToX, y: 0, width: pageWidth, height: self.imgScrollView.frame.height), animated: true)
         }
-        self.imgScrollView.scrollRectToVisible(CGRect(x: slideToX, y: 0, width: pageWidth, height: self.imgScrollView.frame.height), animated: true)
+        
     }
     
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
