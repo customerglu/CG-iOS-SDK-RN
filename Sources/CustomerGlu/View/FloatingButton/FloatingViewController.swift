@@ -118,6 +118,8 @@ class FloatingButtonController: UIViewController {
         //        window.isHidden = ishidden
         window.imageview?.isHidden = ishidden
         self.imageview.isHidden = ishidden
+        window.isUserInteractionEnabled = !ishidden
+        self.imageview.isUserInteractionEnabled = !ishidden
     }
     
     override func viewDidLayoutSubviews() {
@@ -126,7 +128,6 @@ class FloatingButtonController: UIViewController {
     
     @objc func draggedView(_ sender: UIPanGestureRecognizer) {
         
-        print("draggedView ===\(sender.state.rawValue)")
         let translation = sender.translation(in: imageview)
         imageview.center = CGPoint(x: imageview.center.x + translation.x, y: imageview.center.y + translation.y)
         sender.setTranslation(CGPoint.zero, in: imageview)
@@ -196,7 +197,10 @@ private class FloatingButtonWindow: UIWindow {
     }
     
     fileprivate override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        guard let imageview = imageview else { return false }
+        guard let imageview = imageview else {
+            return false
+            
+        }
         let imageviewPoint = convert(point, to: imageview)
         return imageview.point(inside: imageviewPoint, with: event)
     }
