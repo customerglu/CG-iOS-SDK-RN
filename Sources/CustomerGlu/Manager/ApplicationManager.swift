@@ -12,6 +12,7 @@ class ApplicationManager {
     public static var streamUrl = "stream.customerglu.com/"
     public static var analyticsUrl = "analytics.customerglu.com/"
     public static var accessToken: String?
+    public static var operationQueue = OperationQueue()
     
     public static func openWalletApi(completion: @escaping (Bool, CampaignsModel?) -> Void) {
         if CustomerGlu.sdk_disable! == true {
