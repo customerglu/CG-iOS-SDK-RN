@@ -912,7 +912,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             actionType = "CAMPAIGN"
         }
         
-        eventPublishNudge(pageName: className, nudgeId: data.mobile._id, actionName: actionName, actionType: actionType, openType: data.mobile.content[0].openLayout, campaignId: data.mobile.content[0].campaignId)
+        eventPublishNudge(pageName: className, nudgeId: data.mobile.content[0]._id, actionName: actionName, actionType: actionType, openType: data.mobile.content[0].openLayout, campaignId: data.mobile.content[0].campaignId)
     }
   
     internal func openCampaignById(campaign_id: String, page_type: String, backgroundAlpha: Double) {

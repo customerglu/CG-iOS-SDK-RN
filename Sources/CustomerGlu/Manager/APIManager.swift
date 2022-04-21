@@ -68,7 +68,10 @@ class APIManager {
         
         //Grouped compelete API-call work flow into a DispatchGroup so that it can maintanted the oprational queue for task completion
         // Enter into DispatchGroup
-        dispatchGroup.enter()
+        if(MethodNameandPath.getWalletRewards.path == methodandpath.path){
+            dispatchGroup.enter()
+        }
+        
         
         var urlRequest: URLRequest!
         var url: URL!
@@ -109,7 +112,11 @@ class APIManager {
         let task = shared.session.dataTask(with: urlRequest) { data, response, error in
             
             // Leave from dispachgroup
-            dispatchGroup.leave()
+            // wait untill dispatchGroup.leave() not called
+            if(MethodNameandPath.getWalletRewards.path == methodandpath.path){
+                dispatchGroup.leave()
+            }
+            
             if let httpResponse = response as? HTTPURLResponse {
                 if httpResponse.statusCode == 401 {
                     resetDefaults()
@@ -130,7 +137,9 @@ class APIManager {
         }
         task.resume()
         // wait untill dispatchGroup.leave() not called
-        dispatchGroup.wait()
+        if(MethodNameandPath.getWalletRewards.path == methodandpath.path){
+            dispatchGroup.wait()
+        }
     }
     
     static func userRegister(queryParameters: NSDictionary, completion: @escaping (Result<RegistrationModel, Error>) -> Void) {

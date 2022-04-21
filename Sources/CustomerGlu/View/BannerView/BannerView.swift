@@ -78,25 +78,25 @@ public class BannerView: UIView, UIScrollViewDelegate {
             if mobile.content.count != 0 {
                 for content in mobile.content {
                     arrContent.append(content)
+                    
+                    guard let topController = UIApplication.getTopViewController() else {
+                        return
+                    }
+                    let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
+                    
+                    var actionType = ""
+                    if mobile.content[0].campaignId.count == 0 {
+                        actionType = "WALLET"
+                    } else if mobile.content[0].campaignId.contains("http://") || mobile.content[0].campaignId.contains("https://"){
+                        actionType = "CUSTOM_URL"
+                    } else {
+                        actionType = "CAMPAIGN"
+                    }
+                  
+                    eventPublishNudge(pageName: className, nudgeId: content._id, actionName: "LOADED", actionType: actionType, openType: content.openLayout, campaignId: content.campaignId)
                 }
                 
-                self.setBannerView(height: Int(mobile.container.height)!, isAutoScrollEnabled: mobile.conditions.autoScroll, autoScrollSpeed: mobile.conditions.autoScrollSpeed)
-                
-                guard let topController = UIApplication.getTopViewController() else {
-                    return
-                }
-                let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
-                
-                var actionType = ""
-                if mobile.content[0].campaignId.count == 0 {
-                    actionType = "WALLET"
-                } else if mobile.content[0].campaignId.contains("http://") || mobile.content[0].campaignId.contains("https://"){
-                    actionType = "CUSTOM_URL"
-                } else {
-                    actionType = "CAMPAIGN"
-                }
-              
-                eventPublishNudge(pageName: className, nudgeId: mobile._id, actionName: "LOADED", actionType: actionType, openType: mobile.content[0].openLayout, campaignId: mobile.content[0].campaignId)
+                self.setBannerView(height: Int(mobile.container.height)!, isAutoScrollEnabled: true, autoScrollSpeed: mobile.conditions.autoScrollSpeed)
             }
         } else {
             if code == true {
@@ -195,7 +195,17 @@ public class BannerView: UIView, UIScrollViewDelegate {
         print(sender?.view?.tag ?? 0)
         let dict = arrContent[sender?.view?.tag ?? 0]
         if dict.campaignId != nil {
-            CustomerGlu.getInstance.loadCampaignById(campaign_id: dict.campaignId)
+//            CustomerGlu.getInstance.loadCampaignById(campaign_id: dict.campaignId)
+            
+            if dict.openLayout == "FULL-DEFAULT" {
+                CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5)
+            } else if dict.openLayout == "BOTTOM-DEFAULT" {
+                CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, page_type: Constants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: 0.5)
+            }  else if dict.openLayout == "BOTTOM-SLIDER" {
+                CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, page_type: Constants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: 0.5)
+            } else {
+                CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: 0.5)
+            }
                         
             var actionType = ""
             if dict.campaignId.count == 0 {
