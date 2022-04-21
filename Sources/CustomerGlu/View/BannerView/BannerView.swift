@@ -9,7 +9,7 @@ import UIKit
 import Foundation
 import WebKit
 
-@IBDesignable public class BannerView: UIView, UIScrollViewDelegate {
+public class BannerView: UIView, UIScrollViewDelegate {
     
     var view = UIView()
     var arrContent = [CGContent]()
