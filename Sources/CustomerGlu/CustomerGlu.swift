@@ -840,40 +840,34 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     $0._id == popupShow._id
                 }
                 
-                if (popupShow.showcount?.count)! < finalPopUp[0].mobile.conditions.showCount.count {
+                if ((finalPopUp[0].mobile.content.count > 0) && (popupShow.showcount?.count)! < finalPopUp[0].mobile.conditions.showCount.count) {
                     
                     if ((finalPopUp[0].mobile.conditions.showCount.dailyRefresh == false) || ((finalPopUp[0].mobile.conditions.showCount.dailyRefresh == true) && (Calendar.current.isDate(popupShow.popupdate!, equalTo: Date(), toGranularity: .day)))) {
                         
                         if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 && finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
                             if !finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
                                 if !popupDisplayScreens.contains(className) {
-                                    popupDisplayScreens.append(className)
-                                    updateShowCount(showCount: popupShow, eventData: finalPopUp[0])
-                                    callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
-                                    openPopup(finalPopUp: finalPopUp[0])
+                                    
+                                    openPopup(finalPopUp: finalPopUp[0],showCount: popupShow)
                                     return
                                 }
                             }
                         }  else if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 {
                             if finalPopUp[0].mobile.container.ios.allowedActitivityList.contains(className) {
+                                
                                 if !popupDisplayScreens.contains(className) {
-                                    popupDisplayScreens.append(className)
-                                    
-                                    updateShowCount(showCount: popupShow, eventData: finalPopUp[0])
-                                    callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
-                                    openPopup(finalPopUp: finalPopUp[0])
+                                    openPopup(finalPopUp: finalPopUp[0],showCount: popupShow)
                                     return
                                 }
                             }
                         } else if finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
+                            
                             if !finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
                                 
                                 if !popupDisplayScreens.contains(className) {
-                                    popupDisplayScreens.append(className)
                                     
-                                    updateShowCount(showCount: popupShow, eventData: finalPopUp[0])
-                                    callEventPublishNudge(data: finalPopUp[0], className: className, actionName: "OPEN")
-                                    openPopup(finalPopUp: finalPopUp[0])
+                                    openPopup(finalPopUp: finalPopUp[0],showCount: popupShow)
+                                    
                                     return
                                 }
                             }
@@ -908,9 +902,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    private func openPopup(finalPopUp: CGData) {
+    private func openPopup(finalPopUp: CGData, showCount: PopUpModel) {
         let seconds = DispatchTimeInterval.seconds(finalPopUp.mobile.conditions.delay)
-        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) { [self] in
             if finalPopUp.mobile.content[0].openLayout == "FULL-DEFAULT" {
                 CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp.mobile.content[0].campaignId)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: finalPopUp.mobile.conditions.backgroundOpacity ?? 0.5)
             } else if finalPopUp.mobile.content[0].openLayout == "BOTTOM-DEFAULT" {
@@ -920,6 +914,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             } else {
                 CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp.mobile.content[0].campaignId)!, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: finalPopUp.mobile.conditions.backgroundOpacity ?? 0.5)
             }
+            
+            
+            self.popupDisplayScreens.append(CustomerGlu.getInstance.activescreenname)
+            updateShowCount(showCount: showCount, eventData: finalPopUp)
+            callEventPublishNudge(data: finalPopUp, className: CustomerGlu.getInstance.activescreenname, actionName: "OPEN")
+            
         }
     }
     
