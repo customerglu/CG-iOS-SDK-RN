@@ -508,7 +508,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                         
                     entryPointInfoAddDelete(entryPoint: floatingButtons)
                     addFloatingBtns()
-                    
+                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("EntryPointLoaded").rawValue), object: nil, userInfo: nil)
                 case .failure(let error):
                     print(error)
             }

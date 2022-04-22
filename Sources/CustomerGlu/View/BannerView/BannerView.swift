@@ -25,19 +25,45 @@ public class BannerView: UIView, UIScrollViewDelegate {
         }
     }
         
+    
     public init(frame: CGRect, elementId: String) {
         //CODE
         super.init(frame: frame)
         backgroundColor = UIColor.clear
         self.elementId = elementId
         code = true
+        
+        NotificationCenter.default.addObserver(
+                    self,
+                    selector: #selector(self.entryPointLoaded),
+                    name: Notification.Name("EntryPointLoaded"),
+                    object: nil)
     }
     
+    @objc private func entryPointLoaded(notification: NSNotification) {
+            
+        DispatchQueue.main.async {
+            if self.imgScrollView != nil {
+                self.imgScrollView.removeFromSuperview()
+            }
+            self.view.removeFromSuperview()
+            
+            self.xibSetup()
+          }
+
+            
+        }
     required init?(coder aDecoder: NSCoder) {
         // XIB
         super.init(coder: aDecoder)
         backgroundColor = UIColor.clear
         code = false
+        
+        NotificationCenter.default.addObserver(
+                    self,
+                    selector: #selector(self.entryPointLoaded),
+                    name: Notification.Name("EntryPointLoaded"),
+                    object: nil)
     }
 
     public override func layoutSubviews() {
@@ -61,10 +87,6 @@ public class BannerView: UIView, UIScrollViewDelegate {
         imgScrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         addSubview(view)
         reloadBannerView(element_id: self.elementId ?? "")
-        if arrContent.count > 1 {
-            self.pageControl.numberOfPages = arrContent.count
-        }
-        self.pageControl.currentPage = 0
     }
     
     private func loadViewFromNib() -> UIView {
@@ -118,14 +140,21 @@ public class BannerView: UIView, UIScrollViewDelegate {
     private func bannerviewHeightZero() {
         if code == true {
             self.frame.size.height = CGFloat(0)
-            self.imgScrollView.frame.size.height = CGFloat(0)
+            if(self.imgScrollView != nil){
+                self.imgScrollView.frame.size.height = CGFloat(0)
+            }
+
         } else {
             if let heightconstraint = (self.constraints.filter{$0.firstAttribute == .height}.first) {
                 heightconstraint.constant = CGFloat(0)
-                self.imgScrollView.frame.size.height = CGFloat(0)
+                if(self.imgScrollView != nil){
+                    self.imgScrollView.frame.size.height = CGFloat(0)
+                }
             } else {
                 self.frame.size.height = CGFloat(0)
-                self.imgScrollView.frame.size.height = CGFloat(0)
+                if(self.imgScrollView != nil){
+                    self.imgScrollView.frame.size.height = CGFloat(0)
+                }
             }
         }
     }
@@ -197,6 +226,11 @@ public class BannerView: UIView, UIScrollViewDelegate {
             }
             timer = Timer.scheduledTimer(timeInterval: TimeInterval(autoScrollSpeed), target: self, selector: #selector(moveToNextImage), userInfo: nil, repeats: true)
         }
+        
+        if arrContent.count > 1 {
+            self.pageControl.numberOfPages = arrContent.count
+        }
+        self.pageControl.currentPage = 0
     }
 
     @objc func moveToNextImage() {
