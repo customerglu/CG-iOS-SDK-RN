@@ -933,7 +933,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             actionType = "CAMPAIGN"
         }
         
-        eventPublishNudge(pageName: className, nudgeId: data.mobile.content[0]._id, actionName: actionName, actionType: actionType, openType: data.mobile.content[0].openLayout, campaignId: data.mobile.content[0].campaignId)
+        eventPublishNudge(pageName: className, nudgeId: data.mobile.content[0]._id, actionName: actionName, actionType: actionType, openType: data.mobile.content[0].openLayout, campaignId: data.mobile.content[0].campaignId,nudgeType: data.mobile.container.type)
     }
   
     internal func openCampaignById(campaign_id: String, page_type: String, backgroundAlpha: Double) {
@@ -974,9 +974,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    private func eventPublishNudge(pageName: String, nudgeId: String, actionName: String, actionType: String, openType: String, campaignId: String) {
+    private func eventPublishNudge(pageName: String, nudgeId: String, actionName: String, actionType: String, openType: String, campaignId: String, nudgeType:String ) {
         var eventInfo = [String: AnyHashable]()
-        eventInfo[APIParameterKey.nudgeType] = "POPUP"
+        eventInfo[APIParameterKey.nudgeType] = nudgeType
 
         eventInfo[APIParameterKey.pageName] = pageName
         eventInfo[APIParameterKey.nudgeId] = nudgeId
