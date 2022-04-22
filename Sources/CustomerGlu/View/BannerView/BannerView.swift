@@ -17,6 +17,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
     private var code = true
 
     @IBOutlet weak private var imgScrollView: UIScrollView!
+    @IBOutlet weak private var pageControl: UIPageControl!
 
     @IBInspectable var elementId: String? {
         didSet {
@@ -58,6 +59,8 @@ public class BannerView: UIView, UIScrollViewDelegate {
         imgScrollView.frame = bounds
         imgScrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         addSubview(view)
+        self.pageControl.numberOfPages = arrContent.count
+        self.pageControl.currentPage = 0
         reloadBannerView(element_id: self.elementId ?? "")
     }
     
@@ -195,18 +198,23 @@ public class BannerView: UIView, UIScrollViewDelegate {
         if  contentOffset + pageWidth == maxWidth {
             slideToX = 0
             self.imgScrollView.scrollRectToVisible(CGRect(x: slideToX, y: 0, width: pageWidth, height: self.imgScrollView.frame.height), animated: false)
-        }else{
+        } else {
             self.imgScrollView.scrollRectToVisible(CGRect(x: slideToX, y: 0, width: pageWidth, height: self.imgScrollView.frame.height), animated: true)
         }
-        
+                
+        let pageNumber = round(slideToX / self.frame.size.width)
+        pageControl.currentPage = Int(pageNumber)
+    }
+    
+    public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        let pageNumber = round(scrollView.contentOffset.x / scrollView.frame.size.width)
+        pageControl.currentPage = Int(pageNumber)
     }
     
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
         print(sender?.view?.tag ?? 0)
         let dict = arrContent[sender?.view?.tag ?? 0]
         if dict.campaignId != nil {
-//            CustomerGlu.getInstance.loadCampaignById(campaign_id: dict.campaignId)
-            
             if dict.openLayout == "FULL-DEFAULT" {
                 CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5)
             } else if dict.openLayout == "BOTTOM-DEFAULT" {
