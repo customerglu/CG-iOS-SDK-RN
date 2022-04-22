@@ -67,8 +67,9 @@ public class LoadAllCampaignsViewController: UIViewController {
         self.closePage(animated: true)
     }
     private func closePage(animated: Bool){
-        self.dismiss(animated: animated, completion: nil)
-        CustomerGlu.getInstance.showFloatingButtons()
+        self.dismiss(animated: animated) {
+            CustomerGlu.getInstance.showFloatingButtons()
+        }
     }
     func getCampaign() {
         CustomerGlu.getInstance.loaderShow(withcoordinate: self.view.frame.midX - 30, y: self.view.frame.midY - 30)

@@ -54,8 +54,9 @@ public class OpenWalletViewController: UIViewController {
                     customerWebViewVC.openWallet = true
                     customerWebViewVC.delegate = self
                     customerWebViewVC.modalPresentationStyle = .overCurrentContext
-                    CustomerGlu.getInstance.hideFloatingButtons()
-                    self.present(customerWebViewVC, animated: false)
+                    self.present(customerWebViewVC, animated: true) {
+                        CustomerGlu.getInstance.hideFloatingButtons()
+                    }
                 }
             } else {
                 CustomerGlu.getInstance.loaderHide()

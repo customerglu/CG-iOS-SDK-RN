@@ -13,6 +13,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
     
     var view = UIView()
     var arrContent = [CGContent]()
+    var condition : CGCondition?
     var timer : Timer?
     private var code = true
 
@@ -59,11 +60,11 @@ public class BannerView: UIView, UIScrollViewDelegate {
         imgScrollView.frame = bounds
         imgScrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         addSubview(view)
+        reloadBannerView(element_id: self.elementId ?? "")
         if arrContent.count > 1 {
             self.pageControl.numberOfPages = arrContent.count
         }
         self.pageControl.currentPage = 0
-        reloadBannerView(element_id: self.elementId ?? "")
     }
     
     private func loadViewFromNib() -> UIView {
@@ -82,6 +83,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
         if bannerViews.count != 0 {
             let mobile = bannerViews[0].mobile!
             arrContent = [CGContent]()
+            condition = mobile.conditions
             
             if mobile.content.count != 0 {
                 for content in mobile.content {
@@ -218,13 +220,13 @@ public class BannerView: UIView, UIScrollViewDelegate {
         let dict = arrContent[sender?.view?.tag ?? 0]
         if dict.campaignId != nil {
             if dict.openLayout == "FULL-DEFAULT" {
-                CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5)
+                CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: condition?.backgroundOpacity ?? 0.5)
             } else if dict.openLayout == "BOTTOM-DEFAULT" {
-                CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, page_type: Constants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: 0.5)
+                CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, page_type: Constants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: condition?.backgroundOpacity ?? 0.5)
             }  else if dict.openLayout == "BOTTOM-SLIDER" {
-                CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, page_type: Constants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: 0.5)
+                CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, page_type: Constants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: condition?.backgroundOpacity ?? 0.5)
             } else {
-                CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: 0.5)
+                CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: condition?.backgroundOpacity ?? 0.5)
             }
                         
             var actionType = ""
