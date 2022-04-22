@@ -291,6 +291,15 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     public func clearGluData() {
+        
+        dismissFloatingButtons()
+        
+        self.arrFloatingButton.removeAll()
+        popupDict.removeAll()
+        CustomerGlu.entryPointdata.removeAll()
+        entryPointPopUpModel = EntryPointPopUpModel()
+        
+        
         userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_TOKEN)
         userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_USERID)
         userDefaults.removeObject(forKey: Constants.CustomerGluCrash)
@@ -339,6 +348,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             APIManager.getEntryPointdata(queryParameters: [:]) { result in
                                 switch result {
                                     case .success(let responseGetEntry):
+                                        CustomerGlu.entryPointdata.removeAll()
                                         CustomerGlu.entryPointdata = responseGetEntry.data
 //                                        for i in 0...CustomerGlu.entryPointdata.count - 1 {
 //                                            CustomerGlu.entryPointdata[i].mobile.container.ios.disallowedActitivityList = ["HomeScreen"]
@@ -728,6 +738,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
+    internal func dismissFloatingButtons() {
+        for floatBtn in self.arrFloatingButton {
+            floatBtn.dismissFloatingButton()
+        }
+    }
+    
     internal func showFloatingButtons() {
         CustomerGlu.getInstance.setCurrentClassName(className: CustomerGlu.getInstance.activescreenname)
     }
@@ -800,6 +816,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     }
                 }
             }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(0), execute: {
+                CustomerGlu.getInstance.setCurrentClassName(className: CustomerGlu.getInstance.activescreenname)
+            })
+
         }
     }
     

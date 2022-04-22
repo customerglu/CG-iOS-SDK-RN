@@ -126,6 +126,20 @@ class FloatingButtonController: UIViewController {
         super.viewDidLayoutSubviews()
     }
     
+    public func dismissFloatingButton(){
+            //                self.imageview.removeFromSuperview()
+            if CustomerGlu.getInstance.arrFloatingButton.contains(self) {
+                
+                let finalfloatBtn = CustomerGlu.getInstance.popupDict.filter {
+                    $0._id == floatInfo?._id
+                }
+                CustomerGlu.getInstance.updateShowCount(showCount: finalfloatBtn[0], eventData: floatInfo!)
+                if let index = CustomerGlu.getInstance.arrFloatingButton.firstIndex(where: {$0 === self}) {
+                    CustomerGlu.getInstance.arrFloatingButton.remove(at: index)
+                    window.dismiss()
+                }
+            }
+    }
     @objc func draggedView(_ sender: UIPanGestureRecognizer) {
         
         let translation = sender.translation(in: imageview)
@@ -141,21 +155,12 @@ class FloatingButtonController: UIViewController {
         if(sender.state == .began){
             dismisview.isHidden = false
         } else if (sender.state == .ended) {
+            
             dismisview.isHidden = true
             if dismisimageview.globalFrame!.intersects(imageview.globalFrame!){
-                //                self.imageview.removeFromSuperview()
-                if CustomerGlu.getInstance.arrFloatingButton.contains(self) {
-                    
-                    let finalfloatBtn = CustomerGlu.getInstance.popupDict.filter {
-                        $0._id == floatInfo?._id
-                    }
-                    CustomerGlu.getInstance.updateShowCount(showCount: finalfloatBtn[0], eventData: floatInfo!)
-                    if let index = CustomerGlu.getInstance.arrFloatingButton.firstIndex(where: {$0 === self}) {
-                        CustomerGlu.getInstance.arrFloatingButton.remove(at: index)
-                        window.dismiss()
-                    }
-                }
+                self.dismissFloatingButton()
             }
+            
         }
     }
     
