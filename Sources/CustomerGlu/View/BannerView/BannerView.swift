@@ -59,7 +59,9 @@ public class BannerView: UIView, UIScrollViewDelegate {
         imgScrollView.frame = bounds
         imgScrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         addSubview(view)
-        self.pageControl.numberOfPages = arrContent.count
+        if arrContent.count > 1 {
+            self.pageControl.numberOfPages = arrContent.count
+        }
         self.pageControl.currentPage = 0
         reloadBannerView(element_id: self.elementId ?? "")
     }
