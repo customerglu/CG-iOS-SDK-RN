@@ -93,6 +93,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             // setting a value for a key
             let encodedData = try NSKeyedArchiver.archivedData(withRootObject: dict, requiringSecureCoding: true)
             userDefaults.set(encodedData, forKey: Constants.CustomerGluCrash)
+            userDefaults.synchronize()
         } catch {
             print(error)
         }
@@ -343,7 +344,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     if response.success! {
                         self.userDefaults.set(response.data?.token, forKey: Constants.CUSTOMERGLU_TOKEN)
                         self.userDefaults.set(response.data?.user?.userId, forKey: Constants.CUSTOMERGLU_USERID)
-                        
+                        self.userDefaults.synchronize()
                         if CustomerGlu.isEntryPointEnabled {
                             APIManager.getEntryPointdata(queryParameters: [:]) { result in
                                 switch result {
@@ -436,6 +437,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     if response.success! {
                         self.userDefaults.set(response.data?.token, forKey: Constants.CUSTOMERGLU_TOKEN)
                         self.userDefaults.set(response.data?.user?.userId, forKey: Constants.CUSTOMERGLU_USERID)
+                        self.userDefaults.synchronize()
                         
                         if CustomerGlu.isEntryPointEnabled {
                             APIManager.getEntryPointdata(queryParameters: [:]) { result in

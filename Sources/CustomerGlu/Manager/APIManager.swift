@@ -15,6 +15,7 @@ private enum HTTPHeaderField: String {
     case authorization = "Authorization"
     case xapikey = "x-api-key"
     case platform = "platform"
+    case xgluauth = "X-GLU-AUTH"
 }
 
 // HTTP Header Value's for API's
@@ -88,6 +89,7 @@ class APIManager {
         
         if UserDefaults.standard.object(forKey: Constants.CUSTOMERGLU_TOKEN) != nil {
             urlRequest.setValue("\(APIParameterKey.bearer) " + UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_TOKEN)!, forHTTPHeaderField: HTTPHeaderField.authorization.rawValue)
+            urlRequest.setValue("\(APIParameterKey.bearer) " + UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_TOKEN)!, forHTTPHeaderField: HTTPHeaderField.xgluauth.rawValue)
             urlRequest.setValue(Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String, forHTTPHeaderField: HTTPHeaderField.xapikey.rawValue)
             urlRequest.setValue("ios", forHTTPHeaderField: HTTPHeaderField.platform.rawValue)
         }
@@ -119,7 +121,7 @@ class APIManager {
             
             if let httpResponse = response as? HTTPURLResponse {
                 if httpResponse.statusCode == 401 {
-                    resetDefaults()
+                    CustomerGlu.getInstance.clearGluData()
                     return
                 }
             }
@@ -251,14 +253,6 @@ class APIManager {
             completion(.success(object))
         } catch let error { // response with error
             completion(.failure(error))
-        }
-    }
-    
-    static private func resetDefaults() {
-        let defaults = UserDefaults.standard
-        let dictionary = defaults.dictionaryRepresentation()
-        dictionary.keys.forEach { key in
-            defaults.removeObject(forKey: key)
         }
     }
 }
