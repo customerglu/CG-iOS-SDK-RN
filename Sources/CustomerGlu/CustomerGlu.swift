@@ -585,6 +585,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 return
             }
             openWalletVC.modalPresentationStyle = .fullScreen
+            self.hideFloatingButtons()
             topController.present(openWalletVC, animated: true, completion: nil)
         }
     }
@@ -606,6 +607,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
             let navController = UINavigationController(rootViewController: loadAllCampign)
             navController.modalPresentationStyle = .fullScreen
+            self.hideFloatingButtons()
             topController.present(navController, animated: true, completion: nil)
         }
     }
@@ -628,9 +630,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             customerWebViewVC.modalPresentationStyle = .fullScreen
             customerWebViewVC.iscampignId = true
             customerWebViewVC.campaign_id = campaign_id
-            topController.present(customerWebViewVC, animated: false, completion: {
-                self.hideFloatingButtons()
-            })
+            self.hideFloatingButtons()
+            topController.present(customerWebViewVC, animated: false, completion: nil)
         }
     }
     
@@ -653,6 +654,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
             let navController = UINavigationController(rootViewController: loadAllCampign)
             navController.modalPresentationStyle = .fullScreen
+            self.hideFloatingButtons()
             topController.present(navController, animated: true, completion: nil)
         }
     }
@@ -676,6 +678,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
             let navController = UINavigationController(rootViewController: loadAllCampign)
             navController.modalPresentationStyle = .fullScreen
+            self.hideFloatingButtons()
             topController.present(navController, animated: true, completion: nil)
         }
     }
@@ -698,6 +701,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
             let navController = UINavigationController(rootViewController: loadAllCampign)
             navController.modalPresentationStyle = .fullScreen
+            self.hideFloatingButtons()
             topController.present(navController, animated: true, completion: nil)
         }
     }
@@ -811,8 +815,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 let floatButton = CustomerGlu.entryPointdata.filter {
                     $0._id == floatBtn._id
                 }
-                if (floatBtn.showcount?.count)! < floatButton[0].mobile.conditions.showCount.count {
-                    
+                
+                if ((floatButton[0].mobile.content.count > 0) && (floatBtn.showcount?.count)! < floatButton[0].mobile.conditions.showCount.count) {
                     if ((floatButton[0].mobile.conditions.showCount.dailyRefresh == false) || ((floatButton[0].mobile.conditions.showCount.dailyRefresh == true) && (Calendar.current.isDate(floatBtn.popupdate!, equalTo: Date(), toGranularity: .day)))) {
                         self.addFloatingButton(btnInfo: floatButton[0])
                     }

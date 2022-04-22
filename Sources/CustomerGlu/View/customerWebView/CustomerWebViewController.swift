@@ -151,6 +151,13 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         super.viewWillAppear(false)
     }
     
+    public override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        if isbottomsheet {
+            CustomerGlu.getInstance.setCurrentClassName(className: CustomerGlu.getInstance.activescreenname)
+        }
+    }
+    
     func loadwebView(url: String, x: CGFloat, y: CGFloat) {
         webView.navigationDelegate = self
         if url != "" || !url.isEmpty {

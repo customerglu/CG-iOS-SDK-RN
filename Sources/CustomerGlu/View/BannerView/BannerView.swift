@@ -107,19 +107,25 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 }
                 
                 self.setBannerView(height: Int(mobile.container.height)!, isAutoScrollEnabled: mobile.conditions.autoScroll, autoScrollSpeed: mobile.conditions.autoScrollSpeed)
+            } else {
+                bannerviewHeightZero()
             }
         } else {
-            if code == true {
-                self.frame.size.height = CGFloat(0)
+            bannerviewHeightZero()
+        }
+    }
+    
+    private func bannerviewHeightZero() {
+        if code == true {
+            self.frame.size.height = CGFloat(0)
+            self.imgScrollView.frame.size.height = CGFloat(0)
+        } else {
+            if let heightconstraint = (self.constraints.filter{$0.firstAttribute == .height}.first) {
+                heightconstraint.constant = CGFloat(0)
                 self.imgScrollView.frame.size.height = CGFloat(0)
             } else {
-                if let heightconstraint = (self.constraints.filter{$0.firstAttribute == .height}.first) {
-                    heightconstraint.constant = CGFloat(0)
-                    self.imgScrollView.frame.size.height = CGFloat(0)
-                } else {
-                    self.frame.size.height = CGFloat(0)
-                    self.imgScrollView.frame.size.height = CGFloat(0)
-                }
+                self.frame.size.height = CGFloat(0)
+                self.imgScrollView.frame.size.height = CGFloat(0)
             }
         }
     }
