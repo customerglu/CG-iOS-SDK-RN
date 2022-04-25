@@ -530,6 +530,32 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             for dict in entryPoint {
                 if popupDict.contains(where: { $0._id == dict._id }) {
                     print("1 exists in the array")
+                    
+                    if let index = popupDict.firstIndex(where: {$0._id == dict._id}) {
+                        
+                        var refreshlocal : Bool = false
+                        if(dict.mobile.conditions.showCount.dailyRefresh == true && popupDict[index].showcount?.dailyRefresh == true){
+                            
+                            if !(Calendar.current.isDate(popupDict[index].popupdate!, equalTo: Date(), toGranularity: .day)){
+                                refreshlocal = true
+                            }
+                            
+                        }else if(dict.mobile.conditions.showCount.dailyRefresh != popupDict[index].showcount?.dailyRefresh){
+                            refreshlocal = true
+                        }
+                        
+                        if (true == refreshlocal){
+                            popupDict[index]._id = dict._id
+                            popupDict[index].showcount = dict.mobile.conditions.showCount
+                            popupDict[index].showcount?.count = 0
+                            popupDict[index].delay = dict.mobile.conditions.delay
+                            popupDict[index].backgroundopacity = dict.mobile.conditions.backgroundOpacity
+                            popupDict[index].priority = dict.mobile.conditions.priority
+                            popupDict[index].popupdate = Date()
+                            popupDict[index].type = dict.mobile.container.type
+                        }
+                    }
+                    
                 } else {
                     print("1 does not exists in the array")
                     var popupInfo = PopUpModel()
@@ -825,9 +851,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 }
                 
                 if ((floatButton[0].mobile.content.count > 0) && (floatBtn.showcount?.count)! < floatButton[0].mobile.conditions.showCount.count) {
-                    if ((floatButton[0].mobile.conditions.showCount.dailyRefresh == false) || ((floatButton[0].mobile.conditions.showCount.dailyRefresh == true) && (Calendar.current.isDate(floatBtn.popupdate!, equalTo: Date(), toGranularity: .day)))) {
+                    
+//                    if ((floatButton[0].mobile.conditions.showCount.dailyRefresh == false) || ((floatButton[0].mobile.conditions.showCount.dailyRefresh == true) && (Calendar.current.isDate(floatBtn.popupdate!, equalTo: Date(), toGranularity: .day)))) {
                         self.addFloatingButton(btnInfo: floatButton[0])
-                    }
+//                    }
+                    
                 }
             }
             
@@ -856,7 +884,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 
                 if ((finalPopUp[0].mobile.content.count > 0) && (popupShow.showcount?.count)! < finalPopUp[0].mobile.conditions.showCount.count) {
                     
-                    if ((finalPopUp[0].mobile.conditions.showCount.dailyRefresh == false) || ((finalPopUp[0].mobile.conditions.showCount.dailyRefresh == true) && (Calendar.current.isDate(popupShow.popupdate!, equalTo: Date(), toGranularity: .day)))) {
+//                    if ((finalPopUp[0].mobile.conditions.showCount.dailyRefresh == false) || ((finalPopUp[0].mobile.conditions.showCount.dailyRefresh == true) && (Calendar.current.isDate(popupShow.popupdate!, equalTo: Date(), toGranularity: .day)))) {
                         
                         var userInfo = [String: Any]()
                         userInfo["finalPopUp"] = (finalPopUp[0] )
@@ -888,7 +916,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                 }
                             }
                         }
-                    }
+//                    }
                 }
             }
         }
@@ -898,11 +926,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         var showCountNew = showCount
         showCountNew.showcount?.count += 1
         
-        if eventData.mobile.conditions.showCount.dailyRefresh == true {
-            var dateComponent = DateComponents()
-            dateComponent.day = 1
-            showCountNew.popupdate = Calendar.current.date(byAdding: dateComponent, to: showCount.popupdate!)
-        }
+//        if eventData.mobile.conditions.showCount.dailyRefresh == true && (showCountNew.showcount?.count)! >= eventData.mobile.conditions.showCount.count {
+//            var dateComponent = DateComponents()
+//            dateComponent.day = 1
+//            showCountNew.popupdate = Calendar.current.date(byAdding: dateComponent, to: showCount.popupdate!)
+//        }
         
         if let index = popupDict.firstIndex(where: {$0._id == showCountNew._id}) {
             popupDict.remove(at: index)
