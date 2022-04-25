@@ -44,11 +44,13 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var isEntryPointEnabled = false
     public static var activeViewController = ""
     internal var activescreenname = ""
+    
         
     internal var popupDict = [PopUpModel]()
     internal var entryPointPopUpModel = EntryPointPopUpModel()
     internal var popupDisplayScreens = [String]()
     private var configScreens = [String]()
+    private var popuptimer : Timer?
     
     private override init() {
         super.init()
@@ -755,6 +757,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
 
     public func setCurrentClassName(className: String) {
+        
+        if(popuptimer != nil){
+            popuptimer?.invalidate()
+            popuptimer = nil
+        }
+        
         if CustomerGlu.isEntryPointEnabled {
             if CustomerGlu.isDebugingEnabled {
                 // API Call Collect ViewController Name & Post
@@ -850,11 +858,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     
                     if ((finalPopUp[0].mobile.conditions.showCount.dailyRefresh == false) || ((finalPopUp[0].mobile.conditions.showCount.dailyRefresh == true) && (Calendar.current.isDate(popupShow.popupdate!, equalTo: Date(), toGranularity: .day)))) {
                         
+                        var userInfo = [String: Any]()
+                        userInfo["finalPopUp"] = (finalPopUp[0] )
+                        userInfo["popupShow"] = (popupShow )
+                        
                         if finalPopUp[0].mobile.container.ios.allowedActitivityList.count > 0 && finalPopUp[0].mobile.container.ios.disallowedActitivityList.count > 0 {
                             if !finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
                                 if !popupDisplayScreens.contains(className) {
-                                    
-                                    openPopup(finalPopUp: finalPopUp[0],showCount: popupShow)
+                                    popuptimer = Timer.scheduledTimer(timeInterval: TimeInterval(finalPopUp[0].mobile.conditions.delay), target: self, selector: #selector(showPopupAfterTime(sender:)), userInfo: userInfo, repeats: false)
                                     return
                                 }
                             }
@@ -862,7 +873,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             if finalPopUp[0].mobile.container.ios.allowedActitivityList.contains(className) {
                                 
                                 if !popupDisplayScreens.contains(className) {
-                                    openPopup(finalPopUp: finalPopUp[0],showCount: popupShow)
+                                    popuptimer = Timer.scheduledTimer(timeInterval: TimeInterval(finalPopUp[0].mobile.conditions.delay), target: self, selector: #selector(showPopupAfterTime(sender:)), userInfo: userInfo, repeats: false)
                                     return
                                 }
                             }
@@ -871,8 +882,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             if !finalPopUp[0].mobile.container.ios.disallowedActitivityList.contains(className) {
                                 
                                 if !popupDisplayScreens.contains(className) {
-                                    
-                                    openPopup(finalPopUp: finalPopUp[0],showCount: popupShow)
+                                    popuptimer = Timer.scheduledTimer(timeInterval: TimeInterval(finalPopUp[0].mobile.conditions.delay), target: self, selector: #selector(showPopupAfterTime(sender:)), userInfo: userInfo, repeats: false)
                                     
                                     return
                                 }
@@ -908,9 +918,17 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    private func openPopup(finalPopUp: CGData, showCount: PopUpModel) {
-        let seconds = DispatchTimeInterval.seconds(finalPopUp.mobile.conditions.delay)
-        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) { [self] in
+    @objc private  func showPopupAfterTime(sender: Timer) {
+        
+        if popuptimer != nil && !popupDisplayScreens.contains(CustomerGlu.getInstance.activescreenname) {
+            
+            let userInfo = sender.userInfo as! [String:Any]
+            let finalPopUp = userInfo["finalPopUp"] as! CGData
+            let showCount = userInfo["popupShow"] as! PopUpModel
+            
+            popuptimer?.invalidate()
+            popuptimer = nil
+            
             if finalPopUp.mobile.content[0].openLayout == "FULL-DEFAULT" {
                 CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp.mobile.content[0].campaignId)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: finalPopUp.mobile.conditions.backgroundOpacity ?? 0.5)
             } else if finalPopUp.mobile.content[0].openLayout == "BOTTOM-DEFAULT" {
