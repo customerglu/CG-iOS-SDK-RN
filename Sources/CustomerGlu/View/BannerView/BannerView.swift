@@ -112,11 +112,6 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 for content in mobile.content {
                     arrContent.append(content)
                     
-//                    guard let topController = UIApplication.getTopViewController() else {
-//                        return
-//                    }
-//                    let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
-                    
                     var actionType = ""
                     if mobile.content[0].campaignId.count == 0 {
                         actionType = "WALLET"

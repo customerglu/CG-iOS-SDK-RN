@@ -127,7 +127,6 @@ class FloatingButtonController: UIViewController {
     }
     
     public func dismissFloatingButton(){
-            //                self.imageview.removeFromSuperview()
             if CustomerGlu.getInstance.arrFloatingButton.contains(self) {
                 
                 let finalfloatBtn = CustomerGlu.getInstance.popupDict.filter {

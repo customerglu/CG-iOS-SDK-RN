@@ -353,12 +353,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                     case .success(let responseGetEntry):
                                         CustomerGlu.entryPointdata.removeAll()
                                         CustomerGlu.entryPointdata = responseGetEntry.data
-//                                        for i in 0...CustomerGlu.entryPointdata.count - 1 {
-//                                            CustomerGlu.entryPointdata[i].mobile.container.ios.disallowedActitivityList = ["HomeScreen"]
-//                                            CustomerGlu.entryPointdata[i].mobile.conditions.showCount.count = 3
-//                                            CustomerGlu.entryPointdata[i].mobile.conditions.showCount.dailyRefresh = false
-//                                            CustomerGlu.entryPointdata[i].mobile.conditions.delay = 0
-//                                        }
                                         
                                         // FLOATING Buttons
                                         let floatingButtons = CustomerGlu.entryPointdata.filter {
@@ -446,13 +440,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                 switch result {
                                     case .success(let responseGetEntry):
                                         CustomerGlu.entryPointdata = responseGetEntry.data
-//                                        for i in 0...CustomerGlu.entryPointdata.count - 1 {
-//                                            CustomerGlu.entryPointdata[i].mobile.container.ios.disallowedActitivityList = ["HomeScreen"]
-//                                            CustomerGlu.entryPointdata[i].mobile.conditions.showCount.count = 2
-//                                            CustomerGlu.entryPointdata[i].mobile.conditions.showCount.dailyRefresh = false
-//                                            CustomerGlu.entryPointdata[i].mobile.conditions.delay = 0
-//                                        }
-                                        
+
                                         // FLOATING Buttons
                                         let floatingButtons = CustomerGlu.entryPointdata.filter {
                                             $0.mobile.container.type == "FLOATING" || $0.mobile.container.type == "POPUP"
@@ -496,13 +484,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             switch result {
                 case .success(let response):
                     CustomerGlu.entryPointdata = response.data
-//                    for i in 0...CustomerGlu.entryPointdata.count - 1 {
-//                        CustomerGlu.entryPointdata[i].mobile.container.ios.disallowedActitivityList = ["HomeScreen"]
-//                        CustomerGlu.entryPointdata[i].mobile.conditions.showCount.count = 6
-//                        CustomerGlu.entryPointdata[i].mobile.conditions.showCount.dailyRefresh = false
-//                        CustomerGlu.entryPointdata[i].mobile.conditions.delay = 0
-//                    }
-                    
+
                     // FLOATING Buttons
                     let floatingButtons = CustomerGlu.entryPointdata.filter {
                         $0.mobile.container.type == "FLOATING" || $0.mobile.container.type == "POPUP"
@@ -852,9 +834,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 
                 if ((floatButton[0].mobile.content.count > 0) && (floatBtn.showcount?.count)! < floatButton[0].mobile.conditions.showCount.count) {
                     
-//                    if ((floatButton[0].mobile.conditions.showCount.dailyRefresh == false) || ((floatButton[0].mobile.conditions.showCount.dailyRefresh == true) && (Calendar.current.isDate(floatBtn.popupdate!, equalTo: Date(), toGranularity: .day)))) {
                         self.addFloatingButton(btnInfo: floatButton[0])
-//                    }
                     
                 }
             }
@@ -884,8 +864,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 
                 if ((finalPopUp[0].mobile.content.count > 0) && (popupShow.showcount?.count)! < finalPopUp[0].mobile.conditions.showCount.count) {
                     
-//                    if ((finalPopUp[0].mobile.conditions.showCount.dailyRefresh == false) || ((finalPopUp[0].mobile.conditions.showCount.dailyRefresh == true) && (Calendar.current.isDate(popupShow.popupdate!, equalTo: Date(), toGranularity: .day)))) {
-                        
                         var userInfo = [String: Any]()
                         userInfo["finalPopUp"] = (finalPopUp[0] )
                         userInfo["popupShow"] = (popupShow )
@@ -916,7 +894,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                 }
                             }
                         }
-//                    }
                 }
             }
         }
@@ -925,12 +902,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     internal func updateShowCount(showCount: PopUpModel, eventData: CGData) {
         var showCountNew = showCount
         showCountNew.showcount?.count += 1
-        
-//        if eventData.mobile.conditions.showCount.dailyRefresh == true && (showCountNew.showcount?.count)! >= eventData.mobile.conditions.showCount.count {
-//            var dateComponent = DateComponents()
-//            dateComponent.day = 1
-//            showCountNew.popupdate = Calendar.current.date(byAdding: dateComponent, to: showCount.popupdate!)
-//        }
         
         if let index = popupDict.firstIndex(where: {$0._id == showCountNew._id}) {
             popupDict.remove(at: index)
