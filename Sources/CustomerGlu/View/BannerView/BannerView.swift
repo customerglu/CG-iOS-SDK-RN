@@ -63,6 +63,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
             object: nil)
     }
     
+    
     public override func layoutSubviews() {
         if imgScrollView != nil {
             imgScrollView.removeFromSuperview()
@@ -158,6 +159,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
         }
         finalHeight = 0
         invalidateIntrinsicContentSize()
+        self.layoutIfNeeded()
     }
     
     private func setBannerView(height: Int, isAutoScrollEnabled: Bool, autoScrollSpeed: Int){
@@ -180,7 +182,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
         }
         
         invalidateIntrinsicContentSize()
-        
+        self.layoutIfNeeded()
         imgScrollView.delegate = self
         
         for i in 0..<arrContent.count {
