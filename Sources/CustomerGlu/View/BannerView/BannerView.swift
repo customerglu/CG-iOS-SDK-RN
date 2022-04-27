@@ -16,15 +16,15 @@ public class BannerView: UIView, UIScrollViewDelegate {
     var condition : CGCondition?
     var timer : Timer?
     private var code = true
-
+    var finalHeight = 0
+    
     @IBOutlet weak private var imgScrollView: UIScrollView!
     @IBOutlet weak private var pageControl: UIPageControl!
-
+    
     @IBInspectable var elementId: String? {
         didSet {
         }
     }
-        
     
     public init(frame: CGRect, elementId: String) {
         //CODE
@@ -34,25 +34,22 @@ public class BannerView: UIView, UIScrollViewDelegate {
         code = true
         
         NotificationCenter.default.addObserver(
-                    self,
-                    selector: #selector(self.entryPointLoaded),
-                    name: Notification.Name("EntryPointLoaded"),
-                    object: nil)
+            self,
+            selector: #selector(self.entryPointLoaded),
+            name: Notification.Name("EntryPointLoaded"),
+            object: nil)
     }
     
     @objc private func entryPointLoaded(notification: NSNotification) {
-            
         DispatchQueue.main.async {
             if self.imgScrollView != nil {
                 self.imgScrollView.removeFromSuperview()
             }
             self.view.removeFromSuperview()
-            
             self.xibSetup()
-          }
-
-            
         }
+    }
+    
     required init?(coder aDecoder: NSCoder) {
         // XIB
         super.init(coder: aDecoder)
@@ -60,21 +57,24 @@ public class BannerView: UIView, UIScrollViewDelegate {
         code = false
         
         NotificationCenter.default.addObserver(
-                    self,
-                    selector: #selector(self.entryPointLoaded),
-                    name: Notification.Name("EntryPointLoaded"),
-                    object: nil)
+            self,
+            selector: #selector(self.entryPointLoaded),
+            name: Notification.Name("EntryPointLoaded"),
+            object: nil)
     }
-
+    
     public override func layoutSubviews() {
         if imgScrollView != nil {
             imgScrollView.removeFromSuperview()
         }
         view.removeFromSuperview()
-        
         xibSetup()
     }
     
+    public override var intrinsicContentSize: CGSize {
+        self.layoutIfNeeded()
+        return CGSize(width: self.frame.size.width, height: CGFloat(finalHeight))
+    }
     
     // MARK: - Nib handlers
     private func xibSetup() {
@@ -95,9 +95,9 @@ public class BannerView: UIView, UIScrollViewDelegate {
         let view = nib.instantiate(withOwner: self, options: nil).first as? UIView
         return view!
     }
-       
+    
     public func reloadBannerView(element_id: String) {
-                
+        
         let bannerViews = CustomerGlu.entryPointdata.filter {
             $0.mobile.container.type == "BANNER" && $0.mobile.container.bannerId == element_id
         }
@@ -124,7 +124,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
                     } else {
                         actionType = "CAMPAIGN"
                     }
-                  
+                    
                     eventPublishNudge(pageName: className, nudgeId: content._id, actionName: "LOADED", actionType: actionType, openType: content.openLayout, campaignId: content.campaignId)
                 }
                 
@@ -143,7 +143,6 @@ public class BannerView: UIView, UIScrollViewDelegate {
             if(self.imgScrollView != nil){
                 self.imgScrollView.frame.size.height = CGFloat(0)
             }
-
         } else {
             if let heightconstraint = (self.constraints.filter{$0.firstAttribute == .height}.first) {
                 heightconstraint.constant = CGFloat(0)
@@ -157,13 +156,15 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 }
             }
         }
+        finalHeight = 0
+        invalidateIntrinsicContentSize()
     }
     
     private func setBannerView(height: Int, isAutoScrollEnabled: Bool, autoScrollSpeed: Int){
         
         let screenWidth = self.frame.size.width
         let screenHeight = UIScreen.main.bounds.height
-        let finalHeight = (Int(screenHeight) * height)/100
+        finalHeight = (Int(screenHeight) * height)/100
         
         if code == true {
             self.frame.size.height = CGFloat(finalHeight)
@@ -177,15 +178,17 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 self.imgScrollView.frame.size.height = CGFloat(finalHeight)
             }
         }
-
+        
+        invalidateIntrinsicContentSize()
+        
         imgScrollView.delegate = self
-
+        
         for i in 0..<arrContent.count {
             let dict = arrContent[i]
             if dict.type == "IMAGE" {
                 var imageView: UIImageView
                 let xOrigin = screenWidth * CGFloat(i)
-               
+                
                 imageView = UIImageView(frame: CGRect(x: xOrigin, y: 0, width: screenWidth, height: self.imgScrollView.frame.size.height))
                 imageView.isUserInteractionEnabled = true
                 imageView.tag = i
@@ -232,7 +235,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
         }
         self.pageControl.currentPage = 0
     }
-
+    
     @objc func moveToNextImage() {
         let imgsCount: CGFloat = CGFloat(arrContent.count)
         let pageWidth: CGFloat = self.imgScrollView.frame.width
@@ -245,7 +248,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
         } else {
             self.imgScrollView.scrollRectToVisible(CGRect(x: slideToX, y: 0, width: pageWidth, height: self.imgScrollView.frame.height), animated: true)
         }
-                
+        
         let pageNumber = round(slideToX / self.frame.size.width)
         pageControl.currentPage = Int(pageNumber)
     }
@@ -268,7 +271,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
             } else {
                 CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: condition?.backgroundOpacity ?? 0.5)
             }
-                        
+            
             var actionType = ""
             if dict.campaignId.count == 0 {
                 actionType = "WALLET"
@@ -277,7 +280,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
             } else {
                 actionType = "CAMPAIGN"
             }
-          
+            
             eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: dict._id, actionName: "OPEN", actionType: actionType, openType: dict.openLayout, campaignId: dict.campaignId)
         }
     }
@@ -285,7 +288,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
     private func eventPublishNudge(pageName: String, nudgeId: String, actionName: String, actionType: String, openType: String, campaignId: String) {
         var eventInfo = [String: AnyHashable]()
         eventInfo[APIParameterKey.nudgeType] = "BANNER"
-
+        
         eventInfo[APIParameterKey.pageName] = pageName
         eventInfo[APIParameterKey.nudgeId] = nudgeId
         eventInfo[APIParameterKey.actionName] = actionName
@@ -300,5 +303,9 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 print("error")
             }
         }
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 }
