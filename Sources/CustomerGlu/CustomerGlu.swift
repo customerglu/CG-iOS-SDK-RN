@@ -77,7 +77,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         CustomerGlu.isDebugingEnabled = enabled
     }
     
-    public func enableEntryPoint(enabled: Bool) {
+    public func enableEntryPoints(enabled: Bool) {
         CustomerGlu.isEntryPointEnabled = enabled
         if CustomerGlu.isEntryPointEnabled {
             getEntryPointData()
