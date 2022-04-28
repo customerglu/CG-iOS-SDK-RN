@@ -115,7 +115,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
                     guard let topController = UIApplication.getTopViewController() else {
                         return
                     }
-                    let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
+//                    let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
                     
                     var actionType = ""
                     if mobile.content[0].campaignId.count == 0 {
@@ -126,7 +126,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
                         actionType = "CAMPAIGN"
                     }
                     
-                    eventPublishNudge(pageName: className, nudgeId: content._id, actionName: "LOADED", actionType: actionType, openType: content.openLayout, campaignId: content.campaignId)
+                    eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: content._id, actionName: "LOADED", actionType: actionType, openType: content.openLayout, campaignId: content.campaignId)
                 }
                 
                 self.setBannerView(height: Int(mobile.container.height)!, isAutoScrollEnabled: mobile.conditions.autoScroll, autoScrollSpeed: mobile.conditions.autoScrollSpeed)
@@ -297,7 +297,8 @@ public class BannerView: UIView, UIScrollViewDelegate {
         eventInfo[APIParameterKey.actionType] = actionType
         eventInfo[APIParameterKey.openType] = openType
         eventInfo[APIParameterKey.campaignId] = campaignId
-        
+        eventInfo[APIParameterKey.eventId] = UUID().uuidString
+        eventInfo[APIParameterKey.actionType] = [APIParameterKey.actionType:"iOS"]
         ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
             if success {
                 print("success")
