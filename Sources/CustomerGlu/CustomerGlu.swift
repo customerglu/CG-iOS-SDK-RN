@@ -73,7 +73,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func enableDebugging(enabled: Bool) {
+    public func gluSDKDebuggingMode(enabled: Bool) {
         CustomerGlu.isDebugingEnabled = enabled
     }
     
