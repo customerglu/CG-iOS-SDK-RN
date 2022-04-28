@@ -21,16 +21,16 @@ public class BannerView: UIView, UIScrollViewDelegate {
     @IBOutlet weak private var imgScrollView: UIScrollView!
     @IBOutlet weak private var pageControl: UIPageControl!
     
-    @IBInspectable var elementId: String? {
+    @IBInspectable var bannerId: String? {
         didSet {
         }
     }
     
-    public init(frame: CGRect, elementId: String) {
+    public init(frame: CGRect, bannerId: String) {
         //CODE
         super.init(frame: frame)
         backgroundColor = UIColor.clear
-        self.elementId = elementId
+        self.bannerId = bannerId
         code = true
         
         NotificationCenter.default.addObserver(
@@ -87,7 +87,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
         imgScrollView.frame = bounds
         imgScrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         addSubview(view)
-        reloadBannerView(element_id: self.elementId ?? "")
+        reloadBannerView(element_id: self.bannerId ?? "")
     }
     
     private func loadViewFromNib() -> UIView {
@@ -112,9 +112,9 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 for content in mobile.content {
                     arrContent.append(content)
                     
-                    guard let topController = UIApplication.getTopViewController() else {
-                        return
-                    }
+//                    guard let topController = UIApplication.getTopViewController() else {
+//                        return
+//                    }
 //                    let className = NSStringFromClass(topController .classForCoder).components(separatedBy: ".").last!
                     
                     var actionType = ""
@@ -298,7 +298,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
         eventInfo[APIParameterKey.openType] = openType
         eventInfo[APIParameterKey.campaignId] = campaignId
         eventInfo[APIParameterKey.eventId] = UUID().uuidString
-        eventInfo[APIParameterKey.actionType] = [APIParameterKey.actionType:"iOS"]
+        eventInfo[APIParameterKey.actionPayload] = [APIParameterKey.deviceType:"iOS"]
         ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
             if success {
                 print("success")
