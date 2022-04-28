@@ -200,8 +200,8 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 containerView.tag = i
                 var webView: WKWebView
                 let xOrigin = screenWidth * CGFloat(i)
-                webView = WKWebView(frame: CGRect(x: xOrigin, y: 0, width: screenWidth, height: self.imgScrollView.frame.size.height))
                 containerView.frame  = CGRect.init(x: xOrigin, y: 0, width: screenWidth, height: self.imgScrollView.frame.size.height)
+                webView = WKWebView(frame: CGRect(x: 0, y: 0, width: screenWidth, height: self.imgScrollView.frame.size.height))
                 webView.isUserInteractionEnabled = false
                 webView.tag = i
                 let urlStr = dict.url
