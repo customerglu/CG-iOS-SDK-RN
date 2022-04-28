@@ -61,6 +61,8 @@ struct APIParameterKey {
     static let openType = "openType"
     static let campaignId = "campaignId"
     static let activityIdList = "activityIdList"
+    static let eventId = "eventId"
+    static let actionPayload = "actionPayload"
 }
 
 // Default NotificationsKey

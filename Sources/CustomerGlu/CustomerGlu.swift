@@ -1036,6 +1036,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         eventInfo[APIParameterKey.actionType] = actionType
         eventInfo[APIParameterKey.openType] = openType
         eventInfo[APIParameterKey.campaignId] = campaignId
+        eventInfo[APIParameterKey.eventId] = UUID().uuidString
+        eventInfo[APIParameterKey.actionType] = [APIParameterKey.actionType:"iOS"]
         
         ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
             if success {

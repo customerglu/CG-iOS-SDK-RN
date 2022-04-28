@@ -43,7 +43,7 @@ private struct MethodNameandPath {
     static let addToCart = MethodandPath(method: "POST", path: "v3/server")
     static let crashReport = MethodandPath(method: "PUT", path: "api/v1/report")
     static let entryPointdata = MethodandPath(method: "GET", path: "entrypoints/v1/list?consumer=MOBILE")
-    static let publish_nudge = MethodandPath(method: "POST", path: "v4/analytics")
+    static let publish_nudge = MethodandPath(method: "POST", path: "v4/nudge")
     static let entrypoints_config = MethodandPath(method: "POST", path: "entrypoints/v1/config")
 }
 
