@@ -301,6 +301,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         popupDict.removeAll()
         CustomerGlu.entryPointdata.removeAll()
         entryPointPopUpModel = EntryPointPopUpModel()
+        self.popupDisplayScreens.removeAll()
         
         
         userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_TOKEN)
