@@ -104,8 +104,10 @@ class FloatingButtonController: UIViewController {
         dismisimageview.image = UIImage(named: "imagedismissblack", in: .module, compatibleWith: nil)
         dismisview.addSubview(dismisimageview)
         
-        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(self.draggedView(_:)))
-        imageview.addGestureRecognizer(panGesture)
+        if(floatInfo?.mobile.conditions.draggable == true){
+            let panGesture = UIPanGestureRecognizer(target: self, action: #selector(self.draggedView(_:)))
+            imageview.addGestureRecognizer(panGesture)
+        }
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
         imageview.addGestureRecognizer(tap)
@@ -116,6 +118,7 @@ class FloatingButtonController: UIViewController {
     
     public func hideFloatingButton(ishidden: Bool) {
         //        window.isHidden = ishidden
+        dismisview.isHidden = true
         window.imageview?.isHidden = ishidden
         self.imageview.isHidden = ishidden
         window.isUserInteractionEnabled = !ishidden
