@@ -113,9 +113,9 @@ public class BannerView: UIView, UIScrollViewDelegate {
                     arrContent.append(content)
                     
                     var actionType = ""
-                    if mobile.content[0].campaignId.count == 0 {
+                    if content.campaignId.count == 0 {
                         actionType = "WALLET"
-                    } else if mobile.content[0].campaignId.contains("http://") || mobile.content[0].campaignId.contains("https://"){
+                    } else if content.campaignId.contains("http://") || content.campaignId.contains("https://"){
                         actionType = "CUSTOM_URL"
                     } else {
                         actionType = "CAMPAIGN"
@@ -291,9 +291,13 @@ public class BannerView: UIView, UIScrollViewDelegate {
         eventInfo[APIParameterKey.actionName] = actionName
         eventInfo[APIParameterKey.actionType] = actionType
         eventInfo[APIParameterKey.openType] = openType
-        eventInfo[APIParameterKey.campaignId] = campaignId
         eventInfo[APIParameterKey.eventId] = UUID().uuidString
-        eventInfo[APIParameterKey.actionPayload] = [APIParameterKey.deviceType:"iOS"]
+
+        if(campaignId.count > 0 && actionType == "CAMPAIGN"){
+            eventInfo[APIParameterKey.actionPayload] = [APIParameterKey.deviceType:"iOS",APIParameterKey.campaignId:campaignId]
+        }else{
+            eventInfo[APIParameterKey.actionPayload] = [APIParameterKey.deviceType:"iOS"]
+        }
         ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
             if success {
                 print("success")
