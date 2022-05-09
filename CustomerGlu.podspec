@@ -26,8 +26,9 @@ A new CustomerGlu.
   }
   s.author           = { 'CustomerGlu' => 'code@customerglu.net' }
   s.source           = { :git => 'https://github.com/customerglu/CG-iOS-SDK.git', :tag => 'v2.0.0'}
-  s.source_files = 'Sources/**/*.*'
+  s.source_files = 'Sources/Classes/**/*.*'
   s.exclude_files = 'Tests/**/*.*'
+  s.resources = 'Sources/Resources/**/*.png'
   s.platform = :ios, '9.0'
 
   # Flutter.framework does not contain a i386 slice.
