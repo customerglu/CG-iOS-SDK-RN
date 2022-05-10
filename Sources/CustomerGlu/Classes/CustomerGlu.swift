@@ -362,6 +362,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                                             
                                         self.entryPointInfoAddDelete(entryPoint: floatingButtons)
                                         self.addFloatingBtns()
+                                        self.postBannersCount()
                                         
                                         completion(true, response)
                                         
@@ -449,7 +450,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                                             
                                         self.entryPointInfoAddDelete(entryPoint: floatingButtons)
                                         self.addFloatingBtns()
-                                        
+                                        self.postBannersCount()
                                         completion(true, response)
                                         
                                     case .failure(let error):
@@ -493,6 +494,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                         
                     entryPointInfoAddDelete(entryPoint: floatingButtons)
                     addFloatingBtns()
+                    postBannersCount()
                     NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("EntryPointLoaded").rawValue), object: nil, userInfo: nil)
                 case .failure(let error):
                     print(error)
@@ -845,6 +847,23 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             })
 
         }
+    }
+    
+    internal func postBannersCount() {
+
+        var postInfo: [String: Any] = [:]
+        
+        let banners = CustomerGlu.entryPointdata.filter {
+            $0.mobile.container.type == "BANNER" && $0.mobile.container.bannerId != nil && $0.mobile.container.bannerId.count > 0
+        }
+        
+        if(banners.count > 0){
+            for banner in banners {
+                postInfo[banner.mobile.container.bannerId] = banner.mobile.content.count
+            }
+        }
+
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_BANNER_LOADED").rawValue), object: nil, userInfo: postInfo)
     }
     
     private func showPopup(className: String) {

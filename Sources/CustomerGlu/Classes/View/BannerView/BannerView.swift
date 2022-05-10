@@ -17,27 +17,40 @@ public class BannerView: UIView, UIScrollViewDelegate {
     var timer : Timer?
     private var code = true
     var finalHeight = 0
+    private var loadedapicalled = false
+    
     
     @IBOutlet weak private var imgScrollView: UIScrollView!
     @IBOutlet weak private var pageControl: UIPageControl!
     
     @IBInspectable var bannerId: String? {
         didSet {
+            backgroundColor = UIColor.clear
+            CustomerGlu.getInstance.postBannersCount()
+            callLoadBannerAnalytics()
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(self.entryPointLoaded),
+                name: Notification.Name("EntryPointLoaded"),
+                object: nil)
         }
     }
+    
+    var commonBannerId: String {
+
+            get {
+                return self.bannerId ?? ""
+            }
+            set(newWeight) {
+                bannerId = newWeight
+            }
+        }
     
     public init(frame: CGRect, bannerId: String) {
         //CODE
         super.init(frame: frame)
-        backgroundColor = UIColor.clear
-        self.bannerId = bannerId
+        self.commonBannerId = bannerId
         code = true
-        
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(self.entryPointLoaded),
-            name: Notification.Name("EntryPointLoaded"),
-            object: nil)
     }
     
     @objc private func entryPointLoaded(notification: NSNotification) {
@@ -47,20 +60,14 @@ public class BannerView: UIView, UIScrollViewDelegate {
             }
             self.view.removeFromSuperview()
             self.xibSetup()
+            self.callLoadBannerAnalytics()
         }
     }
     
     required init?(coder aDecoder: NSCoder) {
         // XIB
         super.init(coder: aDecoder)
-        backgroundColor = UIColor.clear
         code = false
-        
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(self.entryPointLoaded),
-            name: Notification.Name("EntryPointLoaded"),
-            object: nil)
     }
     
     
@@ -75,6 +82,40 @@ public class BannerView: UIView, UIScrollViewDelegate {
     public override var intrinsicContentSize: CGSize {
         self.layoutIfNeeded()
         return CGSize(width: self.frame.size.width, height: CGFloat(finalHeight))
+    }
+    
+    private func callLoadBannerAnalytics(){
+        
+        if (false == loadedapicalled){
+            let bannerViews = CustomerGlu.entryPointdata.filter {
+                $0.mobile.container.type == "BANNER" && $0.mobile.container.bannerId == self.bannerId ?? ""
+            }
+            
+            if bannerViews.count != 0 {
+                let mobile = bannerViews[0].mobile!
+                arrContent = [CGContent]()
+                condition = mobile.conditions
+                
+                if mobile.content.count != 0 {
+                    for content in mobile.content {
+                        var actionType = ""
+                        if content.campaignId.count == 0 {
+                            actionType = "WALLET"
+                        } else if content.campaignId.contains("http://") || content.campaignId.contains("https://"){
+                            actionType = "CUSTOM_URL"
+                        } else {
+                            actionType = "CAMPAIGN"
+                        }
+                        
+                        eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: content._id, actionName: "LOADED", actionType: actionType, openType: content.openLayout, campaignId: content.campaignId)
+                    }
+                    loadedapicalled = true
+                    
+                }
+                
+            }
+
+        }
     }
     
     // MARK: - Nib handlers
@@ -111,17 +152,6 @@ public class BannerView: UIView, UIScrollViewDelegate {
             if mobile.content.count != 0 {
                 for content in mobile.content {
                     arrContent.append(content)
-                    
-                    var actionType = ""
-                    if content.campaignId.count == 0 {
-                        actionType = "WALLET"
-                    } else if content.campaignId.contains("http://") || content.campaignId.contains("https://"){
-                        actionType = "CUSTOM_URL"
-                    } else {
-                        actionType = "CAMPAIGN"
-                    }
-                    
-                    eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: content._id, actionName: "LOADED", actionType: actionType, openType: content.openLayout, campaignId: content.campaignId)
                 }
                 
                 self.setBannerView(height: Int(mobile.container.height)!, isAutoScrollEnabled: mobile.conditions.autoScroll, autoScrollSpeed: mobile.conditions.autoScrollSpeed)
