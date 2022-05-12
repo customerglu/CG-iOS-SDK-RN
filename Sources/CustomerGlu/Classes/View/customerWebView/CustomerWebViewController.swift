@@ -110,7 +110,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                     }
                 } else {
                     CustomerGlu.getInstance.loaderHide()
-                    print("error")
+                    CustomerGlu.getInstance.printlog(cglog: "Fail to load loadAllCampaignsApi", isException: false, methodName: "CustomerWebViewController-viewDidLoad", posttoserver: true)
                 }
             }
         } else {
@@ -180,16 +180,16 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-        print("Started to load")
     }
     
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        print("Finished loading")
         CustomerGlu.getInstance.loaderHide()
     }
     
     public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-        print(error.localizedDescription)
+
+        CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "didFailProvisionalNavigation", posttoserver: true)
+        
         CustomerGlu.getInstance.loaderHide()
     }
     
@@ -197,9 +197,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     public func userContentController(
         _ userContentController: WKUserContentController, didReceive message: WKScriptMessage
     ) {
-        print(message.name)
-        print(message)
-        print("Body message", message.body)
+
         if message.name == WebViewsKey.callback {
             guard let bodyString = message.body as? String,
                   let bodyData = bodyString.data(using: .utf8) else { fatalError() }
@@ -218,8 +216,8 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             
             if bodyStruct?.eventName == WebViewsKey.open_deeplink {
                 let deeplink = try? JSONDecoder().decode(DeepLinkModel.self, from: bodyData)
-                if  let deep_link = deeplink?.data?.deepLink {
-                    print("link", deep_link)
+                if  (deeplink?.data?.deepLink) != nil {
+                    
                     let dict = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!)
                     // Post notification
                     NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_DEEPLINK_EVENT").rawValue), object: nil, userInfo: dict?["data"] as? [String: Any])
@@ -281,8 +279,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 if UIApplication.shared.canOpenURL(whatsappURL as URL) {
                     UIApplication.shared.open(whatsappURL)
                 } else {
-                    ApplicationManager.callCrashReport(stackTrace: "Can't open whatsapp", methodName: "sendToWhatsapp")
-                    print("Can't open whatsapp")
+                    CustomerGlu.getInstance.printlog(cglog: "Can't open whatsapp", isException: false, methodName: "sendToWhatsapp", posttoserver: true)
                 }
             }
         }
@@ -292,7 +289,9 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         // Set your image's URL into here
         let url = URL(string: imageString)!
         data(from: url) { data, response, error in
-            print(response as Any)
+            if(true == CustomerGlu.isDebugingEnabled){
+                print(response as Any)
+            }
             guard let data = data, error == nil else { return }
             DispatchQueue.main.async { [weak self] in
                 if let image = UIImage(data: data) {
@@ -318,7 +317,9 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                     // Set your image's URL into here
                     let url = URL(string: imageString)!
                     data(from: url) { data, response, error in
-                        print(response as Any)
+                        if(true == CustomerGlu.isDebugingEnabled){
+                            print(response as Any)
+                        }
                         guard let data = data, error == nil else { return }
                         DispatchQueue.main.async { [weak self] in
                             let image = UIImage(data: data)
@@ -330,14 +331,13 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                                     self!.documentInteractionController.uti = "net.whatsapp.image"
                                     self?.documentInteractionController.presentOpenInMenu(from: CGRect.zero, in: self!.view, animated: true)
                                 } catch {
-                                    print(error)
+                                    CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "shareImageToWhatsapp", posttoserver: true)
                                 }
                             }
                         }
                     }
                 } else {
-                    ApplicationManager.callCrashReport(stackTrace: "Can't open whatsapp", methodName: "shareImageToWhatsapp")
-                    print("Can't open whatsapp")
+                    CustomerGlu.getInstance.printlog(cglog: "Can't open whatsapp", isException: false, methodName: "shareImageToWhatsapp", posttoserver: true)
                 }
             }
         }

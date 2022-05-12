@@ -16,7 +16,7 @@ class OpenWalletViewModel {
                 completion(true, registrationModel)
             } else {
                 completion(false, nil)
-                print("error")
+                CustomerGlu.getInstance.printlog(cglog: "UpdateProfile API fail", isException: false, methodName: "OpenWalletViewModel-updateProfile", posttoserver: true)
             }
         }
     }

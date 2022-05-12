@@ -66,10 +66,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             // retrieving a value for a key
             if let data = userDefaults.data(forKey: Constants.CustomerGluCrash),
                let crashItems = try NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as? Dictionary<String, Any> {
-                ApplicationManager.callCrashReport(stackTrace: (crashItems["callStack"] as? String)!, isException: true, methodName: "CustomerGluCrash")
+                ApplicationManager.callCrashReport(cglog: (crashItems["callStack"] as? String)!, isException: true, methodName: "CustomerGluCrash")
             }
         } catch {
-            print(error)
+            CustomerGlu.getInstance.printlog(cglog: "private override init()", isException: false, methodName: "CustomerGlu-init", posttoserver: false)
         }
     }
     
@@ -85,7 +85,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     public func customerGluDidCatchCrash(with model: CrashModel) {
-        print("\(model)")
+        CustomerGlu.getInstance.printlog(cglog: "\(model)", isException: false, methodName: "CustomerGlu-customerGluDidCatchCrash-1", posttoserver: false)
         let dict = [
             "name": model.name!,
             "reason": model.reason!,
@@ -97,7 +97,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             userDefaults.set(encodedData, forKey: Constants.CustomerGluCrash)
             userDefaults.synchronize()
         } catch {
-            print(error)
+            CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-customerGluDidCatchCrash-2", posttoserver: false)
         }
     }
     
@@ -179,7 +179,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     public func cgUserNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         if CustomerGlu.sdk_disable! == true {
-            print(CustomerGlu.sdk_disable!)
             return
         }
         let userInfo = notification.request.content.userInfo
@@ -196,20 +195,27 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     public func cgapplication(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], backgroundAlpha: Double = 0.5, fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
         if CustomerGlu.sdk_disable! == true {
-            print(CustomerGlu.sdk_disable!)
+            CustomerGlu.getInstance.printlog(cglog: "", isException: false, methodName: "CustomerGlu-cgapplication", posttoserver: true)
             return
         }
         if let messageID = userInfo[gcmMessageIDKey] {
-            print("Message ID: \(messageID)")
+            if(true == CustomerGlu.isDebugingEnabled){
+                print("Message ID: \(messageID)")
+            }
         }
         
         if CustomerGlu.getInstance.notificationFromCustomerGlu(remoteMessage: userInfo as? [String: AnyHashable] ?? [NotificationsKey.customerglu: "d"]) {
             let nudge_url = userInfo[NotificationsKey.nudge_url]
-            print(nudge_url as Any)
+            if(true == CustomerGlu.isDebugingEnabled){
+                print(nudge_url as Any)
+            }
             let page_type = userInfo[NotificationsKey.page_type]
             
             if userInfo[NotificationsKey.glu_message_type] as? String == NotificationsKey.in_app {
-                print(page_type as Any)
+                
+                if(true == CustomerGlu.isDebugingEnabled){
+                    print(page_type as Any)
+                }
                 if page_type as? String == Constants.BOTTOM_SHEET_NOTIFICATION {
                     presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: Constants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: backgroundAlpha)
                 } else if page_type as? String == Constants.BOTTOM_DEFAULT_NOTIFICATION {
@@ -220,7 +226,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: backgroundAlpha)
                 }
             } else {
-                print("Local Notification")
+
                 return
             }
         } else {
@@ -267,7 +273,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     public func displayBackgroundNotification(remoteMessage: [String: AnyHashable]) {
         if CustomerGlu.sdk_disable! == true {
-            print(CustomerGlu.sdk_disable!)
+            CustomerGlu.getInstance.printlog(cglog: "", isException: false, methodName: "CustomerGlu-displayBackgroundNotification", posttoserver: false)
             return
         }
         let nudge_url = remoteMessage[NotificationsKey.nudge_url]
@@ -312,18 +318,17 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     // MARK: - API Calls Methods
     public func registerDevice(userdata: [String: AnyHashable], loadcampaigns: Bool = false, completion: @escaping (Bool, RegistrationModel?) -> Void) {
+        
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userdata["userId"] == nil {
-            if CustomerGlu.sdk_disable! {
-                print(CustomerGlu.sdk_disable!)
-            } else {
-                print("userId if required")
-            }
+            CustomerGlu.getInstance.printlog(cglog: "Fail to call registerDevice", isException: false, methodName: "CustomerGlu-registerDevice-1", posttoserver: true)
             completion(false, nil)
             return
         }
         var userData = userdata
         if let uuid = UIDevice.current.identifierForVendor?.uuidString {
-            print(uuid)
+            if(true == CustomerGlu.isDebugingEnabled){
+                print(uuid)
+            }
             userData[APIParameterKey.deviceId] = uuid
         }
         let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
@@ -367,7 +372,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                         completion(true, response)
                                         
                                     case .failure(let error):
-                                        print(error)
+                                        CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-registerDevice-2", posttoserver: true)
                                         completion(true, response)
                                 }
                             }
@@ -383,11 +388,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             }
                         }
                     } else {
-                        ApplicationManager.callCrashReport(methodName: "registerDevice")
+                        CustomerGlu.getInstance.printlog(cglog: "", isException: false, methodName: "CustomerGlu-registerDevice-3", posttoserver: true)
                     }
                 case .failure(let error):
-                    print(error)
-                    ApplicationManager.callCrashReport(stackTrace: error.localizedDescription, methodName: "registerDevice")
+                    CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-registerDevice-4", posttoserver: true)
                     completion(false, nil)
             }
         }
@@ -395,22 +399,21 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     public func updateProfile(userdata: [String: AnyHashable], completion: @escaping (Bool, RegistrationModel?) -> Void) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
-            if CustomerGlu.sdk_disable! {
-                print(CustomerGlu.sdk_disable!)
-            } else {
-                print("Please registered first")
-            }
+            CustomerGlu.getInstance.printlog(cglog: "Fail to call updateProfile", isException: false, methodName: "CustomerGlu-updateProfile-1", posttoserver: true)
             completion(false, nil)
             return
         }
         
         var userData = userdata
         if let uuid = UIDevice.current.identifierForVendor?.uuidString {
-            print(uuid)
+            if(true == CustomerGlu.isDebugingEnabled){
+                print(uuid)
+            }
             userData[APIParameterKey.deviceId] = uuid
         }
         let user_id = userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID)
         if user_id == nil {
+            CustomerGlu.getInstance.printlog(cglog: "user_id is nil", isException: false, methodName: "CustomerGlu-updateProfile-2", posttoserver: true)
             return
         }
         let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
@@ -454,7 +457,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                         completion(true, response)
                                         
                                     case .failure(let error):
-                                        print(error)
+                                        CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-updateProfile-3", posttoserver: true)
                                         completion(true, response)
                                 }
                             }
@@ -462,11 +465,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             completion(true, response)
                         }
                     } else {
-                        ApplicationManager.callCrashReport(methodName: "updateProfile")
+                        CustomerGlu.getInstance.printlog(cglog: "", isException: false, methodName: "CustomerGlu-updateProfile-4", posttoserver: true)
                     }
                 case .failure(let error):
-                    print(error)
-                    ApplicationManager.callCrashReport(stackTrace: error.localizedDescription, methodName: "updateProfile")
+
+                    CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-updateProfile-5", posttoserver: true)
                     completion(false, nil)
             }
         }
@@ -474,11 +477,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     private func getEntryPointData() {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
-            if CustomerGlu.sdk_disable! {
-                print(CustomerGlu.sdk_disable!)
-            } else {
-                print("Please registered first")
-            }
+            CustomerGlu.getInstance.printlog(cglog: "Fail to call getEntryPointData", isException: false, methodName: "CustomerGlu-getEntryPointData", posttoserver: true)
             return
         }
         
@@ -497,7 +496,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     postBannersCount()
                     NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("EntryPointLoaded").rawValue), object: nil, userInfo: nil)
                 case .failure(let error):
-                    print(error)
+                    CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-getEntryPointData", posttoserver: true)
             }
         }
     }
@@ -509,12 +508,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 let popupItems = try userDefaults.getObject(forKey: Constants.CustomerGluPopupDict, castTo: EntryPointPopUpModel.self)
                 popupDict = popupItems.popups!
             } catch {
-                print(error.localizedDescription)
+                CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-entryPointInfoAddDelete-1", posttoserver: true)
             }
             
             for dict in entryPoint {
                 if popupDict.contains(where: { $0._id == dict._id }) {
-                    print("1 exists in the array")
                     
                     if let index = popupDict.firstIndex(where: {$0._id == dict._id}) {
                         
@@ -542,7 +540,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     }
                     
                 } else {
-                    print("1 does not exists in the array")
                     var popupInfo = PopUpModel()
                     popupInfo._id = dict._id
                     popupInfo.showcount = dict.mobile.conditions.showCount
@@ -558,9 +555,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             
             for item in popupDict {
                 if entryPoint.contains(where: { $0._id == item._id }) {
-                    print("1 exists in the array")
+
                 } else {
-                    print("1 does not exists in the array")
                     // remove item from popupDict
                     if let index = popupDict.firstIndex(where: {$0._id == item._id}) {
                         popupDict.remove(at: index)
@@ -573,7 +569,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             do {
                 try userDefaults.setObject(entryPointPopUpModel, forKey: Constants.CustomerGluPopupDict)
             } catch {
-                print(error.localizedDescription)
+                CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-entryPointInfoAddDelete-2", posttoserver: true)
             }
         }
     }
@@ -584,11 +580,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     public func openWallet() {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
-            if CustomerGlu.sdk_disable! {
-                print(CustomerGlu.sdk_disable!)
-            } else {
-                print("Please registered first")
-            }
+            CustomerGlu.getInstance.printlog(cglog: "Fail to call openWallet", isException: false, methodName: "CustomerGlu-openWallet", posttoserver: true)
             return
         }
         
@@ -605,11 +597,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     public func loadAllCampaigns() {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
-            if CustomerGlu.sdk_disable! {
-                print(CustomerGlu.sdk_disable!)
-            } else {
-                print("Please registered first")
-            }
+            CustomerGlu.getInstance.printlog(cglog: "Fail to call loadAllCampaigns", isException: false, methodName: "CustomerGlu-loadAllCampaigns", posttoserver: true)
             return
         }
         
@@ -627,11 +615,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     public func loadCampaignById(campaign_id: String) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
-            if CustomerGlu.sdk_disable! {
-                print(CustomerGlu.sdk_disable!)
-            } else {
-                print("Please registered first")
-            }
+            CustomerGlu.getInstance.printlog(cglog: "Fail to call loadCampaignById", isException: false, methodName: "CustomerGlu-loadCampaignById", posttoserver: true)
             return
         }
         
@@ -650,11 +634,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     public func loadCampaignsByType(type: String) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
-            if CustomerGlu.sdk_disable! {
-                print(CustomerGlu.sdk_disable!)
-            } else {
-                print("Please registered first")
-            }
+            CustomerGlu.getInstance.printlog(cglog: "Fail to call loadCampaignsByType", isException: false, methodName: "CustomerGlu-loadCampaignsByType", posttoserver: true)
             return
         }
         
@@ -674,11 +654,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     public func loadCampaignByStatus(status: String) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
-            if CustomerGlu.sdk_disable! {
-                print(CustomerGlu.sdk_disable!)
-            } else {
-                print("Please registered first")
-            }
+            CustomerGlu.getInstance.printlog(cglog: "Fail to call loadCampaignByStatus", isException: false, methodName: "CustomerGlu-loadCampaignByStatus", posttoserver: true)
             return
         }
         
@@ -698,11 +674,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     public func loadCampaignByFilter(parameters: NSDictionary) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
-            if CustomerGlu.sdk_disable! {
-                print(CustomerGlu.sdk_disable!)
-            } else {
-                print("Please registered first")
-            }
+            CustomerGlu.getInstance.printlog(cglog: "Fail to call loadCampaignByFilter", isException: false, methodName: "CustomerGlu-loadCampaignByFilter", posttoserver: true)
             return
         }
         
@@ -721,19 +693,17 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     public func sendEventData(eventName: String, eventProperties: [String: Any]) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
-            if CustomerGlu.sdk_disable! {
-                print(CustomerGlu.sdk_disable!)
-            } else {
-                print("Please registered first")
-            }
+                CustomerGlu.getInstance.printlog(cglog: "Fail to call sendEventData", isException: false, methodName: "CustomerGlu-sendEventData-1", posttoserver: true)
             return
         }
         
         ApplicationManager.sendEventData(eventName: eventName, eventProperties: ["state": "1"]) { success, addCartModel in
             if success {
-                print(addCartModel as Any)
+                if(true == CustomerGlu.isDebugingEnabled){
+                    print(addCartModel as Any)
+                }
             } else {
-                print("error")
+                CustomerGlu.getInstance.printlog(cglog: "Fail to call sendEventData", isException: false, methodName: "CustomerGlu-sendEventData-2", posttoserver: true)
             }
         }
     }
@@ -787,11 +757,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     APIManager.entrypoints_config(queryParameters: eventInfo as NSDictionary) { result in
                         switch result {
                         case .success(let response):
-                            print(response)
-                                
+                            if(true == CustomerGlu.isDebugingEnabled){
+                                print(response)
+                            }
                         case .failure(let error):
-                            print(error)
-                            ApplicationManager.callCrashReport(methodName: "publishNudge")
+                            CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-setCurrentClassName", posttoserver: true)
                         }
                     }
                 }
@@ -933,7 +903,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         do {
             try userDefaults.setObject(entryPointPopUpModel, forKey: Constants.CustomerGluPopupDict)
         } catch {
-            print(error.localizedDescription)
+            CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-updateShowCount", posttoserver: true)
         }
     }
     
@@ -1037,10 +1007,21 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
         ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
             if success {
-                print("success")
+
             } else {
-                print("error")
+                CustomerGlu.getInstance.printlog(cglog: "Fail to call publishNudge", isException: false, methodName: "CustomerGlu-eventPublishNudge", posttoserver: true)
             }
+        }
+    }
+    
+//    (stackTrace: String = "", isException: Bool = false, methodName: String = "")
+    internal func printlog(cglog: String = "", isException: Bool = false, methodName: String = "",posttoserver:Bool = false) {
+        if(true == CustomerGlu.isDebugingEnabled){
+            print("CG-LOGS: "+methodName+" : "+cglog)
+        }
+        
+        if(true == posttoserver){
+            ApplicationManager.callCrashReport(cglog: cglog, isException: isException, methodName: methodName)
         }
     }
 }

@@ -16,7 +16,7 @@ class LoadAllCampaignsViewModel {
                 completion(true, registrationModel)
             } else {
                 completion(false, nil)
-                print("error")
+                CustomerGlu.getInstance.printlog(cglog: "UpdateProfile API fail", isException: false, methodName: "LoadAllCampaignsViewModel-updateProfile", posttoserver: true)
             }
         }
     }

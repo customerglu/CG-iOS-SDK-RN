@@ -79,7 +79,9 @@ class APIManager {
         let strUrl = "https://" + baseurl
         url = URL(string: strUrl + methodandpath.path)!
         urlRequest = URLRequest(url: url)
-        print(urlRequest!)
+        if(true == CustomerGlu.isDebugingEnabled){
+            print(urlRequest!)
+        }
         
         // HTTP Method
         urlRequest.httpMethod = methodandpath.method//method.rawValue
@@ -95,7 +97,10 @@ class APIManager {
         }
         
         if parametersDict!.count > 0 { // Check Parameters & Move Accordingly
-            print(parametersDict as Any)
+
+            if(true == CustomerGlu.isDebugingEnabled){
+                print(parametersDict as Any)
+            }
             if methodandpath.method == "GET" {
                 var urlString = ""
                 for (i, (keys, values)) in parametersDict!.enumerated() {
@@ -134,7 +139,10 @@ class APIManager {
                 let cleanedJSON = cleanJSON(json: JSON!, isReturn: true)
                 dictToObject(dict: cleanedJSON, type: T.self, completion: completion)
             } catch let error as NSError {
-                print(error)
+                if(true == CustomerGlu.isDebugingEnabled){
+                    print(error)
+                }
+
             }
         }
         task.resume()
