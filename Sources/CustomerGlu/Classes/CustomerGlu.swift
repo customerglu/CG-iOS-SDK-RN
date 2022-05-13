@@ -736,6 +736,17 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     internal func showFloatingButtons() {
         CustomerGlu.getInstance.setCurrentClassName(className: CustomerGlu.getInstance.activescreenname)
     }
+    
+    internal func validateURL(url:URL)->URL {
+        return url
+        let host = url.host
+        if(host != nil && host!.count > 0){
+            if (host!.hasSuffix("end-ui.customerglu.com")){
+                return url
+            }
+        }
+        return URL(string: "https://www.google.com/")!
+    }
 
     public func setCurrentClassName(className: String) {
         

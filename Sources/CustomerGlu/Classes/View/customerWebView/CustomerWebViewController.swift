@@ -161,7 +161,8 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     func loadwebView(url: String, x: CGFloat, y: CGFloat) {
         webView.navigationDelegate = self
         if url != "" || !url.isEmpty {
-            webView.load(URLRequest(url: URL(string: url)!))
+//            webView.load(URLRequest(url: URL(string: url)!))
+            webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: url)!)))
         } else {
             self.closePage(animated: false)
         }

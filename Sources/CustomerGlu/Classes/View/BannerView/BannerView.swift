@@ -235,7 +235,8 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 webView.isUserInteractionEnabled = false
                 webView.tag = i
                 let urlStr = dict.url
-                webView.load(URLRequest(url: URL(string: urlStr!)!))
+//                webView.load(URLRequest(url: URL(string: urlStr!)!))
+                webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: urlStr!)!)))
                 containerView.addSubview(webView)
                 self.imgScrollView.addSubview(containerView)
                 let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
