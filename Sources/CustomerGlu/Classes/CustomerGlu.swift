@@ -55,6 +55,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     private override init() {
         super.init()
         
+        migrateUserDefaultKey()
+        
         if UserDefaults.standard.object(forKey: Constants.CUSTOMERGLU_TOKEN) != nil {
             if CustomerGlu.isEntryPointEnabled {
                 getEntryPointData()
@@ -303,7 +305,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         entryPointPopUpModel = EntryPointPopUpModel()
         self.popupDisplayScreens.removeAll()
         
-        
         userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_TOKEN)
         userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_USERID)
         userDefaults.removeObject(forKey: Constants.CustomerGluCrash)
@@ -345,8 +346,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             switch result {
                 case .success(let response):
                     if response.success! {
-                        self.userDefaults.set(response.data?.token, forKey: Constants.CUSTOMERGLU_TOKEN)
-                        self.userDefaults.set(response.data?.user?.userId, forKey: Constants.CUSTOMERGLU_USERID)
+                        self.encryptUserDefaultKey(str: response.data?.token ?? "", userdefaultKey: Constants.CUSTOMERGLU_TOKEN)
+                        self.encryptUserDefaultKey(str: response.data?.user?.userId ?? "", userdefaultKey: Constants.CUSTOMERGLU_USERID)
                         self.userDefaults.synchronize()
                         if CustomerGlu.isEntryPointEnabled {
                             APIManager.getEntryPointdata(queryParameters: [:]) { result in
@@ -409,8 +410,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             print(uuid)
             userData[APIParameterKey.deviceId] = uuid
         }
+<<<<<<< Updated upstream
         let user_id = userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID)
         if user_id == nil {
+=======
+        let user_id = decryptUserDefaultKey(userdefaultKey: Constants.CUSTOMERGLU_USERID)
+        if user_id.count < 0 {
+            CustomerGlu.getInstance.printlog(cglog: "user_id is nil", isException: false, methodName: "CustomerGlu-updateProfile-2", posttoserver: true)
+>>>>>>> Stashed changes
             return
         }
         let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
@@ -433,8 +440,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             switch result {
                 case .success(let response):
                     if response.success! {
-                        self.userDefaults.set(response.data?.token, forKey: Constants.CUSTOMERGLU_TOKEN)
-                        self.userDefaults.set(response.data?.user?.userId, forKey: Constants.CUSTOMERGLU_USERID)
+                        self.encryptUserDefaultKey(str: response.data?.token ?? "", userdefaultKey: Constants.CUSTOMERGLU_TOKEN)
+                        self.encryptUserDefaultKey(str: response.data?.user?.userId ?? "", userdefaultKey: Constants.CUSTOMERGLU_USERID)
                         self.userDefaults.synchronize()
                         
                         if CustomerGlu.isEntryPointEnabled {
@@ -505,8 +512,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     private func entryPointInfoAddDelete(entryPoint: [CGData]) {
                 
         if entryPoint.count > 0 {
+            
+            let jsonString = decryptUserDefaultKey(userdefaultKey: Constants.CustomerGluPopupDict)
+            let jsonData = Data(jsonString.utf8)
+            let decoder = JSONDecoder()
             do {
-                let popupItems = try userDefaults.getObject(forKey: Constants.CustomerGluPopupDict, castTo: EntryPointPopUpModel.self)
+                let popupItems = try decoder.decode(EntryPointPopUpModel.self, from: jsonData)
                 popupDict = popupItems.popups!
             } catch {
                 print(error.localizedDescription)
@@ -570,11 +581,17 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             
             entryPointPopUpModel.popups = popupDict
             
+<<<<<<< Updated upstream
             do {
                 try userDefaults.setObject(entryPointPopUpModel, forKey: Constants.CustomerGluPopupDict)
             } catch {
                 print(error.localizedDescription)
             }
+=======
+            let data = try! JSONEncoder().encode(entryPointPopUpModel)
+            let jsonString2 = String(data: data, encoding: .utf8)!
+            encryptUserDefaultKey(str: jsonString2, userdefaultKey: Constants.CustomerGluPopupDict)
+>>>>>>> Stashed changes
         }
     }
     
@@ -930,11 +947,17 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
         entryPointPopUpModel.popups = popupDict
         
+<<<<<<< Updated upstream
         do {
             try userDefaults.setObject(entryPointPopUpModel, forKey: Constants.CustomerGluPopupDict)
         } catch {
             print(error.localizedDescription)
         }
+=======
+        let data = try! JSONEncoder().encode(entryPointPopUpModel)
+        let jsonString2 = String(data: data, encoding: .utf8)!
+        encryptUserDefaultKey(str: jsonString2, userdefaultKey: Constants.CustomerGluPopupDict)
+>>>>>>> Stashed changes
     }
     
     @objc private  func showPopupAfterTime(sender: Timer) {
@@ -1043,4 +1066,53 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
         }
     }
+<<<<<<< Updated upstream
+=======
+    
+//    (stackTrace: String = "", isException: Bool = false, methodName: String = "")
+    internal func printlog(cglog: String = "", isException: Bool = false, methodName: String = "",posttoserver:Bool = false) {
+        if(true == CustomerGlu.isDebugingEnabled){
+            print("CG-LOGS: "+methodName+" : "+cglog)
+        }
+        
+        if(true == posttoserver){
+            ApplicationManager.callCrashReport(cglog: cglog, isException: isException, methodName: methodName)
+        }
+    }
+    
+    
+    private func migrateUserDefaultKey() {
+        if userDefaults.object(forKey: Constants.CUSTOMERGLU_TOKEN_OLD) != nil {
+            encryptUserDefaultKey(str: UserDefaults.standard.object(forKey: Constants.CUSTOMERGLU_TOKEN_OLD) as! String, userdefaultKey: Constants.CUSTOMERGLU_TOKEN)
+            userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_TOKEN_OLD)
+        }
+        
+        if userDefaults.object(forKey: Constants.CUSTOMERGLU_USERID_OLD) != nil {
+            encryptUserDefaultKey(str: UserDefaults.standard.object(forKey: Constants.CUSTOMERGLU_USERID_OLD) as! String, userdefaultKey: Constants.CUSTOMERGLU_USERID)
+            userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_USERID_OLD)
+        }
+        
+        if userDefaults.object(forKey: Constants.CustomerGluCrash_OLD) != nil {
+            encryptUserDefaultKey(str: UserDefaults.standard.object(forKey: Constants.CustomerGluCrash_OLD) as! String, userdefaultKey: Constants.CustomerGluCrash)
+            userDefaults.removeObject(forKey: Constants.CustomerGluCrash_OLD)
+        }
+        
+        if userDefaults.object(forKey: Constants.CustomerGluPopupDict_OLD) != nil {
+            encryptUserDefaultKey(str: UserDefaults.standard.object(forKey: Constants.CustomerGluPopupDict_OLD) as! String, userdefaultKey: Constants.CustomerGluPopupDict)
+            userDefaults.removeObject(forKey: Constants.CustomerGluPopupDict_OLD)
+        }
+    }
+    
+    
+    private func encryptUserDefaultKey(str: String, userdefaultKey: String) {
+        self.userDefaults.set(EncryptDecrypt.shared.encryptText(str: str), forKey: userdefaultKey)
+    }
+    
+    internal func decryptUserDefaultKey(userdefaultKey: String) -> String {
+        if UserDefaults.standard.object(forKey: userdefaultKey) != nil {
+            return EncryptDecrypt.shared.decryptText(str: UserDefaults.standard.string(forKey: userdefaultKey)!)
+        }
+        return ""
+    }
+>>>>>>> Stashed changes
 }

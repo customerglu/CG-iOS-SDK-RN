@@ -68,7 +68,7 @@ class ApplicationManager {
         }
         let event_id = UUID().uuidString
         let timestamp = fetchTimeStamp(dateFormat: Constants.DATE_FORMAT)
-        let user_id = UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_USERID)
+        let user_id = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: Constants.CUSTOMERGLU_USERID)
         
         let eventData = [
             APIParameterKey.event_id: event_id,
@@ -90,9 +90,16 @@ class ApplicationManager {
         }
     }
     
+<<<<<<< Updated upstream
     public static func callCrashReport(stackTrace: String = "", isException: Bool = false, methodName: String = "") {
         let user_id = UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_USERID)
         if user_id == nil && user_id?.count ?? 0 < 0 {
+=======
+    public static func callCrashReport(cglog: String = "", isException: Bool = false, methodName: String = "") {
+        let user_id = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: Constants.CUSTOMERGLU_USERID)
+
+        if user_id.count < 0 {
+>>>>>>> Stashed changes
             return
         }
         var params = OtherUtils.shared.getCrashInfo()
@@ -135,7 +142,7 @@ class ApplicationManager {
     
     public static func doValidateToken() -> Bool {
         if UserDefaults.standard.object(forKey: Constants.CUSTOMERGLU_TOKEN) != nil {
-            let arr = JWTDecode.shared.decode(jwtToken: UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_TOKEN) ?? "")
+            let arr = JWTDecode.shared.decode(jwtToken: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: Constants.CUSTOMERGLU_TOKEN))
             let expTime = Date(timeIntervalSince1970: (arr["exp"] as? Double)!)
             let currentDateTime = Date()
             if currentDateTime < expTime {
