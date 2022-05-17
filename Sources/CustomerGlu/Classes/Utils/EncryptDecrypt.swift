@@ -1,10 +1,10 @@
 //
-//  EncryptDecrypt.swift
-//  BregInventoryCycleCount
+//  File.swift
 //
-//  Created by kapil on 17/12/21.
-//  Copyright © 2021 Apple. All rights reserved.
 //
+//  Created by kapil on 17/05/22.
+//
+
 
 import Foundation
 import CommonCrypto
@@ -160,7 +160,6 @@ extension AES: Cryptable {
         guard let decryptedString = String(data: decryptedData, encoding: .utf8) else {
             throw Error.dataToStringFailed
         }
-
         return decryptedString
     }
 }
