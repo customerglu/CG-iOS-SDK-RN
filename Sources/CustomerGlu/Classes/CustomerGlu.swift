@@ -63,14 +63,21 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
         
         CustomerGluCrash.add(delegate: self)
-        do {
-            // retrieving a value for a key
-            if let data = userDefaults.data(forKey: Constants.CustomerGluCrash),
-               let crashItems = try NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as? Dictionary<String, Any> {
-                ApplicationManager.callCrashReport(cglog: (crashItems["callStack"] as? String)!, isException: true, methodName: "CustomerGluCrash")
+        
+        if userDefaults.object(forKey: Constants.CustomerGluCrash) != nil {
+            let jsonString = decryptUserDefaultKey(userdefaultKey: Constants.CustomerGluCrash)
+            let jsonData = Data(jsonString.utf8)
+            do {
+                let decoded = try JSONSerialization.jsonObject(with: jsonData, options: [])
+
+                // you can now cast it with the right type
+                if let crashItems = decoded as? [String: Any] {
+                    // use dictFromJSON
+                    ApplicationManager.callCrashReport(cglog: (crashItems["callStack"] as? String)!, isException: true, methodName: "CustomerGluCrash")
+                }
+            } catch {
+                CustomerGlu.getInstance.printlog(cglog: "private override init()", isException: false, methodName: "CustomerGlu-init", posttoserver: false)
             }
-        } catch {
-            CustomerGlu.getInstance.printlog(cglog: "private override init()", isException: false, methodName: "CustomerGlu-init", posttoserver: false)
         }
     }
     
@@ -92,13 +99,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             "reason": model.reason!,
             "appinfo": model.appinfo!,
             "callStack": model.callStack!] as [String: Any]
+        
         do {
-            // setting a value for a key
-            let encodedData = try NSKeyedArchiver.archivedData(withRootObject: dict, requiringSecureCoding: true)
-            userDefaults.set(encodedData, forKey: Constants.CustomerGluCrash)
-            userDefaults.synchronize()
+            let jsonData = try JSONSerialization.data(withJSONObject: dict, options: .prettyPrinted)
+            // here "jsonData" is the dictionary encoded in JSON data
+            let jsonString2 = String(data: jsonData, encoding: .utf8)!
+            encryptUserDefaultKey(str: jsonString2, userdefaultKey: Constants.CustomerGluCrash)
         } catch {
-            CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-customerGluDidCatchCrash-2", posttoserver: false)
+            print(error.localizedDescription)
         }
     }
     
@@ -1049,7 +1057,22 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
         
         if userDefaults.object(forKey: Constants.CustomerGluCrash_OLD) != nil {
-            encryptUserDefaultKey(str: UserDefaults.standard.object(forKey: Constants.CustomerGluCrash_OLD) as! String, userdefaultKey: Constants.CustomerGluCrash)
+            do {
+                // retrieving a value for a key
+                if let data = userDefaults.data(forKey: Constants.CustomerGluCrash_OLD),
+                   let crashItems = try NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as? Dictionary<String, Any> {
+                    do {
+                        let jsonData = try JSONSerialization.data(withJSONObject: crashItems, options: .prettyPrinted)
+                        // here "jsonData" is the dictionary encoded in JSON data
+                        let jsonString2 = String(data: jsonData, encoding: .utf8)!
+                        encryptUserDefaultKey(str: jsonString2, userdefaultKey: Constants.CustomerGluCrash)
+                    } catch {
+                        print(error.localizedDescription)
+                    }
+                }
+            } catch {
+                print(error)
+            }
             userDefaults.removeObject(forKey: Constants.CustomerGluCrash_OLD)
         }
         
