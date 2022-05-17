@@ -1054,7 +1054,17 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
         
         if userDefaults.object(forKey: Constants.CustomerGluPopupDict_OLD) != nil {
-            encryptUserDefaultKey(str: UserDefaults.standard.object(forKey: Constants.CustomerGluPopupDict_OLD) as! String, userdefaultKey: Constants.CustomerGluPopupDict)
+            do {
+                let popupItems = try userDefaults.getObject(forKey: Constants.CustomerGluPopupDict_OLD, castTo: EntryPointPopUpModel.self)
+                popupDict = popupItems.popups!
+            } catch {
+                print(error.localizedDescription)
+            }
+            entryPointPopUpModel.popups = popupDict
+
+            let data = try! JSONEncoder().encode(entryPointPopUpModel)
+            let jsonString2 = String(data: data, encoding: .utf8)!
+            encryptUserDefaultKey(str: jsonString2, userdefaultKey: Constants.CustomerGluPopupDict)
             userDefaults.removeObject(forKey: Constants.CustomerGluPopupDict_OLD)
         }
     }
