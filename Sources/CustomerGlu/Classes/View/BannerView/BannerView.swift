@@ -37,14 +37,13 @@ public class BannerView: UIView, UIScrollViewDelegate {
     }
     
     var commonBannerId: String {
-
-            get {
-                return self.bannerId ?? ""
-            }
-            set(newWeight) {
-                bannerId = newWeight
-            }
+        get {
+            return self.bannerId ?? ""
         }
+        set(newWeight) {
+            bannerId = newWeight
+        }
+    }
     
     public init(frame: CGRect, bannerId: String) {
         //CODE
@@ -70,7 +69,6 @@ public class BannerView: UIView, UIScrollViewDelegate {
         code = false
     }
     
-    
     public override func layoutSubviews() {
         if imgScrollView != nil {
             imgScrollView.removeFromSuperview()
@@ -95,9 +93,10 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 let mobile = bannerViews[0].mobile!
                 arrContent = [CGContent]()
                 condition = mobile.conditions
-                
+                                   
                 if mobile.content.count != 0 {
                     for content in mobile.content {
+                        arrContent.append(content)
                         var actionType = ""
                         if content.campaignId.count == 0 {
                             actionType = "WALLET"
@@ -110,11 +109,8 @@ public class BannerView: UIView, UIScrollViewDelegate {
                         eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: content._id, actionName: "LOADED", actionType: actionType, openType: content.openLayout, campaignId: content.campaignId)
                     }
                     loadedapicalled = true
-                    
                 }
-                
             }
-
         }
     }
     
