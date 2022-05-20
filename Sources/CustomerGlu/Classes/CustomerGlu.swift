@@ -50,6 +50,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     internal var popupDisplayScreens = [String]()
     private var configScreens = [String]()
     private var popuptimer : Timer?
+    public static var whiteListedDomains = ["end-ui.customerglu.com"]
     
     private override init() {
         super.init()
@@ -747,16 +748,22 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     internal func showFloatingButtons() {
         CustomerGlu.getInstance.setCurrentClassName(className: CustomerGlu.getInstance.activescreenname)
     }
-    
-    internal func validateURL(url:URL)->URL {
-        return url
+
+    internal func validateURL(url: URL) -> URL {
         let host = url.host
         if(host != nil && host!.count > 0){
-            if (host!.hasSuffix("end-ui.customerglu.com")){
-                return url
+            for str_url in CustomerGlu.whiteListedDomains {
+                if (host!.hasSuffix(str_url)){
+                    return url
+                }
             }
         }
         return URL(string: "https://www.google.com/")!
+    }
+    
+    public func configureWhiteListedDomains(domains: [String]){
+        CustomerGlu.whiteListedDomains = domains
+        CustomerGlu.whiteListedDomains.append("end-ui.customerglu.com")
     }
 
     public func setCurrentClassName(className: String) {
