@@ -50,7 +50,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     internal var popupDisplayScreens = [String]()
     private var configScreens = [String]()
     private var popuptimer : Timer?
-    public static var whiteListedDomains = ["end-ui.customerglu.com"]
+    public static var whiteListedDomains = [Constants.default_whitelist_doamin]
     
     private override init() {
         super.init()
@@ -758,12 +758,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 }
             }
         }
-        return URL(string: "https://www.google.com/")!
+        return URL(string: Constants.default_redirect_url)!
     }
     
     public func configureWhiteListedDomains(domains: [String]){
         CustomerGlu.whiteListedDomains = domains
-        CustomerGlu.whiteListedDomains.append("end-ui.customerglu.com")
+        CustomerGlu.whiteListedDomains.append(Constants.default_whitelist_doamin)
     }
 
     public func setCurrentClassName(className: String) {
