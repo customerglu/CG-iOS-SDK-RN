@@ -106,7 +106,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
                             actionType = "CAMPAIGN"
                         }
                         
-                        eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: content._id, actionName: "LOADED", actionType: actionType, openType: content.openLayout, campaignId: content.campaignId)
+                        eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: content._id, actionName: "LOADED", actionType: actionType, pageType: content.openLayout, campaignId: content.campaignId)
                     }
                     loadedapicalled = true
                 }
@@ -305,11 +305,11 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 actionType = "CAMPAIGN"
             }
             
-            eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: dict._id, actionName: "OPEN", actionType: actionType, openType: dict.openLayout, campaignId: dict.campaignId)
+            eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: dict._id, actionName: "OPEN", actionType: actionType, pageType: dict.openLayout, campaignId: dict.campaignId)
         }
     }
     
-    private func eventPublishNudge(pageName: String, nudgeId: String, actionName: String, actionType: String, openType: String, campaignId: String) {
+    private func eventPublishNudge(pageName: String, nudgeId: String, actionName: String, actionType: String, pageType: String, campaignId: String) {
         var eventInfo = [String: AnyHashable]()
         eventInfo[APIParameterKey.nudgeType] = "BANNER"
         
@@ -317,14 +317,24 @@ public class BannerView: UIView, UIScrollViewDelegate {
         eventInfo[APIParameterKey.nudgeId] = nudgeId
         eventInfo[APIParameterKey.actionName] = actionName
         eventInfo[APIParameterKey.actionType] = actionType
-        eventInfo[APIParameterKey.openType] = openType
+        eventInfo[APIParameterKey.pageType] = pageType
         eventInfo[APIParameterKey.eventId] = UUID().uuidString
-
-        if(campaignId.count > 0 && actionType == "CAMPAIGN"){
-            eventInfo[APIParameterKey.actionPayload] = [APIParameterKey.deviceType:"iOS",APIParameterKey.campaignId:campaignId]
-        }else{
-            eventInfo[APIParameterKey.actionPayload] = [APIParameterKey.deviceType:"iOS"]
+        
+        eventInfo[APIParameterKey.deviceType] = "iOS"
+        if actionType == "CAMPAIGN" {
+            if campaignId.count > 0 {
+                if campaignId.contains("http://") || campaignId.contains("https://") {
+                    eventInfo[APIParameterKey.campaignId] = "CAMPAIGNID_NOTPRESENT"
+                } else {
+                    eventInfo[APIParameterKey.campaignId] = campaignId
+                }
+            } else {
+                eventInfo[APIParameterKey.campaignId] = "CAMPAIGNID_NOTPRESENT"
+            }
         }
+
+        eventInfo[APIParameterKey.optionalPayload] = ["": ""] as? AnyHashable
+        
         ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
             if success {
                 

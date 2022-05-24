@@ -13,6 +13,7 @@ class ApplicationManager {
     public static var analyticsUrl = "analytics.customerglu.com/"
     public static var accessToken: String?
     public static var operationQueue = OperationQueue()
+    public static var appSessionId = UUID().uuidString
     
     public static func openWalletApi(completion: @escaping (Bool, CampaignsModel?) -> Void) {
         if CustomerGlu.sdk_disable! == true {
@@ -145,8 +146,11 @@ class ApplicationManager {
      
         var eventInfo = eventNudge
         eventInfo[APIParameterKey.timestamp] = fetchTimeStamp(dateFormat: Constants.Analitics_DATE_FORMAT)
-        eventInfo[APIParameterKey.actionStore] = "NUDGE"
         
+        eventInfo[APIParameterKey.appSessionId] = ApplicationManager.appSessionId
+        eventInfo[APIParameterKey.userAgent] = "APP"
+        eventInfo[APIParameterKey.eventName] = "NUDGE_INTERACTION"
+                
         APIManager.publishNudge(queryParameters: eventInfo as NSDictionary) { result in
             switch result {
             case .success(let response):

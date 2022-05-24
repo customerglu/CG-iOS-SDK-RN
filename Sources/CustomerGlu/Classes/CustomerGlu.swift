@@ -310,20 +310,18 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     public func clearGluData() {
-        
         dismissFloatingButtons()
-        
         self.arrFloatingButton.removeAll()
         popupDict.removeAll()
         CustomerGlu.entryPointdata.removeAll()
         entryPointPopUpModel = EntryPointPopUpModel()
         self.popupDisplayScreens.removeAll()
         
-        
         userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_TOKEN)
         userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_USERID)
         userDefaults.removeObject(forKey: Constants.CustomerGluCrash)
         userDefaults.removeObject(forKey: Constants.CustomerGluPopupDict)
+        ApplicationManager.appSessionId = UUID().uuidString
     }
     
     // MARK: - API Calls Methods
@@ -973,7 +971,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             actionType = "CAMPAIGN"
         }
         
-        eventPublishNudge(pageName: className, nudgeId: data.mobile.content[0]._id, actionName: actionName, actionType: actionType, openType: data.mobile.content[0].openLayout, campaignId: data.mobile.content[0].campaignId,nudgeType: data.mobile.container.type)
+        eventPublishNudge(pageName: className, nudgeId: data.mobile.content[0]._id, actionName: actionName, actionType: actionType, pageType: data.mobile.content[0].openLayout, campaignId: data.mobile.content[0].campaignId,nudgeType: data.mobile.container.type)
     }
   
     internal func openCampaignById(campaign_id: String, page_type: String, backgroundAlpha: Double) {
@@ -1014,7 +1012,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    private func eventPublishNudge(pageName: String, nudgeId: String, actionName: String, actionType: String, openType: String, campaignId: String, nudgeType:String ) {
+    private func eventPublishNudge(pageName: String, nudgeId: String, actionName: String, actionType: String, pageType: String, campaignId: String, nudgeType:String ) {
         var eventInfo = [String: AnyHashable]()
         eventInfo[APIParameterKey.nudgeType] = nudgeType
 
@@ -1022,16 +1020,24 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         eventInfo[APIParameterKey.nudgeId] = nudgeId
         eventInfo[APIParameterKey.actionName] = actionName
         eventInfo[APIParameterKey.actionType] = actionType
-        eventInfo[APIParameterKey.openType] = openType
+        eventInfo[APIParameterKey.pageType] = pageType
         eventInfo[APIParameterKey.eventId] = UUID().uuidString
         
-        if(campaignId.count > 0 && actionType == "CAMPAIGN"){
-            eventInfo[APIParameterKey.actionPayload] = [APIParameterKey.deviceType:"iOS",APIParameterKey.campaignId:campaignId]
-        }else{
-            eventInfo[APIParameterKey.actionPayload] = [APIParameterKey.deviceType:"iOS"]
+        eventInfo[APIParameterKey.deviceType] = "iOS"
+        if actionType == "CAMPAIGN" {
+            if campaignId.count > 0 {
+                if campaignId.contains("http://") || campaignId.contains("https://") {
+                    eventInfo[APIParameterKey.campaignId] = "CAMPAIGNID_NOTPRESENT"
+                } else {
+                    eventInfo[APIParameterKey.campaignId] = campaignId
+                }
+            } else {
+                eventInfo[APIParameterKey.campaignId] = "CAMPAIGNID_NOTPRESENT"
+            }
         }
 
-        
+        eventInfo[APIParameterKey.optionalPayload] = ["": ""] as? AnyHashable
+
         ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
             if success {
 
