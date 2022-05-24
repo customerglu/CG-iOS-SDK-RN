@@ -172,9 +172,17 @@ class EncryptDecrypt {
     
     func encryptText(str: String) -> String {
         do {
-            let aes = try AES(keyString: "FiugQTgPNwCWUY,VhfmM4cKXTLVFvHFe")
-            let encryptedData: Data = try aes.encrypt(str)
-            return encryptedData.base64EncodedString()
+            if let encrypted_key = KeychainService.retrive(for: Constants.customerglu_encryptedKey) {
+                let aes = try AES(keyString: encrypted_key)
+                let encryptedData: Data = try aes.encrypt(str)
+                return encryptedData.base64EncodedString()
+            } else {
+                let randomStr = randomString(length: 32)
+                KeychainService.save(randomStr, for: Constants.customerglu_encryptedKey)
+                let aes = try AES(keyString: randomStr)
+                let encryptedData: Data = try aes.encrypt(str)
+                return encryptedData.base64EncodedString()
+            }
         } catch {
             print("Something went wrong: \(error)")
         }
@@ -183,12 +191,46 @@ class EncryptDecrypt {
     
     func decryptText(str: String) -> String {
         do {
-            let aes = try AES(keyString: "FiugQTgPNwCWUY,VhfmM4cKXTLVFvHFe")
-            let decryptedData: String = try aes.decrypt(str)
-            return decryptedData
+            if let encrypted_key = KeychainService.retrive(for: Constants.customerglu_encryptedKey) {
+                let aes = try AES(keyString: encrypted_key)
+                let decryptedData: String = try aes.decrypt(str)
+                return decryptedData
+            }
         } catch {
             print("Something went wrong: \(error)")
         }
         return ""
+    }
+    
+    func randomString(length: Int) -> String {
+        let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        return String((0..<length).map{ _ in letters.randomElement()! })
+    }
+}
+
+class KeychainService {
+    
+    class func save(_ string: String, for key: String) {
+        let password_str = string.data(using: String.Encoding.utf8)!
+        let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
+                                    kSecAttrAccount as String: key,
+                                    kSecValueData as String: password_str]
+        let status = SecItemAdd(query as CFDictionary, nil)
+        guard status == errSecSuccess else {
+            return print("save error: \(errSecSuccess)")
+        }
+    }
+    
+    class func retrive(for key: String) -> String? {
+        let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
+                                    kSecAttrAccount as String: key,
+                                    kSecMatchLimit as String: kSecMatchLimitOne,
+                                    kSecReturnData as String: kCFBooleanTrue!]
+        
+        var retrivedData: AnyObject? = nil
+        let _ = SecItemCopyMatching(query as CFDictionary, &retrivedData)
+        
+        guard let data = retrivedData as? Data else {return nil}
+        return String(data: data, encoding: String.Encoding.utf8)
     }
 }

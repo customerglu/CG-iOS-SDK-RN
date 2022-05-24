@@ -29,6 +29,8 @@ struct Constants {
     
     static let default_whitelist_doamin = "end-ui.customerglu.com"
     static let default_redirect_url = "https://www.google.com/"
+    static let customerglu_encryptedKey = "customerglu_encryptedKey"
+
 }
 
 // Default APIParameterKey
