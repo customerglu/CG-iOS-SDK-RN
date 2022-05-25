@@ -98,6 +98,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 
                 if mobile.content.count != 0 {
                     for content in mobile.content {
+                        arrContent.append(content)
                         var actionType = ""
                         if content.campaignId.count == 0 {
                             actionType = "WALLET"

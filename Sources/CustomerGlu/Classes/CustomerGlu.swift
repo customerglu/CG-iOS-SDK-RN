@@ -719,7 +719,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func sendEventData(eventName: String, eventProperties: [String: Any]) {
+    public func sendEventData(eventName: String, eventProperties: [String: Any]?) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
             if CustomerGlu.sdk_disable! {
                 print(CustomerGlu.sdk_disable!)
@@ -729,7 +729,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             return
         }
         
-        ApplicationManager.sendEventData(eventName: eventName, eventProperties: ["state": "1"]) { success, addCartModel in
+        ApplicationManager.sendEventData(eventName: eventName, eventProperties: eventProperties) { success, addCartModel in
             if success {
                 print(addCartModel as Any)
             } else {

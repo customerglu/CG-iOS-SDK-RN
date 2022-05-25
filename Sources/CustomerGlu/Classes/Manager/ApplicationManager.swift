@@ -61,7 +61,7 @@ class ApplicationManager {
         }
     }
     
-    public static func sendEventData(eventName: String, eventProperties: [String: Any], completion: @escaping (Bool, AddCartModel?) -> Void) {
+    public static func sendEventData(eventName: String, eventProperties: [String: Any]?, completion: @escaping (Bool, AddCartModel?) -> Void) {
         if CustomerGlu.sdk_disable! == true {
             print(CustomerGlu.sdk_disable!)
             return
@@ -75,7 +75,7 @@ class ApplicationManager {
             APIParameterKey.event_name: eventName,
             APIParameterKey.user_id: user_id ?? "",
             APIParameterKey.timestamp: timestamp,
-            APIParameterKey.event_properties: eventProperties] as [String: Any]
+            APIParameterKey.event_properties: eventProperties ?? [String: Any]()] as [String: Any]
         
         APIManager.addToCart(queryParameters: eventData as NSDictionary) { result in
             switch result {
