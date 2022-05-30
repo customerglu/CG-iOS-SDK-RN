@@ -52,7 +52,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     private var popuptimer : Timer?
     public static var whiteListedDomains = [Constants.default_whitelist_doamin]
     public static var doamincode = 404
-    public static var textMsg = "error message"
+    public static var textMsg = "Requested-page-is-not-valid"
     
     private override init() {
         super.init()
@@ -750,7 +750,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
 
     internal func validateURL(url: URL) -> URL {
-        Constants.default_redirect_url = ("\(Constants.default_redirect_url)code=\(String(CustomerGlu.doamincode))&message=\(CustomerGlu.textMsg)")
         // return url;
         let host = url.host
         if(host != nil && host!.count > 0){
@@ -760,7 +759,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 }
             }
         }
-        return URL(string: Constants.default_redirect_url)!
+
+        return URL(string: ("\(Constants.default_redirect_url)code=\(String(CustomerGlu.doamincode))&message=\(CustomerGlu.textMsg)"))!
     }
     
     public func configureWhiteListedDomains(domains: [String]){
