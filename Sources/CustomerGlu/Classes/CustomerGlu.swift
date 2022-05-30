@@ -748,6 +748,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
 
     internal func validateURL(url: URL) -> URL {
+        return url;
         let host = url.host
         if(host != nil && host!.count > 0){
             for str_url in CustomerGlu.whiteListedDomains {
@@ -801,17 +802,17 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 && (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
                     if  !(floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className))! {
                         floatBtn.hideFloatingButton(ishidden: false)
-                        callEventPublishNudge(data: floatBtn.floatInfo!, className: className, actionName: "LOADED")
+                        callEventPublishNudge(data: floatBtn.floatInfo!, className: className, actionType: "LOADED")
                     }
                 } else if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 {
                     if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.contains(className))! {
                         floatBtn.hideFloatingButton(ishidden: false)
-                        callEventPublishNudge(data: floatBtn.floatInfo!, className: className, actionName: "LOADED")
+                        callEventPublishNudge(data: floatBtn.floatInfo!, className: className, actionType: "LOADED")
                     }
                 } else if (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
                     if !(floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className))! {
                         floatBtn.hideFloatingButton(ishidden: false)
-                        callEventPublishNudge(data: floatBtn.floatInfo!, className: className, actionName: "LOADED")
+                        callEventPublishNudge(data: floatBtn.floatInfo!, className: className, actionType: "LOADED")
                     }
                 }
             }
@@ -956,22 +957,22 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             
             self.popupDisplayScreens.append(CustomerGlu.getInstance.activescreenname)
             updateShowCount(showCount: showCount, eventData: finalPopUp)
-            callEventPublishNudge(data: finalPopUp, className: CustomerGlu.getInstance.activescreenname, actionName: "OPEN")
+            callEventPublishNudge(data: finalPopUp, className: CustomerGlu.getInstance.activescreenname, actionType: "OPEN")
             
         }
     }
     
-    internal func callEventPublishNudge(data: CGData, className: String, actionName: String) {
-        var actionType = ""
+    internal func callEventPublishNudge(data: CGData, className: String, actionType: String) {
+        var actionTarget = ""
         if data.mobile.content[0].campaignId.count == 0 {
-            actionType = "WALLET"
+            actionTarget = "WALLET"
         } else if data.mobile.content[0].campaignId.contains("http://") || data.mobile.content[0].campaignId.contains("https://") {
-            actionType = "CUSTOM_URL"
+            actionTarget = "CUSTOM_URL"
         } else {
-            actionType = "CAMPAIGN"
+            actionTarget = "CAMPAIGN"
         }
         
-        eventPublishNudge(pageName: className, nudgeId: data.mobile.content[0]._id, actionName: actionName, actionType: actionType, pageType: data.mobile.content[0].openLayout, campaignId: data.mobile.content[0].campaignId,nudgeType: data.mobile.container.type)
+        eventPublishNudge(pageName: className, nudgeId: data.mobile.content[0]._id, actionType: actionType, actionTarget: actionTarget, pageType: data.mobile.content[0].openLayout, campaignId: data.mobile.content[0].campaignId,nudgeType: data.mobile.container.type)
     }
   
     internal func openCampaignById(campaign_id: String, page_type: String, backgroundAlpha: Double) {
@@ -1012,31 +1013,28 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    private func eventPublishNudge(pageName: String, nudgeId: String, actionName: String, actionType: String, pageType: String, campaignId: String, nudgeType:String ) {
+    private func eventPublishNudge(pageName: String, nudgeId: String, actionType: String, actionTarget: String, pageType: String, campaignId: String, nudgeType:String ) {
         var eventInfo = [String: AnyHashable]()
         eventInfo[APIParameterKey.nudgeType] = nudgeType
 
         eventInfo[APIParameterKey.pageName] = pageName
         eventInfo[APIParameterKey.nudgeId] = nudgeId
-        eventInfo[APIParameterKey.actionName] = actionName
+        eventInfo[APIParameterKey.actionTarget] = actionTarget
         eventInfo[APIParameterKey.actionType] = actionType
         eventInfo[APIParameterKey.pageType] = pageType
-        eventInfo[APIParameterKey.eventId] = UUID().uuidString
+
         
-        eventInfo[APIParameterKey.deviceType] = "iOS"
+        
+        eventInfo[APIParameterKey.campaignId] = "CAMPAIGNID_NOTPRESENT"
         if actionType == "CAMPAIGN" {
             if campaignId.count > 0 {
-                if campaignId.contains("http://") || campaignId.contains("https://") {
-                    eventInfo[APIParameterKey.campaignId] = "CAMPAIGNID_NOTPRESENT"
-                } else {
+                if !(campaignId.contains("http://") || campaignId.contains("https://")) {
                     eventInfo[APIParameterKey.campaignId] = campaignId
                 }
-            } else {
-                eventInfo[APIParameterKey.campaignId] = "CAMPAIGNID_NOTPRESENT"
             }
         }
 
-        eventInfo[APIParameterKey.optionalPayload] = ["": ""] as? AnyHashable
+        eventInfo[APIParameterKey.optionalPayload] = [String: String]() as [String: String]
 
         ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
             if success {

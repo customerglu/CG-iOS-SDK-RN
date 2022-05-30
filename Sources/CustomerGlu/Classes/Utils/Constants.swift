@@ -27,7 +27,7 @@ struct Constants {
     static let CustomerGluCrash_OLD = "CustomerGluCrash"
     static let CustomerGluPopupDict_OLD = "CustomerGluPopupDict"
     
-    static let default_whitelist_doamin = "end-ui.customerglu.com"
+    static let default_whitelist_doamin = "customerglu.com"
     static let default_redirect_url = "https://www.google.com/"
     static let customerglu_encryptedKey = "customerglu_encryptedKey"
 
@@ -67,6 +67,7 @@ struct APIParameterKey {
     static let nudgeId = "nudgeId"
     static let actionName = "actionName"
     static let actionType = "actionType"
+    static let actionTarget = "actionTarget"
     static let pageType = "pageType"
     static let campaignId = "campaignId"
     static let activityIdList = "activityIdList"
