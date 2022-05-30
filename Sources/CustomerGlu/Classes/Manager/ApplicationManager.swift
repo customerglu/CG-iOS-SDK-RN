@@ -161,8 +161,8 @@ class ApplicationManager {
         eventInfo[APIParameterKey.userAgent] = "APP"
         eventInfo[APIParameterKey.deviceType] = "iOS"
         eventInfo[APIParameterKey.eventId] = UUID().uuidString
-//      eventInfo[APIParameterKey.eventName] = "NUDGE_INTERACTION"
-        eventInfo["actionStore"] = "NUDGE_INTERACTION"
+      eventInfo[APIParameterKey.eventName] = "NUDGE_INTERACTION"
+//        eventInfo["actionStore"] = "NUDGE_INTERACTION"
         eventInfo["version"] = "4.0.0"
         
                 
