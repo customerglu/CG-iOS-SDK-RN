@@ -159,7 +159,12 @@ class ApplicationManager {
         
         eventInfo[APIParameterKey.appSessionId] = ApplicationManager.appSessionId
         eventInfo[APIParameterKey.userAgent] = "APP"
-        eventInfo[APIParameterKey.eventName] = "NUDGE_INTERACTION"
+        eventInfo[APIParameterKey.deviceType] = "iOS"
+        eventInfo[APIParameterKey.eventId] = UUID().uuidString
+//      eventInfo[APIParameterKey.eventName] = "NUDGE_INTERACTION"
+        eventInfo["actionStore"] = "NUDGE_INTERACTION"
+        eventInfo["version"] = "4.0.0"
+        
                 
         APIManager.publishNudge(queryParameters: eventInfo as NSDictionary) { result in
             switch result {

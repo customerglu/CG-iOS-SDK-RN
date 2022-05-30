@@ -168,7 +168,7 @@ class FloatingButtonController: UIViewController {
     
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
 
-        CustomerGlu.getInstance.callEventPublishNudge(data: floatInfo!, className: CustomerGlu.getInstance.activescreenname, actionName: "OPEN")
+        CustomerGlu.getInstance.callEventPublishNudge(data: floatInfo!, className: CustomerGlu.getInstance.activescreenname, actionType: "OPEN")
         
         if floatInfo?.mobile.content[0].openLayout == "FULL-DEFAULT" {
             CustomerGlu.getInstance.openCampaignById(campaign_id: (floatInfo?.mobile.content[0].campaignId)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: floatInfo?.mobile.conditions.backgroundOpacity ?? 0.5)

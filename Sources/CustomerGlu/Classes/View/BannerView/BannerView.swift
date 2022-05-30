@@ -99,16 +99,16 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 if mobile.content.count != 0 {
                     for content in mobile.content {
                         arrContent.append(content)
-                        var actionType = ""
+                        var actionTarget = ""
                         if content.campaignId.count == 0 {
-                            actionType = "WALLET"
+                            actionTarget = "WALLET"
                         } else if content.campaignId.contains("http://") || content.campaignId.contains("https://"){
-                            actionType = "CUSTOM_URL"
+                            actionTarget = "CUSTOM_URL"
                         } else {
-                            actionType = "CAMPAIGN"
+                            actionTarget = "CAMPAIGN"
                         }
                         
-                        eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: content._id, actionName: "LOADED", actionType: actionType, pageType: content.openLayout, campaignId: content.campaignId)
+                        eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: content._id, actionType: "LOADED", actionTarget: actionTarget, pageType: content.openLayout, campaignId: content.campaignId)
                     }
                     loadedapicalled = true
                     
@@ -300,44 +300,41 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: condition?.backgroundOpacity ?? 0.5)
             }
             
-            var actionType = ""
+            var actionTarget = ""
             if dict.campaignId.count == 0 {
-                actionType = "WALLET"
+                actionTarget = "WALLET"
             } else if dict.campaignId.contains("http://") || dict.campaignId.contains("https://"){
-                actionType = "CUSTOM_URL"
+                actionTarget = "CUSTOM_URL"
             } else {
-                actionType = "CAMPAIGN"
+                actionTarget = "CAMPAIGN"
             }
             
-            eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: dict._id, actionName: "OPEN", actionType: actionType, pageType: dict.openLayout, campaignId: dict.campaignId)
+            eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: dict._id, actionType: "OPEN", actionTarget: actionTarget, pageType: dict.openLayout, campaignId: dict.campaignId)
         }
     }
     
-    private func eventPublishNudge(pageName: String, nudgeId: String, actionName: String, actionType: String, pageType: String, campaignId: String) {
+    private func eventPublishNudge(pageName: String, nudgeId: String, actionType: String, actionTarget: String, pageType: String, campaignId: String) {
         var eventInfo = [String: AnyHashable]()
         eventInfo[APIParameterKey.nudgeType] = "BANNER"
         
         eventInfo[APIParameterKey.pageName] = pageName
         eventInfo[APIParameterKey.nudgeId] = nudgeId
-        eventInfo[APIParameterKey.actionName] = actionName
+        eventInfo[APIParameterKey.actionTarget] = actionTarget
         eventInfo[APIParameterKey.actionType] = actionType
         eventInfo[APIParameterKey.pageType] = pageType
-        eventInfo[APIParameterKey.eventId] = UUID().uuidString
         
-        eventInfo[APIParameterKey.deviceType] = "iOS"
+        
+
+        eventInfo[APIParameterKey.campaignId] = "CAMPAIGNID_NOTPRESENT"
         if actionType == "CAMPAIGN" {
             if campaignId.count > 0 {
-                if campaignId.contains("http://") || campaignId.contains("https://") {
-                    eventInfo[APIParameterKey.campaignId] = "CAMPAIGNID_NOTPRESENT"
-                } else {
+                if !(campaignId.contains("http://") || campaignId.contains("https://")) {
                     eventInfo[APIParameterKey.campaignId] = campaignId
                 }
-            } else {
-                eventInfo[APIParameterKey.campaignId] = "CAMPAIGNID_NOTPRESENT"
             }
         }
 
-        eventInfo[APIParameterKey.optionalPayload] = ["": ""] as? AnyHashable
+        eventInfo[APIParameterKey.optionalPayload] = [String: String]() as [String: String]
         
         ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
             if success {

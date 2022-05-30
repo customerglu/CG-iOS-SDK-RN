@@ -57,6 +57,7 @@ struct APIParameterKey {
     static let nudgeId = "nudgeId"
     static let actionName = "actionName"
     static let actionType = "actionType"
+    static let actionTarget = "actionTarget"
     static let pageType = "pageType"
     static let campaignId = "campaignId"
     static let activityIdList = "activityIdList"
