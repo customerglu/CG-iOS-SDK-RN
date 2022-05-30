@@ -1026,7 +1026,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
         
         eventInfo[APIParameterKey.campaignId] = "CAMPAIGNID_NOTPRESENT"
-        if actionType == "CAMPAIGN" {
+        if actionTarget == "CAMPAIGN" {
             if campaignId.count > 0 {
                 if !(campaignId.contains("http://") || campaignId.contains("https://")) {
                     eventInfo[APIParameterKey.campaignId] = campaignId
