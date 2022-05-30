@@ -28,9 +28,8 @@ struct Constants {
     static let CustomerGluPopupDict_OLD = "CustomerGluPopupDict"
     
     static let default_whitelist_doamin = "customerglu.com"
-    static let default_redirect_url = "https://www.google.com/"
+    static var default_redirect_url = "https://end-user-ui.customerglu.com/error/?source=native-sdk&"
     static let customerglu_encryptedKey = "customerglu_encryptedKey"
-
 }
 
 // Default APIParameterKey
