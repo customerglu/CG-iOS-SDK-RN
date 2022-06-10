@@ -11,6 +11,7 @@ import UIKit
 public class LoadAllCampaignsViewController: UIViewController {
         
     public static let storyboardVC = StoryboardType.main.instantiate(vcType: LoadAllCampaignsViewController.self)
+    public var auto_close_webview = CustomerGlu.auto_close_webview
     
     @IBOutlet weak var topSafeArea: UIView!
     @IBOutlet weak var bottomSafeArea: UIView!
@@ -151,6 +152,7 @@ extension LoadAllCampaignsViewController: UITableViewDataSource, UITableViewDele
                 print(topVC)
             }
             let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
+            customerWebViewVC.auto_close_webview = self.auto_close_webview
             customerWebViewVC.urlStr = campaigns[indexPath.row].url
             self.navigationController?.pushViewController(customerWebViewVC, animated: true)
         }

@@ -34,7 +34,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public var fcmToken = ""
     public static var defaultBannerUrl = ""
     public static var arrColor = [UIColor.black]
-    public static var auto_close_webview: Bool? = true
+    public static var auto_close_webview: Bool? = false
     public static var topSafeAreaHeight = 44
     public static var bottomSafeAreaHeight = 34
     public static var topSafeAreaColor = UIColor.white
@@ -194,7 +194,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func cgapplication(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], backgroundAlpha: Double = 0.5, fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+    public func cgapplication(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], backgroundAlpha: Double = 0.5,auto_close_webview : Bool = CustomerGlu.auto_close_webview!, fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
         if CustomerGlu.sdk_disable! == true {
             print(CustomerGlu.sdk_disable!)
             return
@@ -211,13 +211,13 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             if userInfo[NotificationsKey.glu_message_type] as? String == NotificationsKey.in_app {
                 print(page_type as Any)
                 if page_type as? String == Constants.BOTTOM_SHEET_NOTIFICATION {
-                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: Constants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: backgroundAlpha)
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: Constants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: backgroundAlpha,auto_close_webview: auto_close_webview)
                 } else if page_type as? String == Constants.BOTTOM_DEFAULT_NOTIFICATION {
-                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: Constants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: backgroundAlpha)
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: Constants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: backgroundAlpha,auto_close_webview: auto_close_webview)
                 } else if page_type as? String == Constants.MIDDLE_NOTIFICATIONS {
-                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: backgroundAlpha)
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: backgroundAlpha,auto_close_webview: auto_close_webview)
                 } else {
-                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: backgroundAlpha)
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: backgroundAlpha,auto_close_webview: auto_close_webview)
                 }
             } else {
                 print("Local Notification")
@@ -227,10 +227,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func presentToCustomerWebViewController(nudge_url: String, page_type: String, backgroundAlpha: Double) {
+    public func presentToCustomerWebViewController(nudge_url: String, page_type: String, backgroundAlpha: Double, auto_close_webview : Bool) {
         
         let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
         customerWebViewVC.urlStr = nudge_url
+        customerWebViewVC.auto_close_webview = auto_close_webview
         customerWebViewVC.notificationHandler = true
         customerWebViewVC.alpha = backgroundAlpha
         guard let topController = UIViewController.topViewController() else {
@@ -265,7 +266,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         })
     }
     
-    public func displayBackgroundNotification(remoteMessage: [String: AnyHashable]) {
+    public func displayBackgroundNotification(remoteMessage: [String: AnyHashable],auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
         if CustomerGlu.sdk_disable! == true {
             print(CustomerGlu.sdk_disable!)
             return
@@ -273,6 +274,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         let nudge_url = remoteMessage[NotificationsKey.nudge_url]
         
         let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
+        customerWebViewVC.auto_close_webview = auto_close_webview
         customerWebViewVC.urlStr = nudge_url as? String ?? ""
         customerWebViewVC.notificationHandler = true
         customerWebViewVC.modalPresentationStyle = .fullScreen
@@ -578,11 +580,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func openWalletWithURL(url: String) {
-        CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: url, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5)
+    public func openWalletWithURL(url: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
+        CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: url, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview)
     }
     
-    public func openWallet() {
+    public func openWallet(auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
             if CustomerGlu.sdk_disable! {
                 print(CustomerGlu.sdk_disable!)
@@ -597,13 +599,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             guard let topController = UIViewController.topViewController() else {
                 return
             }
+            openWalletVC.auto_close_webview = auto_close_webview
             openWalletVC.modalPresentationStyle = .fullScreen
             self.hideFloatingButtons()
             topController.present(openWalletVC, animated: true, completion: nil)
         }
     }
     
-    public func loadAllCampaigns() {
+    public func loadAllCampaigns(auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
             if CustomerGlu.sdk_disable! {
                 print(CustomerGlu.sdk_disable!)
@@ -618,6 +621,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             guard let topController = UIViewController.topViewController() else {
                 return
             }
+            loadAllCampign.auto_close_webview = auto_close_webview
             let navController = UINavigationController(rootViewController: loadAllCampign)
             navController.modalPresentationStyle = .fullScreen
             self.hideFloatingButtons()
@@ -625,7 +629,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func loadCampaignById(campaign_id: String) {
+    public func loadCampaignById(campaign_id: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
             if CustomerGlu.sdk_disable! {
                 print(CustomerGlu.sdk_disable!)
@@ -640,6 +644,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             guard let topController = UIViewController.topViewController() else {
                 return
             }
+            customerWebViewVC.auto_close_webview = auto_close_webview
             customerWebViewVC.modalPresentationStyle = .fullScreen
             customerWebViewVC.iscampignId = true
             customerWebViewVC.campaign_id = campaign_id
@@ -648,7 +653,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func loadCampaignsByType(type: String) {
+    public func loadCampaignsByType(type: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview! ) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
             if CustomerGlu.sdk_disable! {
                 print(CustomerGlu.sdk_disable!)
@@ -660,6 +665,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
         DispatchQueue.main.async {
             let loadAllCampign = StoryboardType.main.instantiate(vcType: LoadAllCampaignsViewController.self)
+            loadAllCampign.auto_close_webview = auto_close_webview
             loadAllCampign.loadCampignType = APIParameterKey.type
             loadAllCampign.loadCampignValue = type
             guard let topController = UIViewController.topViewController() else {
@@ -672,7 +678,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func loadCampaignByStatus(status: String) {
+    public func loadCampaignByStatus(status: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
             if CustomerGlu.sdk_disable! {
                 print(CustomerGlu.sdk_disable!)
@@ -684,6 +690,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
         DispatchQueue.main.async {
             let loadAllCampign = StoryboardType.main.instantiate(vcType: LoadAllCampaignsViewController.self)
+            loadAllCampign.auto_close_webview = auto_close_webview
             loadAllCampign.loadCampignType = APIParameterKey.status
             loadAllCampign.loadCampignValue = status
             guard let topController = UIViewController.topViewController() else {
@@ -696,7 +703,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func loadCampaignByFilter(parameters: NSDictionary) {
+    public func loadCampaignByFilter(parameters: NSDictionary, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
             if CustomerGlu.sdk_disable! {
                 print(CustomerGlu.sdk_disable!)
@@ -709,6 +716,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         DispatchQueue.main.async {
             let loadAllCampign = StoryboardType.main.instantiate(vcType: LoadAllCampaignsViewController.self)
             loadAllCampign.loadByparams = parameters
+            loadAllCampign.auto_close_webview = auto_close_webview
             guard let topController = UIViewController.topViewController() else {
                 return
             }
@@ -979,12 +987,13 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         eventPublishNudge(pageName: className, nudgeId: data.mobile.content[0]._id, actionName: actionName, actionType: actionType, openType: data.mobile.content[0].openLayout, campaignId: data.mobile.content[0].campaignId,nudgeType: data.mobile.container.type)
     }
   
-    internal func openCampaignById(campaign_id: String, page_type: String, backgroundAlpha: Double) {
+    internal func openCampaignById(campaign_id: String, page_type: String, backgroundAlpha: Double, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
         
         let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
         customerWebViewVC.iscampignId = true
         customerWebViewVC.alpha = backgroundAlpha
         customerWebViewVC.campaign_id = campaign_id
+        customerWebViewVC.auto_close_webview = auto_close_webview
         guard let topController = UIViewController.topViewController() else {
             return
         }

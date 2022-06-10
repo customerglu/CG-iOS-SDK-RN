@@ -24,6 +24,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     
     var webView = WKWebView()
     public var urlStr = ""
+    public var auto_close_webview = CustomerGlu.auto_close_webview
     var openWallet = false
     var notificationHandler = false
     var ismiddle = false
@@ -37,6 +38,9 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     
     let contentController = WKUserContentController()
     let config = WKWebViewConfiguration()
+    
+    var postdata = [String:Any]()
+    var canpost = false
     
     public func configureSafeAreaForDevices() {
         let window = UIApplication.shared.keyWindow
@@ -54,7 +58,6 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         topSafeArea.backgroundColor = CustomerGlu.topSafeAreaColor
         bottomSafeArea.backgroundColor = CustomerGlu.bottomSafeAreaColor
     }
-    
     public override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -156,6 +159,11 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         if isbottomsheet {
             CustomerGlu.getInstance.setCurrentClassName(className: CustomerGlu.getInstance.activescreenname)
         }
+        if (true == self.canpost){
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_DEEPLINK_EVENT").rawValue), object: nil, userInfo: self.postdata as? [String: Any])
+            self.canpost = false
+            self.postdata = [String:Any]()
+        }
     }
     
     func loadwebView(url: String, x: CGFloat, y: CGFloat) {
@@ -220,11 +228,22 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 let deeplink = try? JSONDecoder().decode(DeepLinkModel.self, from: bodyData)
                 if  let deep_link = deeplink?.data?.deepLink {
                     print("link", deep_link)
-                    let dict = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!)
-                    // Post notification
-                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_DEEPLINK_EVENT").rawValue), object: nil, userInfo: dict?["data"] as? [String: Any])
-                    if CustomerGlu.auto_close_webview == true {
-                        delegate?.closeClicked(true)
+                    postdata = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!) ?? [String:Any]()
+                    self.canpost = true
+                    if self.auto_close_webview == true {
+                        // Posted a notification in viewDidDisappear method
+                        if openWallet {
+                            delegate?.closeClicked(true)
+                        } else if notificationHandler || iscampignId {
+                            self.closePage(animated: true)
+                        } else {
+                            self.navigationController?.popViewController(animated: true)
+                        }
+                    }else{
+                        // Post notification
+                        self.canpost = false
+                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_DEEPLINK_EVENT").rawValue), object: nil, userInfo: self.postdata as? [String: Any])
+                        self.postdata = [String:Any]()
                     }
                 }
             }

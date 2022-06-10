@@ -11,6 +11,7 @@ import UIKit
 public class OpenWalletViewController: UIViewController {
     
     public static let storyboardVC = StoryboardType.main.instantiate(vcType: OpenWalletViewController.self)
+    public var auto_close_webview = CustomerGlu.auto_close_webview
     
     var my_url = ""
     var anotherOptionalInt: Int?
@@ -51,6 +52,7 @@ public class OpenWalletViewController: UIViewController {
                 DispatchQueue.main.async { // Make sure you're on the main thread here
                     let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
                     customerWebViewVC.urlStr = self.my_url
+                    customerWebViewVC.auto_close_webview = self.auto_close_webview
                     customerWebViewVC.openWallet = true
                     customerWebViewVC.delegate = self
                     customerWebViewVC.modalPresentationStyle = .overCurrentContext
