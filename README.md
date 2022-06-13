@@ -35,4 +35,4 @@ let customerglu = CustomerGlu.getInstance
 
 # Functionalities
 
-[Supported Funcnality Document](https://docs.customerglu.com/sdk/ios)
+[Supported Functionality Document](https://docs.customerglu.com/sdk/ios)
