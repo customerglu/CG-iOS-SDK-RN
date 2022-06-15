@@ -18,6 +18,8 @@ struct PopUpModel: Codable {
     public var type: String?
 }
 
+@objc(CustomerGlu)
+
 public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     // MARK: - Global Variable
@@ -25,24 +27,24 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     var arrFloatingButton = [FloatingButtonController]()
     
     // Singleton Instance
-    public static var getInstance = CustomerGlu()
+    @objc public static var getInstance = CustomerGlu()
     public static var sdk_disable: Bool? = false
-    public static var fcm_apn = ""
+    @objc public static var fcm_apn = ""
     public static var analyticsEvent: Bool? = false
     let userDefaults = UserDefaults.standard
-    public var apnToken = ""
-    public var fcmToken = ""
-    public static var defaultBannerUrl = ""
-    public static var arrColor = [UIColor.black]
+    @objc public var apnToken = ""
+    @objc public var fcmToken = ""
+    @objc public static var defaultBannerUrl = ""
+    @objc public static var arrColor = [UIColor.black]
     public static var auto_close_webview: Bool? = false
-    public static var topSafeAreaHeight = 44
-    public static var bottomSafeAreaHeight = 34
-    public static var topSafeAreaColor = UIColor.white
-    public static var bottomSafeAreaColor = UIColor.white
+    @objc public static var topSafeAreaHeight = 44
+    @objc public static var bottomSafeAreaHeight = 34
+    @objc public static var topSafeAreaColor = UIColor.white
+    @objc public static var bottomSafeAreaColor = UIColor.white
     public static var entryPointdata: [CGData] = []
-    public static var isDebugingEnabled = false
-    public static var isEntryPointEnabled = false
-    public static var activeViewController = ""
+    @objc public static var isDebugingEnabled = false
+    @objc public static var isEntryPointEnabled = false
+    @objc public static var activeViewController = ""
     internal var activescreenname = ""
     
         
@@ -73,18 +75,18 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func gluSDKDebuggingMode(enabled: Bool) {
+    @objc public func gluSDKDebuggingMode(enabled: Bool) {
         CustomerGlu.isDebugingEnabled = enabled
     }
     
-    public func enableEntryPoints(enabled: Bool) {
+    @objc public func enableEntryPoints(enabled: Bool) {
         CustomerGlu.isEntryPointEnabled = enabled
         if CustomerGlu.isEntryPointEnabled {
             getEntryPointData()
         }
     }
     
-    public func customerGluDidCatchCrash(with model: CrashModel) {
+    @objc public func customerGluDidCatchCrash(with model: CrashModel) {
         print("\(model)")
         let dict = [
             "name": model.name!,
@@ -101,19 +103,19 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func disableGluSdk(disable: Bool) {
+    @objc public func disableGluSdk(disable: Bool) {
         CustomerGlu.sdk_disable = disable
     }
     
-    public func isFcmApn(fcmApn: String) {
+    @objc public func isFcmApn(fcmApn: String) {
         CustomerGlu.fcm_apn = fcmApn
     }
     
-    public func setDefaultBannerImage(bannerUrl: String) {
+    @objc public func setDefaultBannerImage(bannerUrl: String) {
         CustomerGlu.defaultBannerUrl = bannerUrl
     }
     
-    public func configureLoaderColour(color: [UIColor]) {
+    @objc public func configureLoaderColour(color: [UIColor]) {
         CustomerGlu.arrColor = color
     }
     
@@ -128,17 +130,17 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func getReferralId(deepLink: URL) -> String {
+    @objc public func getReferralId(deepLink: URL) -> String {
         let queryItems = URLComponents(url: deepLink, resolvingAgainstBaseURL: true)?.queryItems
         let referrerUserId = queryItems?.filter({(item) in item.name == APIParameterKey.userId}).first?.value
         return referrerUserId ?? ""
     }
     
-    public func closeWebviewOnDeeplinkEvent(close: Bool) {
+    @objc public func closeWebviewOnDeeplinkEvent(close: Bool) {
         CustomerGlu.auto_close_webview = close
     }
     
-    public func enableAnalyticsEvent(event: Bool) {
+    @objc public func enableAnalyticsEvent(event: Bool) {
         CustomerGlu.analyticsEvent = event
     }
     
@@ -177,7 +179,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func cgUserNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+    @objc public func cgUserNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         if CustomerGlu.sdk_disable! == true {
             print(CustomerGlu.sdk_disable!)
             return
@@ -194,7 +196,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func cgapplication(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], backgroundAlpha: Double = 0.5,auto_close_webview : Bool = CustomerGlu.auto_close_webview!, fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+    @objc public func cgapplication(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], backgroundAlpha: Double = 0.5,auto_close_webview : Bool = CustomerGlu.auto_close_webview!, fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
         if CustomerGlu.sdk_disable! == true {
             print(CustomerGlu.sdk_disable!)
             return
@@ -227,7 +229,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func presentToCustomerWebViewController(nudge_url: String, page_type: String, backgroundAlpha: Double, auto_close_webview : Bool) {
+    @objc public func presentToCustomerWebViewController(nudge_url: String, page_type: String, backgroundAlpha: Double, auto_close_webview : Bool) {
         
         let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
         customerWebViewVC.urlStr = nudge_url
@@ -266,7 +268,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         })
     }
     
-    public func displayBackgroundNotification(remoteMessage: [String: AnyHashable],auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
+    @objc public func displayBackgroundNotification(remoteMessage: [String: AnyHashable],auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
         if CustomerGlu.sdk_disable! == true {
             print(CustomerGlu.sdk_disable!)
             return
@@ -286,7 +288,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         })
     }
     
-    public func notificationFromCustomerGlu(remoteMessage: [String: AnyHashable]) -> Bool {
+    @objc public func notificationFromCustomerGlu(remoteMessage: [String: AnyHashable]) -> Bool {
         let strType = remoteMessage[NotificationsKey.type] as? String
         if strType == NotificationsKey.CustomerGlu {
             return true
@@ -295,7 +297,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func clearGluData() {
+    @objc public func clearGluData() {
         dismissFloatingButtons()
         self.arrFloatingButton.removeAll()
         popupDict.removeAll()
@@ -311,14 +313,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     // MARK: - API Calls Methods
-    public func registerDevice(userdata: [String: AnyHashable], loadcampaigns: Bool = false, completion: @escaping (Bool, RegistrationModel?) -> Void) {
+    @objc public func registerDevice(userdata: [String: AnyHashable], loadcampaigns: Bool = false, completion: @escaping (Bool) -> Void) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userdata["userId"] == nil {
             if CustomerGlu.sdk_disable! {
                 print(CustomerGlu.sdk_disable!)
             } else {
                 print("userId if required")
             }
-            completion(false, nil)
+            completion(false)
             return
         }
         var userData = userdata
@@ -364,15 +366,15 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                         self.addFloatingBtns()
                                         self.postBannersCount()
                                         
-                                        completion(true, response)
+                                        completion(true)
                                         
                                     case .failure(let error):
                                         print(error)
-                                        completion(true, response)
+                                        completion(true)
                                 }
                             }
                         } else {
-                            completion(true, response)
+                            completion(true)
                         }
                         
                         if loadcampaigns == true {
@@ -388,19 +390,19 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 case .failure(let error):
                     print(error)
                     ApplicationManager.callCrashReport(stackTrace: error.localizedDescription, methodName: "registerDevice")
-                    completion(false, nil)
+                    completion(false)
             }
         }
     }
     
-    public func updateProfile(userdata: [String: AnyHashable], completion: @escaping (Bool, RegistrationModel?) -> Void) {
+    @objc public func updateProfile(userdata: [String: AnyHashable], completion: @escaping (Bool) -> Void) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
             if CustomerGlu.sdk_disable! {
                 print(CustomerGlu.sdk_disable!)
             } else {
                 print("Please registered first")
             }
-            completion(false, nil)
+            completion(false)
             return
         }
         
@@ -451,15 +453,15 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                         self.entryPointInfoAddDelete(entryPoint: floatingButtons)
                                         self.addFloatingBtns()
                                         self.postBannersCount()
-                                        completion(true, response)
+                                        completion(true)
                                         
                                     case .failure(let error):
                                         print(error)
-                                        completion(true, response)
+                                        completion(true)
                                 }
                             }
                         } else {
-                            completion(true, response)
+                            completion(true)
                         }
                     } else {
                         ApplicationManager.callCrashReport(methodName: "updateProfile")
@@ -467,7 +469,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 case .failure(let error):
                     print(error)
                     ApplicationManager.callCrashReport(stackTrace: error.localizedDescription, methodName: "updateProfile")
-                    completion(false, nil)
+                    completion(false)
             }
         }
     }
@@ -578,11 +580,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func openWalletWithURL(url: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
+    @objc public func openWalletWithURL(url: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
         CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: url, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview)
     }
     
-    public func openWallet(auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
+    @objc public func openWallet(auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
             if CustomerGlu.sdk_disable! {
                 print(CustomerGlu.sdk_disable!)
@@ -604,7 +606,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func loadAllCampaigns(auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
+    @objc public func loadAllCampaigns(auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
             if CustomerGlu.sdk_disable! {
                 print(CustomerGlu.sdk_disable!)
@@ -627,7 +629,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func loadCampaignById(campaign_id: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
+    @objc public func loadCampaignById(campaign_id: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
             if CustomerGlu.sdk_disable! {
                 print(CustomerGlu.sdk_disable!)
@@ -651,7 +653,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func loadCampaignsByType(type: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview! ) {
+    @objc public func loadCampaignsByType(type: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview! ) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
             if CustomerGlu.sdk_disable! {
                 print(CustomerGlu.sdk_disable!)
@@ -676,7 +678,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func loadCampaignByStatus(status: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
+    @objc public func loadCampaignByStatus(status: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
             if CustomerGlu.sdk_disable! {
                 print(CustomerGlu.sdk_disable!)
@@ -701,7 +703,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func loadCampaignByFilter(parameters: NSDictionary, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
+    @objc public func loadCampaignByFilter(parameters: NSDictionary, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
             if CustomerGlu.sdk_disable! {
                 print(CustomerGlu.sdk_disable!)
@@ -725,7 +727,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func sendEventData(eventName: String, eventProperties: [String: Any]?) {
+    @objc public func sendEventData(eventName: String, eventProperties: [String: Any]?) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_USERID) == nil {
             if CustomerGlu.sdk_disable! {
                 print(CustomerGlu.sdk_disable!)
@@ -744,7 +746,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    public func configureSafeArea(topHeight: Int, bottomHeight: Int, topSafeAreaColor: UIColor, bottomSafeAreaColor: UIColor) {
+    @objc public func configureSafeArea(topHeight: Int, bottomHeight: Int, topSafeAreaColor: UIColor, bottomSafeAreaColor: UIColor) {
         CustomerGlu.topSafeAreaHeight = topHeight
         CustomerGlu.bottomSafeAreaHeight = bottomHeight
         CustomerGlu.topSafeAreaColor = topSafeAreaColor
@@ -773,7 +775,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         CustomerGlu.getInstance.setCurrentClassName(className: CustomerGlu.getInstance.activescreenname)
     }
 
-    public func setCurrentClassName(className: String) {
+    @objc public func setCurrentClassName(className: String) {
         
         if(popuptimer != nil){
             popuptimer?.invalidate()
