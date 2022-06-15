@@ -10,7 +10,7 @@ import UIKit
 
 #if !SPM
 extension Bundle {
-  static var module:Bundle { Bundle(identifier: "org.cocoapods.CustomerGlu")! }
+    static var module:Bundle { Bundle(identifier: "org.cocoapods.CustomerGlu") ?? Bundle(for: CustomerGlu.self) }
 }
 #endif
 
