@@ -46,7 +46,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     @objc public static var isEntryPointEnabled = false
     @objc public static var activeViewController = ""
     internal var activescreenname = ""
-    
+    public static var bannersHeight: [String: Any]? = nil
         
     internal var popupDict = [PopUpModel]()
     internal var entryPointPopUpModel = EntryPointPopUpModel()
@@ -298,7 +298,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func clearGluData() {
-        dismissFloatingButtons()
+        dismissFloatingButtons(is_remove: true)
         self.arrFloatingButton.removeAll()
         popupDict.removeAll()
         CustomerGlu.entryPointdata.removeAll()
@@ -311,7 +311,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         userDefaults.removeObject(forKey: Constants.CustomerGluPopupDict)
         ApplicationManager.appSessionId = UUID().uuidString
     }
-    
+        
     // MARK: - API Calls Methods
     @objc public func registerDevice(userdata: [String: AnyHashable], loadcampaigns: Bool = false, completion: @escaping (Bool) -> Void) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userdata["userId"] == nil {
@@ -320,6 +320,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             } else {
                 print("userId if required")
             }
+            CustomerGlu.bannersHeight = [String:Any]()
             completion(false)
             return
         }
@@ -351,9 +352,13 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         self.userDefaults.set(response.data?.user?.userId, forKey: Constants.CUSTOMERGLU_USERID)
                         self.userDefaults.synchronize()
                         if CustomerGlu.isEntryPointEnabled {
+                            CustomerGlu.bannersHeight = nil
                             APIManager.getEntryPointdata(queryParameters: [:]) { result in
                                 switch result {
                                     case .success(let responseGetEntry):
+                                        DispatchQueue.main.async {
+                                            self.dismissFloatingButtons(is_remove: false)
+                                        }
                                         CustomerGlu.entryPointdata.removeAll()
                                         CustomerGlu.entryPointdata = responseGetEntry.data
                                         
@@ -370,10 +375,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                         
                                     case .failure(let error):
                                         print(error)
+                                        CustomerGlu.bannersHeight = [String:Any]()
                                         completion(true)
                                 }
                             }
                         } else {
+                            CustomerGlu.bannersHeight = [String:Any]()
                             completion(true)
                         }
                         
@@ -386,9 +393,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         }
                     } else {
                         ApplicationManager.callCrashReport(methodName: "registerDevice")
+                        CustomerGlu.bannersHeight = [String:Any]()
+                        completion(false)
                     }
                 case .failure(let error):
                     print(error)
+                    CustomerGlu.bannersHeight = [String:Any]()
                     ApplicationManager.callCrashReport(stackTrace: error.localizedDescription, methodName: "registerDevice")
                     completion(false)
             }
@@ -402,6 +412,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             } else {
                 print("Please registered first")
             }
+            CustomerGlu.bannersHeight = [String:Any]()
             completion(false)
             return
         }
@@ -440,9 +451,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         self.userDefaults.synchronize()
                         
                         if CustomerGlu.isEntryPointEnabled {
+                            CustomerGlu.bannersHeight = nil
                             APIManager.getEntryPointdata(queryParameters: [:]) { result in
                                 switch result {
                                     case .success(let responseGetEntry):
+                                        DispatchQueue.main.async {
+                                            self.dismissFloatingButtons(is_remove: false)
+                                        }
+                                        CustomerGlu.entryPointdata.removeAll()
                                         CustomerGlu.entryPointdata = responseGetEntry.data
 
                                         // FLOATING Buttons
@@ -457,17 +473,22 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                         
                                     case .failure(let error):
                                         print(error)
+                                        CustomerGlu.bannersHeight = [String:Any]()
                                         completion(true)
                                 }
                             }
                         } else {
+                            CustomerGlu.bannersHeight = [String:Any]()
                             completion(true)
                         }
                     } else {
                         ApplicationManager.callCrashReport(methodName: "updateProfile")
+                        CustomerGlu.bannersHeight = [String:Any]()
+                        completion(false)
                     }
                 case .failure(let error):
                     print(error)
+                    CustomerGlu.bannersHeight = [String:Any]()
                     ApplicationManager.callCrashReport(stackTrace: error.localizedDescription, methodName: "updateProfile")
                     completion(false)
             }
@@ -481,12 +502,17 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             } else {
                 print("Please registered first")
             }
+            CustomerGlu.bannersHeight = [String:Any]()
             return
         }
-        
+        CustomerGlu.bannersHeight = nil
         APIManager.getEntryPointdata(queryParameters: [:]) { [self] result in
             switch result {
                 case .success(let response):
+                    DispatchQueue.main.async {
+                        dismissFloatingButtons(is_remove: false)
+                    }
+                    CustomerGlu.entryPointdata.removeAll()
                     CustomerGlu.entryPointdata = response.data
 
                     // FLOATING Buttons
@@ -499,6 +525,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     postBannersCount()
                     NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("EntryPointLoaded").rawValue), object: nil, userInfo: nil)
                 case .failure(let error):
+                    CustomerGlu.bannersHeight = [String:Any]()
                     print(error)
             }
         }
@@ -765,9 +792,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    internal func dismissFloatingButtons() {
+    internal func dismissFloatingButtons(is_remove: Bool) {
         for floatBtn in self.arrFloatingButton {
-            floatBtn.dismissFloatingButton()
+            floatBtn.dismissFloatingButton(is_remove: is_remove)
         }
     }
     
@@ -844,9 +871,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 }
                 
                 if ((floatButton[0].mobile.content.count > 0) && (floatBtn.showcount?.count)! < floatButton[0].mobile.conditions.showCount.count) {
-                    
-                        self.addFloatingButton(btnInfo: floatButton[0])
-                    
+                    self.addFloatingButton(btnInfo: floatButton[0])
                 }
             }
             
@@ -872,6 +897,19 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
 
         NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_BANNER_LOADED").rawValue), object: nil, userInfo: postInfo)
+        
+        let bannersforheight = CustomerGlu.entryPointdata.filter {
+            $0.mobile.container.type == "BANNER" && $0.mobile.container.bannerId != nil && $0.mobile.container.bannerId.count > 0 && (Int($0.mobile.container.height)!) > 0 && $0.mobile.content.count > 0
+        }
+        if bannersforheight.count > 0 {
+            CustomerGlu.bannersHeight = [String:Any]()
+            for banner in bannersforheight {
+                CustomerGlu.bannersHeight![banner.mobile.container.bannerId] = Int(banner.mobile.container.height)
+            }
+        }
+        if (CustomerGlu.bannersHeight == nil) {
+            CustomerGlu.bannersHeight = [String:Any]()
+        }
     }
     
     private func showPopup(className: String) {

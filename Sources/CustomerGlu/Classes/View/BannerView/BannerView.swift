@@ -184,6 +184,10 @@ public class BannerView: UIView, UIScrollViewDelegate {
             }
         }
         finalHeight = 0
+        
+        let postInfo: [String: Any] = ["finalheight": finalHeight]
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CGBANNER_FINAL_HEIGHT").rawValue), object: nil, userInfo: postInfo)
+        
         invalidateIntrinsicContentSize()
         self.layoutIfNeeded()
     }
@@ -193,6 +197,9 @@ public class BannerView: UIView, UIScrollViewDelegate {
         let screenWidth = self.frame.size.width
         let screenHeight = UIScreen.main.bounds.height
         finalHeight = (Int(screenHeight) * height)/100
+        
+        let postInfo: [String: Any] = ["finalheight": finalHeight]
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CGBANNER_FINAL_HEIGHT").rawValue), object: nil, userInfo: postInfo)
         
         if code == true {
             self.frame.size.height = CGFloat(finalHeight)
@@ -323,8 +330,6 @@ public class BannerView: UIView, UIScrollViewDelegate {
         eventInfo[APIParameterKey.actionType] = actionType
         eventInfo[APIParameterKey.pageType] = pageType
         
-        
-
         eventInfo[APIParameterKey.campaignId] = "CAMPAIGNID_NOTPRESENT"
         if actionTarget == "CAMPAIGN" {
             if campaignId.count > 0 {
