@@ -19,7 +19,6 @@ public class BannerView: UIView, UIScrollViewDelegate {
     var finalHeight = 0
     private var loadedapicalled = false
     
-    
     @IBOutlet weak private var imgScrollView: UIScrollView!
     @IBOutlet weak private var pageControl: UIPageControl!
     
@@ -36,15 +35,22 @@ public class BannerView: UIView, UIScrollViewDelegate {
         }
     }
     
-    var commonBannerId: String {
-
-            get {
-                return self.bannerId ?? ""
-            }
-            set(newWeight) {
-                bannerId = newWeight
-            }
+    @objc private func entryPointLoaded(notification: NSNotification) {
+        DispatchQueue.main.async {
+            self.view.subviews.forEach({ $0.removeFromSuperview() })
+            self.xibSetup()
+            self.callLoadBannerAnalytics()
         }
+    }
+    
+    var commonBannerId: String {
+        get {
+            return self.bannerId ?? ""
+        }
+        set(newWeight) {
+            bannerId = newWeight
+        }
+    }
     
     public init(frame: CGRect, bannerId: String) {
         //CODE
@@ -53,29 +59,14 @@ public class BannerView: UIView, UIScrollViewDelegate {
         code = true
     }
     
-    @objc private func entryPointLoaded(notification: NSNotification) {
-        DispatchQueue.main.async {
-            if self.imgScrollView != nil {
-                self.imgScrollView.removeFromSuperview()
-            }
-            self.view.removeFromSuperview()
-            self.xibSetup()
-            self.callLoadBannerAnalytics()
-        }
-    }
-    
     required init?(coder aDecoder: NSCoder) {
         // XIB
         super.init(coder: aDecoder)
         code = false
     }
     
-    
     public override func layoutSubviews() {
-        if imgScrollView != nil {
-            imgScrollView.removeFromSuperview()
-        }
-        view.removeFromSuperview()
+        view.subviews.forEach({ $0.removeFromSuperview() })
         xibSetup()
     }
     
@@ -83,42 +74,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
         self.layoutIfNeeded()
         return CGSize(width: self.frame.size.width, height: CGFloat(finalHeight))
     }
-    
-    private func callLoadBannerAnalytics(){
         
-        if (false == loadedapicalled){
-            let bannerViews = CustomerGlu.entryPointdata.filter {
-                $0.mobile.container.type == "BANNER" && $0.mobile.container.bannerId == self.bannerId ?? ""
-            }
-            
-            if bannerViews.count != 0 {
-                let mobile = bannerViews[0].mobile!
-                arrContent = [CGContent]()
-                condition = mobile.conditions
-                
-                if mobile.content.count != 0 {
-                    for content in mobile.content {
-                        arrContent.append(content)
-                        var actionTarget = ""
-                        if content.campaignId.count == 0 {
-                            actionTarget = "WALLET"
-                        } else if content.campaignId.contains("http://") || content.campaignId.contains("https://"){
-                            actionTarget = "CUSTOM_URL"
-                        } else {
-                            actionTarget = "CAMPAIGN"
-                        }
-                        
-                        eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: content._id, actionType: "LOADED", actionTarget: actionTarget, pageType: content.openLayout, campaignId: content.campaignId)
-                    }
-                    loadedapicalled = true
-                    
-                }
-                
-            }
-
-        }
-    }
-    
     // MARK: - Nib handlers
     private func xibSetup() {
         view = loadViewFromNib()
@@ -154,7 +110,6 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 for content in mobile.content {
                     arrContent.append(content)
                 }
-                
                 self.setBannerView(height: Int(mobile.container.height)!, isAutoScrollEnabled: mobile.conditions.autoScroll, autoScrollSpeed: mobile.conditions.autoScrollSpeed)
             } else {
                 bannerviewHeightZero()
@@ -214,8 +169,6 @@ public class BannerView: UIView, UIScrollViewDelegate {
             }
         }
         
-        invalidateIntrinsicContentSize()
-        self.layoutIfNeeded()
         imgScrollView.delegate = self
         
         for i in 0..<arrContent.count {
@@ -224,7 +177,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 var imageView: UIImageView
                 let xOrigin = screenWidth * CGFloat(i)
                 
-                imageView = UIImageView(frame: CGRect(x: xOrigin, y: 0, width: screenWidth, height: self.imgScrollView.frame.size.height))
+                imageView = UIImageView(frame: CGRect(x: xOrigin, y: 0, width: screenWidth, height: CGFloat(finalHeight)))
                 imageView.isUserInteractionEnabled = true
                 imageView.tag = i
                 let urlStr = dict.url
@@ -238,8 +191,8 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 containerView.tag = i
                 var webView: WKWebView
                 let xOrigin = screenWidth * CGFloat(i)
-                containerView.frame  = CGRect.init(x: xOrigin, y: 0, width: screenWidth, height: self.imgScrollView.frame.size.height)
-                webView = WKWebView(frame: CGRect(x: 0, y: 0, width: screenWidth, height: self.imgScrollView.frame.size.height))
+                containerView.frame  = CGRect.init(x: xOrigin, y: 0, width: screenWidth, height: CGFloat(finalHeight))
+                webView = WKWebView(frame: CGRect(x: 0, y: 0, width: screenWidth, height: CGFloat(finalHeight)))
                 webView.isUserInteractionEnabled = false
                 webView.tag = i
                 let urlStr = dict.url
@@ -269,6 +222,9 @@ public class BannerView: UIView, UIScrollViewDelegate {
             self.pageControl.numberOfPages = arrContent.count
         }
         self.pageControl.currentPage = 0
+        
+        invalidateIntrinsicContentSize()
+        self.layoutIfNeeded()
     }
     
     @objc func moveToNextImage() {
@@ -338,7 +294,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 }
             }
         }
-
+        
         eventInfo[APIParameterKey.optionalPayload] = [String: String]() as [String: String]
         
         ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
@@ -346,6 +302,38 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 print("success")
             } else {
                 print("error")
+            }
+        }
+    }
+    
+    private func callLoadBannerAnalytics(){
+        
+        if (false == loadedapicalled){
+            let bannerViews = CustomerGlu.entryPointdata.filter {
+                $0.mobile.container.type == "BANNER" && $0.mobile.container.bannerId == self.bannerId ?? ""
+            }
+            
+            if bannerViews.count != 0 {
+                let mobile = bannerViews[0].mobile!
+                arrContent = [CGContent]()
+                condition = mobile.conditions
+                
+                if mobile.content.count != 0 {
+                    for content in mobile.content {
+                        arrContent.append(content)
+                        var actionTarget = ""
+                        if content.campaignId.count == 0 {
+                            actionTarget = "WALLET"
+                        } else if content.campaignId.contains("http://") || content.campaignId.contains("https://"){
+                            actionTarget = "CUSTOM_URL"
+                        } else {
+                            actionTarget = "CAMPAIGN"
+                        }
+                        
+                        eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: content._id, actionType: "LOADED", actionTarget: actionTarget, pageType: content.openLayout, campaignId: content.campaignId)
+                    }
+                    loadedapicalled = true
+                }
             }
         }
     }
