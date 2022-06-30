@@ -196,7 +196,8 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 webView.isUserInteractionEnabled = false
                 webView.tag = i
                 let urlStr = dict.url
-                webView.load(URLRequest(url: URL(string: urlStr!)!))
+//                webView.load(URLRequest(url: URL(string: urlStr!)!))
+                webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: urlStr!)!)))
                 containerView.addSubview(webView)
                 self.imgScrollView.addSubview(containerView)
                 let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
@@ -250,7 +251,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
     }
     
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
-        print(sender?.view?.tag ?? 0)
+
         let dict = arrContent[sender?.view?.tag ?? 0]
         if dict.campaignId != nil {
             if dict.openLayout == "FULL-DEFAULT" {
@@ -299,9 +300,9 @@ public class BannerView: UIView, UIScrollViewDelegate {
         
         ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
             if success {
-                print("success")
+                
             } else {
-                print("error")
+                CustomerGlu.getInstance.printlog(cglog: "Fail to call eventPublishNudge", isException: false, methodName: "BannerView-eventPublishNudge", posttoserver: true)
             }
         }
     }
