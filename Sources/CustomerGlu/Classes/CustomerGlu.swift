@@ -936,7 +936,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     $0._id == popupShow._id
                 }
                 
-                if ((finalPopUp[0].mobile.content.count > 0) && (popupShow.showcount?.count)! < finalPopUp[0].mobile.conditions.showCount.count) {
+                if (finalPopUp.count > 0 && ((finalPopUp[0].mobile.content.count > 0) && (popupShow.showcount?.count)! < finalPopUp[0].mobile.conditions.showCount.count)) {
                     
                         var userInfo = [String: Any]()
                         userInfo["finalPopUp"] = (finalPopUp[0] )
