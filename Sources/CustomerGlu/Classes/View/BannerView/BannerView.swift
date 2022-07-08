@@ -72,7 +72,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
     
     public override var intrinsicContentSize: CGSize {
         self.layoutIfNeeded()
-        return CGSize(width: self.frame.size.width, height: CGFloat(finalHeight))
+        return CGSize(width: UIScreen.main.bounds.width, height: CGFloat(finalHeight))
     }
         
     // MARK: - Nib handlers
@@ -149,7 +149,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
     
     private func setBannerView(height: Int, isAutoScrollEnabled: Bool, autoScrollSpeed: Int){
         
-        let screenWidth = self.frame.size.width
+        let screenWidth = UIScreen.main.bounds.width
         let screenHeight = UIScreen.main.bounds.height
         finalHeight = (Int(screenHeight) * height)/100
         
@@ -241,8 +241,10 @@ public class BannerView: UIView, UIScrollViewDelegate {
             self.imgScrollView.scrollRectToVisible(CGRect(x: slideToX, y: 0, width: pageWidth, height: self.imgScrollView.frame.height), animated: true)
         }
         
-        let pageNumber = round(slideToX / self.frame.size.width)
-        pageControl.currentPage = Int(pageNumber)
+        let pageNumber = round(slideToX / UIScreen.main.bounds.width)
+       // if !pageNumber.isNaN {
+            pageControl.currentPage = Int(pageNumber)
+      //  }
     }
     
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
