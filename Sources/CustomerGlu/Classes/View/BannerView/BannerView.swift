@@ -18,9 +18,8 @@ public class BannerView: UIView, UIScrollViewDelegate {
     private var code = true
     var finalHeight = 0
     private var loadedapicalled = false
-    
-    @IBOutlet weak private var imgScrollView: UIScrollView!
-    @IBOutlet weak private var pageControl: UIPageControl!
+    var imgScrollView: UIScrollView!
+    var pageControl: UIPageControl!
     
     @IBInspectable var bannerId: String? {
         didSet {
@@ -77,22 +76,23 @@ public class BannerView: UIView, UIScrollViewDelegate {
         
     // MARK: - Nib handlers
     private func xibSetup() {
-        view = loadViewFromNib()
+        view = UIView()
         view.frame = bounds
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.translatesAutoresizingMaskIntoConstraints = true
         // Adding custom subview on top of our view (over any custom drawing > see note below)
+        imgScrollView = UIScrollView()
         imgScrollView.frame = bounds
         imgScrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        imgScrollView.delegate = self
+        view.addSubview(imgScrollView)
+        pageControl = UIPageControl()
+        pageControl.currentPage = 0
+        pageControl.currentPageIndicatorTintColor = .black
+        pageControl.pageIndicatorTintColor = .white
+        view.addSubview(pageControl)
         addSubview(view)
         reloadBannerView(element_id: self.bannerId ?? "")
-    }
-    
-    private func loadViewFromNib() -> UIView {
-        let nib = UINib(nibName: "BannerView", bundle: .module)
-        // Assumes UIView is top level and only object in CustomView.xib file
-        let view = nib.instantiate(withOwner: self, options: nil).first as? UIView
-        return view!
     }
     
     public func reloadBannerView(element_id: String) {
@@ -223,6 +223,8 @@ public class BannerView: UIView, UIScrollViewDelegate {
             self.pageControl.numberOfPages = arrContent.count
         }
         self.pageControl.currentPage = 0
+        
+        pageControl.frame = CGRect(x: 0, y: finalHeight - 26, width: Int(self.frame.size.width), height: 26)
         
         invalidateIntrinsicContentSize()
         self.layoutIfNeeded()

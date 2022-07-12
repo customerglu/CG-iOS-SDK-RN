@@ -84,8 +84,7 @@ class ApplicationManager {
         }
     }
     
-    public static func callCrashReport(cglog: String = "", isException: Bool = false, methodName: String = "") {
-        let user_id = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: Constants.CUSTOMERGLU_USERID)
+    public static func callCrashReport(cglog: String = "", isException: Bool = false, methodName: String = "", user_id: String) {
         if user_id.count < 0 {
             return
         }

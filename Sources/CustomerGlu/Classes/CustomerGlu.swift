@@ -79,7 +79,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 // you can now cast it with the right type
                 if let crashItems = decoded as? [String: Any] {
                     // use dictFromJSON
-                    ApplicationManager.callCrashReport(cglog: (crashItems["callStack"] as? String)!, isException: true, methodName: "CustomerGluCrash")
+                    ApplicationManager.callCrashReport(cglog: (crashItems["callStack"] as? String)!, isException: true, methodName: "CustomerGluCrash", user_id: decryptUserDefaultKey(userdefaultKey: Constants.CUSTOMERGLU_USERID))
                 }
             } catch {
                 CustomerGlu.getInstance.printlog(cglog: "private override init()", isException: false, methodName: "CustomerGlu-init", posttoserver: false)
@@ -1109,7 +1109,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
         
         if(true == posttoserver){
-            ApplicationManager.callCrashReport(cglog: cglog, isException: isException, methodName: methodName)
+            ApplicationManager.callCrashReport(cglog: cglog, isException: isException, methodName: methodName, user_id:  decryptUserDefaultKey(userdefaultKey: Constants.CUSTOMERGLU_USERID))
         }
     }
     
