@@ -31,15 +31,11 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 selector: #selector(self.entryPointLoaded),
                 name: Notification.Name("EntryPointLoaded"),
                 object: nil)
-//            self.view.updateConstraintsIfNeeded()
         }
     }
 
     @objc private func entryPointLoaded(notification: NSNotification) {
-//        DispatchQueue.main.async {
-//            self.reloadBannerView(element_id: self.bannerId ?? "")
             self.reloadBannerView()
-//        }
     }
     
     var commonBannerId: String {
@@ -72,13 +68,11 @@ public class BannerView: UIView, UIScrollViewDelegate {
     
     public override var intrinsicContentSize: CGSize {
         self.layoutIfNeeded()
-//        return CGSize(width: UIView.noIntrinsicMetric, height: CGFloat(finalHeight))
         return CGSize(width: UIView.noIntrinsicMetric, height: CGFloat(finalHeight))
     }
         
     // MARK: - Nib handlers
     private func xibSetup() {
-        print("layoutSubviews xibSetup")
         self.autoresizesSubviews = true
         view = UIView()
         view.frame = bounds
@@ -93,14 +87,14 @@ public class BannerView: UIView, UIScrollViewDelegate {
         imgScrollView.delegate = self
         imgScrollView.isPagingEnabled = true
         imgScrollView.autoresizesSubviews = true
-        imgScrollView.backgroundColor = .yellow
-        print(imgScrollView.frame)
         view.addSubview(imgScrollView)
+        
         pageControl = UIPageControl()
         pageControl.currentPage = 0
         pageControl.currentPageIndicatorTintColor = .black
         pageControl.pageIndicatorTintColor = .white
         view.addSubview(pageControl)
+        
         addSubview(view)
     }
     
@@ -148,12 +142,10 @@ public class BannerView: UIView, UIScrollViewDelegate {
             
             if let heightconstraint = (self.constraints.filter{$0.firstAttribute == .height}.last) {
                 heightconstraint.constant = CGFloat(finalHeight)
-                //self.setNeedsLayout()
             }
             
             if let heightconstraint = (self.constraints.filter{$0.firstAttribute == .height}.first) {
                 heightconstraint.constant = CGFloat(0)
-                //self.setNeedsLayout()
                 if self.imgScrollView != nil {
                     self.imgScrollView.frame.size.height = CGFloat(0)
                 }
@@ -174,9 +166,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
     }
     
     private func setBannerView(height: Int, isAutoScrollEnabled: Bool, autoScrollSpeed: Int){
-        
-        print("+++Fram\(self.frame)")
-        print("+++bound\(bounds)")
+
         let screenWidth = self.frame.size.width
         let screenHeight = UIScreen.main.bounds.height
         finalHeight = (Int(screenHeight) * height)/100
@@ -191,12 +181,10 @@ public class BannerView: UIView, UIScrollViewDelegate {
 
             if let heightconstraint = (self.constraints.filter{$0.firstAttribute == .height}.last) {
                 heightconstraint.constant = CGFloat(finalHeight)
-                //self.setNeedsLayout()
             }
             if let heightconstraint = (self.constraints.filter{$0.firstAttribute == .height}.first) {
                 heightconstraint.constant = CGFloat(finalHeight)
                 self.imgScrollView.frame.size.height = CGFloat(heightconstraint.constant)
-                //self.setNeedsLayout()
             } else {
                 self.frame.size.height = CGFloat(finalHeight)
                 self.imgScrollView.frame.size.height = CGFloat(finalHeight)
