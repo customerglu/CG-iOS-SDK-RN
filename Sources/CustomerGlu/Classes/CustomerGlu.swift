@@ -388,7 +388,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                         self.entryPointInfoAddDelete(entryPoint: floatingButtons)
                                         self.addFloatingBtns()
                                         self.postBannersCount()
-                                        
+                                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("EntryPointLoaded").rawValue), object: nil, userInfo: nil)
                                         completion(true)
                                         
                                     case .failure(let error):
@@ -485,6 +485,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                         self.entryPointInfoAddDelete(entryPoint: floatingButtons)
                                         self.addFloatingBtns()
                                         self.postBannersCount()
+                                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("EntryPointLoaded").rawValue), object: nil, userInfo: nil)
                                         completion(true)
                                         
                                     case .failure(let error):
@@ -550,8 +551,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             let jsonData = Data(jsonString.utf8)
             let decoder = JSONDecoder()
             do {
-                let popupItems = try decoder.decode(EntryPointPopUpModel.self, from: jsonData)
-                popupDict = popupItems.popups!
+                if(jsonData.count > 0){
+                    let popupItems = try decoder.decode(EntryPointPopUpModel.self, from: jsonData)
+                    popupDict = popupItems.popups!
+                }
             } catch {
                 print(error.localizedDescription)
             }
