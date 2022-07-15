@@ -62,10 +62,6 @@ public class BannerView: UIView, UIScrollViewDelegate {
         self.xibSetup()
     }
     
-    public override func layoutSubviews() {
-        super.layoutSubviews()
-    }
-    
     public override var intrinsicContentSize: CGSize {
         self.layoutIfNeeded()
         return CGSize(width: UIView.noIntrinsicMetric, height: CGFloat(finalHeight))
@@ -94,7 +90,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
         pageControl.currentPageIndicatorTintColor = .black
         pageControl.pageIndicatorTintColor = .white
         view.addSubview(pageControl)
-        
+
         addSubview(view)
     }
     
@@ -133,31 +129,18 @@ public class BannerView: UIView, UIScrollViewDelegate {
     }
     
     private func bannerviewHeightZero() {
-        if code == true {
-            self.frame.size.height = CGFloat(0)
-            if self.imgScrollView != nil {
-                self.imgScrollView.frame.size.height = CGFloat(0)
-            }
-        } else {
-            
-            if let heightconstraint = (self.constraints.filter{$0.firstAttribute == .height}.last) {
-                heightconstraint.constant = CGFloat(finalHeight)
-            }
-            
-            if let heightconstraint = (self.constraints.filter{$0.firstAttribute == .height}.first) {
-                heightconstraint.constant = CGFloat(0)
-                if self.imgScrollView != nil {
-                    self.imgScrollView.frame.size.height = CGFloat(0)
-                }
-            } else {
-                self.frame.size.height = CGFloat(0)
-                if self.imgScrollView != nil {
-                    self.imgScrollView.frame.size.height = CGFloat(0)
-                }
-            }
-        }
+
         finalHeight = 0
         
+        self.constraints.filter{$0.firstAttribute == .height}.forEach({ $0.constant = CGFloat(finalHeight) })
+        self.frame.size.height = CGFloat(finalHeight)
+        if self.view != nil {
+            self.view.frame.size.height = CGFloat(finalHeight)
+        }
+        if self.imgScrollView != nil {
+            self.imgScrollView.frame.size.height = CGFloat(finalHeight)
+        }
+
         let postInfo: [String: Any] = ["finalheight": finalHeight]
         NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CGBANNER_FINAL_HEIGHT").rawValue), object: nil, userInfo: postInfo)
         
@@ -173,24 +156,15 @@ public class BannerView: UIView, UIScrollViewDelegate {
         
         let postInfo: [String: Any] = ["finalheight": finalHeight]
         NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CGBANNER_FINAL_HEIGHT").rawValue), object: nil, userInfo: postInfo)
-        
-        if code == true {
-            self.frame.size.height = CGFloat(finalHeight)
-            self.imgScrollView.frame.size.height = CGFloat(finalHeight)
-        } else {
-
-            if let heightconstraint = (self.constraints.filter{$0.firstAttribute == .height}.last) {
-                heightconstraint.constant = CGFloat(finalHeight)
-            }
-            if let heightconstraint = (self.constraints.filter{$0.firstAttribute == .height}.first) {
-                heightconstraint.constant = CGFloat(finalHeight)
-                self.imgScrollView.frame.size.height = CGFloat(heightconstraint.constant)
-            } else {
-                self.frame.size.height = CGFloat(finalHeight)
-                self.imgScrollView.frame.size.height = CGFloat(finalHeight)
-            }
+  
+        self.constraints.filter{$0.firstAttribute == .height}.forEach({ $0.constant = CGFloat(finalHeight) })
+        self.frame.size.height = CGFloat(finalHeight)
+        if self.view != nil {
+            self.view.frame.size.height = CGFloat(finalHeight)
         }
-        
+        if self.imgScrollView != nil {
+            self.imgScrollView.frame.size.height = CGFloat(finalHeight)
+        }
         
         for i in 0..<arrContent.count {
             let dict = arrContent[i]
