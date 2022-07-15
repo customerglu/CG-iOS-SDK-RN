@@ -88,7 +88,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
         pageControl = UIPageControl()
         pageControl.currentPage = 0
         pageControl.currentPageIndicatorTintColor = .black
-        pageControl.pageIndicatorTintColor = .white
+        pageControl.pageIndicatorTintColor = .lightGray
         view.addSubview(pageControl)
 
         addSubview(view)
@@ -96,8 +96,8 @@ public class BannerView: UIView, UIScrollViewDelegate {
     
     public func reloadBannerView() {
         
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [self] in
-        DispatchQueue.main.async { [self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [self] in
+//        DispatchQueue.main.async { [self] in
             
             
             if self.imgScrollView != nil {
