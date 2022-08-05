@@ -21,6 +21,7 @@ public struct MyData: Codable {
 public struct User: Codable {
     public var id: String?
     public var userId: String?
+    public var anonymousId: String?
     public var gluId: String?
     public var userName: String?
     public var email: String?

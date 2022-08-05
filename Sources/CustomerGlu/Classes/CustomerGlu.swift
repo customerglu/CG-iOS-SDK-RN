@@ -327,6 +327,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
         userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_TOKEN)
         userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_USERID)
+        userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_ANONYMOUSID)
         userDefaults.removeObject(forKey: Constants.CustomerGluCrash)
         userDefaults.removeObject(forKey: Constants.CustomerGluPopupDict)
         ApplicationManager.appSessionId = UUID().uuidString
@@ -362,12 +363,40 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             userData[APIParameterKey.apnsDeviceToken] = apnToken
         }
         
+        // Manage UserID & AnonymousId
+        let t_userid = userData["userId"] as! String? ?? ""
+        let t_anonymousIdP = userData["anonymousId"] as! String? ?? ""
+        let t_anonymousIdS = self.decryptUserDefaultKey(userdefaultKey: Constants.CUSTOMERGLU_USERID) as String? ?? ""
+   
+        if(t_userid.count <= 0){
+            
+            if (t_anonymousIdP.count > 0){
+                userData["anonymousId"] = t_anonymousIdP
+            }else if(t_anonymousIdS.count > 0){
+                userData["anonymousId"] = t_anonymousIdS
+            }else{
+                userData["anonymousId"] = UUID().uuidString
+            }
+            userData.removeValue(forKey: "userId")
+        }else if (t_anonymousIdS.count > 0){
+            userData["anonymousId"] = t_anonymousIdS
+        }else{
+            userData.removeValue(forKey: "anonymousId")
+        }
+        
         APIManager.userRegister(queryParameters: userData as NSDictionary) { result in
             switch result {
                 case .success(let response):
                     if response.success! {
                         self.encryptUserDefaultKey(str: response.data?.token ?? "", userdefaultKey: Constants.CUSTOMERGLU_TOKEN)
                         self.encryptUserDefaultKey(str: response.data?.user?.userId ?? "", userdefaultKey: Constants.CUSTOMERGLU_USERID)
+                        self.encryptUserDefaultKey(str: response.data?.user?.anonymousId ?? "", userdefaultKey: Constants.CUSTOMERGLU_ANONYMOUSID)
+                        
+//                        let t_userid = response.data?.user?.userId ?? ""
+//                        if(t_userid.count > 0){
+//                            self.userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_ANONYMOUSID)
+//                        }
+                        
                         self.userDefaults.synchronize()
                         if CustomerGlu.isEntryPointEnabled {
                             CustomerGlu.bannersHeight = nil

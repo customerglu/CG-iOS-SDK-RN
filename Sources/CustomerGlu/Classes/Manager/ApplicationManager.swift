@@ -65,6 +65,7 @@ class ApplicationManager {
         let event_id = UUID().uuidString
         let timestamp = fetchTimeStamp(dateFormat: Constants.DATE_FORMAT)
         let user_id = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: Constants.CUSTOMERGLU_USERID)
+        
         let eventData = [
             APIParameterKey.event_id: event_id,
             APIParameterKey.event_name: eventName,
