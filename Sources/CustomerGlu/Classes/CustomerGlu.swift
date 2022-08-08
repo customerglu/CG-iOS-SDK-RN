@@ -366,12 +366,17 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         // Manage UserID & AnonymousId
         let t_userid = userData["userId"] as! String? ?? ""
         let t_anonymousIdP = userData["anonymousId"] as! String? ?? ""
-        let t_anonymousIdS = self.decryptUserDefaultKey(userdefaultKey: Constants.CUSTOMERGLU_USERID) as String? ?? ""
+        let t_anonymousIdS = self.decryptUserDefaultKey(userdefaultKey: Constants.CUSTOMERGLU_ANONYMOUSID) as String? ?? ""
    
         if(t_userid.count <= 0){
-            
+            // Pass only anonymousId and removed UserID
             if (t_anonymousIdP.count > 0){
                 userData["anonymousId"] = t_anonymousIdP
+                
+                // Remove old user stored data
+                if(t_anonymousIdS.count > 0 && t_anonymousIdS != t_anonymousIdP){
+                    self.clearGluData()
+                }
             }else if(t_anonymousIdS.count > 0){
                 userData["anonymousId"] = t_anonymousIdS
             }else{
@@ -379,8 +384,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
             userData.removeValue(forKey: "userId")
         }else if (t_anonymousIdS.count > 0){
+            // Pass anonymousId and UserID Both
             userData["anonymousId"] = t_anonymousIdS
         }else{
+            // Pass only UserID and removed anonymousId
             userData.removeValue(forKey: "anonymousId")
         }
         
@@ -391,11 +398,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         self.encryptUserDefaultKey(str: response.data?.token ?? "", userdefaultKey: Constants.CUSTOMERGLU_TOKEN)
                         self.encryptUserDefaultKey(str: response.data?.user?.userId ?? "", userdefaultKey: Constants.CUSTOMERGLU_USERID)
                         self.encryptUserDefaultKey(str: response.data?.user?.anonymousId ?? "", userdefaultKey: Constants.CUSTOMERGLU_ANONYMOUSID)
-                        
-//                        let t_userid = response.data?.user?.userId ?? ""
-//                        if(t_userid.count > 0){
-//                            self.userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_ANONYMOUSID)
-//                        }
                         
                         self.userDefaults.synchronize()
                         if CustomerGlu.isEntryPointEnabled {
@@ -471,6 +473,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             CustomerGlu.getInstance.printlog(cglog: "user_id is nil", isException: false, methodName: "CustomerGlu-updateProfile-2", posttoserver: true)
             return
         }
+        //user_id.count will always be > 0
+        
         let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
         let writekey = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String
         userData[APIParameterKey.deviceType] = "ios"
@@ -487,12 +491,24 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             userData[APIParameterKey.apnsDeviceToken] = apnToken
         }
         
+        // Manage UserID & AnonymousId
+        let t_anonymousIdS = self.decryptUserDefaultKey(userdefaultKey: Constants.CUSTOMERGLU_ANONYMOUSID) as String? ?? ""
+        if (t_anonymousIdS.count > 0){
+            // Pass anonymousId and UserID Both
+            userData["anonymousId"] = t_anonymousIdS
+        }else{
+            // Pass only UserID and removed anonymousId
+            userData.removeValue(forKey: "anonymousId")
+        }
+        
         APIManager.userRegister(queryParameters: userData as NSDictionary) { result in
             switch result {
                 case .success(let response):
                     if response.success! {
                         self.encryptUserDefaultKey(str: response.data?.token ?? "", userdefaultKey: Constants.CUSTOMERGLU_TOKEN)
                         self.encryptUserDefaultKey(str: response.data?.user?.userId ?? "", userdefaultKey: Constants.CUSTOMERGLU_USERID)
+                        self.encryptUserDefaultKey(str: response.data?.user?.anonymousId ?? "", userdefaultKey: Constants.CUSTOMERGLU_ANONYMOUSID)
+                        
                         self.userDefaults.synchronize()
                         
                         if CustomerGlu.isEntryPointEnabled {
@@ -551,7 +567,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             switch result {
                 case .success(let response):
                     DispatchQueue.main.async {
-                        dismissFloatingButtons(is_remove: false)
+                        self.dismissFloatingButtons(is_remove: false)
                     }
                     CustomerGlu.entryPointdata.removeAll()
                     CustomerGlu.entryPointdata = response.data
@@ -1197,7 +1213,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         self.userDefaults.set(EncryptDecrypt.shared.encryptText(str: str), forKey: userdefaultKey)
     }
     
-    internal func decryptUserDefaultKey(userdefaultKey: String) -> String {
+    public func decryptUserDefaultKey(userdefaultKey: String) -> String {
         if UserDefaults.standard.object(forKey: userdefaultKey) != nil {
             return EncryptDecrypt.shared.decryptText(str: UserDefaults.standard.string(forKey: userdefaultKey)!)
         }
