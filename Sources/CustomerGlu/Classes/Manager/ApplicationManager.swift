@@ -15,7 +15,7 @@ class ApplicationManager {
     public static var operationQueue = OperationQueue()
     public static var appSessionId = UUID().uuidString
     
-    public static func openWalletApi(completion: @escaping (Bool, CampaignsModel?) -> Void) {
+    public static func openWalletApi(completion: @escaping (Bool, CGCampaignsModel?) -> Void) {
         if CustomerGlu.sdk_disable! == true {
             return
         }
@@ -31,7 +31,7 @@ class ApplicationManager {
         }
     }
     
-    public static func loadAllCampaignsApi(type: String, value: String, loadByparams: NSDictionary, completion: @escaping (Bool, CampaignsModel?) -> Void) {
+    public static func loadAllCampaignsApi(type: String, value: String, loadByparams: NSDictionary, completion: @escaping (Bool, CGCampaignsModel?) -> Void) {
         if CustomerGlu.sdk_disable! == true {
             return
         }

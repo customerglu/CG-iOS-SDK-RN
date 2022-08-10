@@ -171,7 +171,7 @@ class APIManager {
          ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
-    static func getWalletRewards(queryParameters: NSDictionary, completion: @escaping (Result<CampaignsModel, Error>) -> Void) {
+    static func getWalletRewards(queryParameters: NSDictionary, completion: @escaping (Result<CGCampaignsModel, Error>) -> Void) {
         // Call Get Wallet and Rewards List
 
         // create a blockOperation for avoiding miltiple API call at same time
