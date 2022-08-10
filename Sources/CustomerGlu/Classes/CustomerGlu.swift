@@ -69,6 +69,17 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
         }
         
+        let jsonString = decryptUserDefaultKey(userdefaultKey: Constants.CUSTOMERGLU_USERDATA)
+        let jsonData = Data(jsonString.utf8)
+        let decoder = JSONDecoder()
+        do {
+            if(jsonData.count > 0){
+                cgUserData = try decoder.decode(CGUser.self, from: jsonData)
+            }
+        } catch {
+            print(error.localizedDescription)
+        }
+        
         CustomerGluCrash.add(delegate: self)
         
         if userDefaults.object(forKey: Constants.CustomerGluCrash) != nil {
@@ -331,6 +342,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_ANONYMOUSID)
         userDefaults.removeObject(forKey: Constants.CustomerGluCrash)
         userDefaults.removeObject(forKey: Constants.CustomerGluPopupDict)
+        userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_USERDATA)
+        CustomerGlu.getInstance.cgUserData = CGUser()
         ApplicationManager.appSessionId = UUID().uuidString
     }
         
@@ -399,9 +412,15 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         self.encryptUserDefaultKey(str: response.data?.token ?? "", userdefaultKey: Constants.CUSTOMERGLU_TOKEN)
                         self.encryptUserDefaultKey(str: response.data?.user?.userId ?? "", userdefaultKey: Constants.CUSTOMERGLU_USERID)
                         self.encryptUserDefaultKey(str: response.data?.user?.anonymousId ?? "", userdefaultKey: Constants.CUSTOMERGLU_ANONYMOUSID)
-                        self.userDefaults.synchronize()
                         
                         self.cgUserData = response.data?.user ?? CGUser()
+                        let data = try! JSONEncoder().encode(self.cgUserData)
+                        let jsonString = String(data: data, encoding: .utf8)!
+                        self.encryptUserDefaultKey(str: jsonString, userdefaultKey: Constants.CUSTOMERGLU_USERDATA)
+                        
+                        self.userDefaults.synchronize()
+                        
+                        
                         if CustomerGlu.isEntryPointEnabled {
                             CustomerGlu.bannersHeight = nil
                             APIManager.getEntryPointdata(queryParameters: [:]) { result in
@@ -510,9 +529,13 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         self.encryptUserDefaultKey(str: response.data?.token ?? "", userdefaultKey: Constants.CUSTOMERGLU_TOKEN)
                         self.encryptUserDefaultKey(str: response.data?.user?.userId ?? "", userdefaultKey: Constants.CUSTOMERGLU_USERID)
                         self.encryptUserDefaultKey(str: response.data?.user?.anonymousId ?? "", userdefaultKey: Constants.CUSTOMERGLU_ANONYMOUSID)
-                        self.userDefaults.synchronize()
                         
                         self.cgUserData = response.data?.user ?? CGUser()
+                        let data = try! JSONEncoder().encode(self.cgUserData)
+                        let jsonString = String(data: data, encoding: .utf8)!
+                        self.encryptUserDefaultKey(str: jsonString, userdefaultKey: Constants.CUSTOMERGLU_USERDATA)
+                        
+                        self.userDefaults.synchronize()
                         
                         if CustomerGlu.isEntryPointEnabled {
                             CustomerGlu.bannersHeight = nil
@@ -670,6 +693,76 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     @objc public func openWalletWithURL(url: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
         CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: url, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview)
+    }
+    
+    internal func openNudgeWithValidToken(nudgeId: String, layout: String, bg_opacity: Double = 0.5, closeOnDeeplink : Bool = true) {
+        
+        if(nudgeId.count > 0 && CustomerGlu.sdk_disable == false){
+            APIManager.getWalletRewards(queryParameters: [:]) { result in
+                switch result {
+                case .success(let response):
+                    
+                    if(response.defaultUrl.count > 0){
+                        let url = URL(string: response.defaultUrl)
+                        if(url != nil){
+                            let scheme = url?.scheme
+                            let host = url?.host
+                            let userid = CustomerGlu.getInstance.cgUserData.userId
+                            let writekey = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String
+                            
+                            var cglayout = Constants.FULL_SCREEN_NOTIFICATION
+                            if(layout == "middle-popup"){
+                                cglayout = Constants.MIDDLE_NOTIFICATIONS
+                            }else if(layout == "bottom-popup"){
+                                cglayout = Constants.BOTTOM_DEFAULT_NOTIFICATION
+                            }else if(layout == "bottom-slider"){
+                                cglayout = Constants.BOTTOM_SHEET_NOTIFICATION
+                            }
+                            
+                            var finalurl = scheme
+                            finalurl! += "://"
+                            finalurl! += host!
+                            finalurl! += "/fragment-map/?"
+                            finalurl! += "fragmentMapId=\(nudgeId)"
+                            finalurl! += "&userId=\(userid ?? "")"
+                            finalurl! += "&writeKey=\(writekey ?? "")"
+                            
+                            DispatchQueue.main.async {
+                                CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: finalurl!, page_type: cglayout, backgroundAlpha: bg_opacity,auto_close_webview: closeOnDeeplink)
+                            }
+                        }else{
+                            CustomerGlu.getInstance.printlog(cglog: "defaultUrl is not valid", isException: false, methodName: "openNudge-getWalletRewards", posttoserver: true)
+                        }
+                        
+                    }else{
+                        CustomerGlu.getInstance.printlog(cglog: "defaultUrl not found", isException: false, methodName: "openNudge-getWalletRewards", posttoserver: true)
+                    }
+                    
+                    break
+                        
+                case .failure(let error):
+                    CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "openNudge-getWalletRewards", posttoserver: true)
+                }
+            }
+        }else{
+            CustomerGlu.getInstance.printlog(cglog: "nudgeId / layout is not found OR SDK is disable", isException: false, methodName: "openNudge-getWalletRewards", posttoserver: true)
+        }
+    }
+    @objc public func openNudge(nudgeId: String, layout: String, bg_opacity: Double = 0.5, closeOnDeeplink : Bool = true) {
+        
+        
+        if ApplicationManager.doValidateToken() == true {
+            openNudgeWithValidToken(nudgeId: nudgeId, layout: layout, bg_opacity: bg_opacity, closeOnDeeplink: closeOnDeeplink)
+        } else {
+            let userData = [String: AnyHashable]()
+            CustomerGlu.getInstance.updateProfile(userdata: userData) { success in
+                if success {
+                    self.openNudgeWithValidToken(nudgeId: nudgeId, layout: layout, bg_opacity: bg_opacity, closeOnDeeplink: closeOnDeeplink)
+                } else {
+                    CustomerGlu.getInstance.printlog(cglog: "UpdateProfile API fail", isException: false, methodName: "openNudge-updateProfile", posttoserver: true)
+                }
+            }
+        }
     }
     
     @objc public func openWallet(auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
