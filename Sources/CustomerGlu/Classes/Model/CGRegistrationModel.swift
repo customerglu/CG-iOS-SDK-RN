@@ -7,20 +7,20 @@
 
 import Foundation
 
-@objc(RegistrationModel)
-public class RegistrationModel: NSObject, Codable {
+@objc(CGRegistrationModel)
+public class CGRegistrationModel: NSObject, Codable {
           public var success: Bool?
-    @objc public var data: MyData?
+    @objc public var data: CGMyData?
 }
 
-@objc(MyData)
-public class MyData: NSObject, Codable {
+@objc(CGMyData)
+public class CGMyData: NSObject, Codable {
     @objc public var token: String?
-    @objc public var user: User?
+    @objc public var user: CGUser?
 }
 
-@objc(User)
-public class User: NSObject, Codable {
+@objc(CGUser)
+public class CGUser: NSObject, Codable {
     @objc public var id: String?
     @objc public var userId: String?
     @objc public var anonymousId: String?
@@ -33,16 +33,16 @@ public class User: NSObject, Codable {
     @objc public var client: String?
     @objc public var referralLink: String?
     @objc public var referredBy: String?
-    @objc public var identities: Identities?
-    @objc public var profile: Profile?
+    @objc public var identities: CGIdentities?
+    @objc public var profile: CGProfile?
     @objc public var sessionId: String?
     @objc public var deviceId: String?
     @objc public var deviceType: String?
     @objc public var deviceName: String?
 }
 
-@objc(Identities)
-public class Identities: NSObject, Codable {
+@objc(CGIdentities)
+public class CGIdentities: NSObject, Codable {
     @objc public var facebook_id: String?
     @objc public var google_id: String?
     @objc public var android_id: String?
@@ -53,8 +53,8 @@ public class Identities: NSObject, Codable {
     @objc public var moengage_id: String?
 }
 
-@objc(Profile)
-public class Profile: NSObject, Codable {
+@objc(CGProfile)
+public class CGProfile: NSObject, Codable {
     @objc public var firstName: String?
     @objc public var lastName: String?
     @objc public var age: String?

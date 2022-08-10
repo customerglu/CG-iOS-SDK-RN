@@ -56,7 +56,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var whiteListedDomains = [Constants.default_whitelist_doamin]
     public static var doamincode = 404
     public static var textMsg = "Requested-page-is-not-valid"
-    @objc public var cgUserData = User()
+    @objc public var cgUserData = CGUser()
     
     private override init() {
         super.init()
@@ -401,7 +401,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         self.encryptUserDefaultKey(str: response.data?.user?.anonymousId ?? "", userdefaultKey: Constants.CUSTOMERGLU_ANONYMOUSID)
                         self.userDefaults.synchronize()
                         
-                        self.cgUserData = response.data?.user ?? User()
+                        self.cgUserData = response.data?.user ?? CGUser()
                         if CustomerGlu.isEntryPointEnabled {
                             CustomerGlu.bannersHeight = nil
                             APIManager.getEntryPointdata(queryParameters: [:]) { result in
@@ -512,7 +512,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         self.encryptUserDefaultKey(str: response.data?.user?.anonymousId ?? "", userdefaultKey: Constants.CUSTOMERGLU_ANONYMOUSID)
                         self.userDefaults.synchronize()
                         
-                        self.cgUserData = response.data?.user ?? User()
+                        self.cgUserData = response.data?.user ?? CGUser()
                         
                         if CustomerGlu.isEntryPointEnabled {
                             CustomerGlu.bannersHeight = nil

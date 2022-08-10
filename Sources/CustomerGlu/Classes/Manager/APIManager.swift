@@ -152,7 +152,7 @@ class APIManager {
         //   }
     }
     
-    static func userRegister(queryParameters: NSDictionary, completion: @escaping (Result<RegistrationModel, Error>) -> Void) {
+    static func userRegister(queryParameters: NSDictionary, completion: @escaping (Result<CGRegistrationModel, Error>) -> Void) {
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
         
