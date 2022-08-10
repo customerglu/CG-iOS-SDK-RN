@@ -58,7 +58,7 @@ class ApplicationManager {
         }
     }
     
-    public static func sendEventData(eventName: String, eventProperties: [String: Any]?, completion: @escaping (Bool, AddCartModel?) -> Void) {
+    public static func sendEventData(eventName: String, eventProperties: [String: Any]?, completion: @escaping (Bool, CGAddCartModel?) -> Void) {
         if CustomerGlu.sdk_disable! == true {
             return
         }
@@ -109,7 +109,7 @@ class ApplicationManager {
         }
     }
     
-    private static func crashReport(parameters: NSDictionary, completion: @escaping (Bool, AddCartModel?) -> Void) {
+    private static func crashReport(parameters: NSDictionary, completion: @escaping (Bool, CGAddCartModel?) -> Void) {
         if CustomerGlu.sdk_disable! == true {
             return
         }

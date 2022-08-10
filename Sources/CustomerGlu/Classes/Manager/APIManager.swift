@@ -191,7 +191,7 @@ class APIManager {
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
-    static func addToCart(queryParameters: NSDictionary, completion: @escaping (Result<AddCartModel, Error>) -> Void) {
+    static func addToCart(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, Error>) -> Void) {
         
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
@@ -211,7 +211,7 @@ class APIManager {
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
-    static func crashReport(queryParameters: NSDictionary, completion: @escaping (Result<AddCartModel, Error>) -> Void) {
+    static func crashReport(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, Error>) -> Void) {
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
         
