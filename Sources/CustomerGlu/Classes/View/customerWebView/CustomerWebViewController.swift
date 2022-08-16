@@ -224,7 +224,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }
             
             if bodyStruct?.eventName == WebViewsKey.open_deeplink {
-                let deeplink = try? JSONDecoder().decode(DeepLinkModel.self, from: bodyData)
+                let deeplink = try? JSONDecoder().decode(CGDeepLinkModel.self, from: bodyData)
                 if  let deep_link = deeplink?.data?.deepLink {
                     print("link", deep_link)
                     postdata = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!) ?? [String:Any]()
