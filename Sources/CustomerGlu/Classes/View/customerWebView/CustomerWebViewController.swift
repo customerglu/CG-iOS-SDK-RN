@@ -211,7 +211,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             guard let bodyString = message.body as? String,
                   let bodyData = bodyString.data(using: .utf8) else { fatalError() }
             
-            let bodyStruct = try? JSONDecoder().decode(EventModel.self, from: bodyData)
+            let bodyStruct = try? JSONDecoder().decode(CGEventModel.self, from: bodyData)
             
             if bodyStruct?.eventName == WebViewsKey.close {
                 if openWallet {
