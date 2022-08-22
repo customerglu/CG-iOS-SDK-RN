@@ -248,7 +248,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }
             
             if bodyStruct?.eventName == WebViewsKey.share {
-                let share = try? JSONDecoder().decode(EventShareModel.self, from: bodyData)
+                let share = try? JSONDecoder().decode(CGEventShareModel.self, from: bodyData)
                 let text = share?.data?.text
                 let channelName = share?.data?.channelName
                 if let imageurl = share?.data?.image {
