@@ -249,7 +249,7 @@ class APIManager {
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
-    static func publishNudge(queryParameters: NSDictionary, completion: @escaping (Result<PublishNudgeModel, Error>) -> Void) {
+    static func publishNudge(queryParameters: NSDictionary, completion: @escaping (Result<CGPublishNudgeModel, Error>) -> Void) {
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
         

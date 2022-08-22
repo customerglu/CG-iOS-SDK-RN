@@ -139,7 +139,7 @@ class ApplicationManager {
         return false
     }
     
-    public static func publishNudge(eventNudge: [String: AnyHashable], completion: @escaping (Bool, PublishNudgeModel?) -> Void) {
+    public static func publishNudge(eventNudge: [String: AnyHashable], completion: @escaping (Bool, CGPublishNudgeModel?) -> Void) {
         if CustomerGlu.sdk_disable! == true {
             return
         }
