@@ -37,12 +37,20 @@ extension String {
 
 extension UIViewController {
     static func topViewController() -> UIViewController? {
-        let keyWindow = UIApplication.shared.windows[0]
-        if var topController = keyWindow.rootViewController {
-            while let presentedViewController = topController.presentedViewController {
-                topController = presentedViewController
+//        let keyWindow = UIApplication.shared.windows[0]
+//        if var topController = keyWindow.rootViewController {
+//            while let presentedViewController = topController.presentedViewController {
+//                topController = presentedViewController
+//            }
+//            return topController
+//        }
+//        return UIViewController()
+        
+        if var presentedVC = UIApplication.shared.keyWindow?.rootViewController{
+            while let pVC = presentedVC.presentedViewController {
+                presentedVC = pVC
             }
-            return topController
+            return presentedVC
         }
         return UIViewController()
     }
