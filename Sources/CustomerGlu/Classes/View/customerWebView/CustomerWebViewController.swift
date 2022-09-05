@@ -58,8 +58,28 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         topSafeArea.backgroundColor = CustomerGlu.topSafeAreaColor
         bottomSafeArea.backgroundColor = CustomerGlu.bottomSafeAreaColor
     }
+    public override var shouldAutorotate: Bool{
+        return false;
+    }
+
+    @objc func rotated() {
+        
+        self.setupWebViewCustomFrame(url: self.urlStr)
+
+//        if UIDevice.current.orientation.isLandscape {
+//        }
+//
+//        if UIDevice.current.orientation.isPortrait {
+//        }
+    }
     public override func viewDidLoad() {
         super.viewDidLoad()
+
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(rotated),
+                                               name: UIDevice.orientationDidChangeNotification,
+                                               object: nil)
+
         
         navigationController?.setNavigationBarHidden(true, animated: false)
         
@@ -124,6 +144,9 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     private func setupWebViewCustomFrame(url: String) {
+        webView.removeFromSuperview()
+        self.urlStr = String(url)
+        
         let x = self.view.frame.midX - 30
         var y = self.view.frame.midY - 30
         
@@ -265,6 +288,18 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                             sendImagesToOtherApp(imageString: imageurl, shareText: text ?? "")
                         }
                     }
+                    
+//                    if self.auto_close_webview == true {
+//                        // Posted a notification in viewDidDisappear method
+//                        if openWallet {
+//                            delegate?.closeClicked(true)
+//                        } else if notificationHandler || iscampignId {
+//                            self.closePage(animated: true)
+//                        } else {
+//                            self.navigationController?.popViewController(animated: true)
+//                        }
+//                    }
+
                 }
             }
             
