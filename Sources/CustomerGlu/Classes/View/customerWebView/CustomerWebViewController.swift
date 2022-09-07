@@ -64,8 +64,30 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
 
     @objc func rotated() {
         
-        self.setupWebViewCustomFrame(url: self.urlStr)
 
+        for subview in self.view.subviews {
+            if(subview == webView){
+                //        webView.removeFromSuperview()
+                //        self.urlStr = String(url)
+                        
+                        let x = self.view.frame.midX - 30
+                        var y = self.view.frame.midY - 30
+                        
+                        let height = (self.view.frame.height) / 1.4
+                        if ismiddle {
+                            webView.frame = CGRect(x: 20, y: (self.view.frame.height - height)/2, width: self.view.frame.width - 40, height: height)
+
+                        } else if isbottomdefault {
+                            webView.frame = CGRect(x: 0, y: self.view.frame.height - height, width: self.view.frame.width, height: height)
+                        } else if isbottomsheet {
+                            webView.frame = CGRect(x: 0, y: 0, width: self.view.frame.width, height: UIScreen.main.bounds.height)
+                        } else {
+                            topHeight.constant = CGFloat(CustomerGlu.topSafeAreaHeight)
+                            bottomHeight.constant = CGFloat(CustomerGlu.bottomSafeAreaHeight)
+                            webView.frame = CGRect(x: 0, y: topHeight.constant, width: self.view.frame.width, height: self.view.frame.height - (topHeight.constant + bottomHeight.constant))
+                        }
+                    }
+        }
 //        if UIDevice.current.orientation.isLandscape {
 //        }
 //
@@ -144,8 +166,8 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     private func setupWebViewCustomFrame(url: String) {
-        webView.removeFromSuperview()
-        self.urlStr = String(url)
+//        webView.removeFromSuperview()
+//        self.urlStr = String(url)
         
         let x = self.view.frame.midX - 30
         var y = self.view.frame.midY - 30
