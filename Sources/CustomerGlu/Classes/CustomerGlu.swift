@@ -690,6 +690,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             encryptUserDefaultKey(str: jsonString2, userdefaultKey: Constants.CustomerGluPopupDict)
         }
     }
+ 
+    @objc public func openWalletWithURL(nudgeConfiguration: CGNudgeConfiguration) {
+        CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: nudgeConfiguration.url, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: nudgeConfiguration.opacity,auto_close_webview: nudgeConfiguration.closeOnDeepLink)
+    }
     
     @objc public func openWalletWithURL(url: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
         CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: url, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview)
@@ -766,21 +770,23 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func openWallet(auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
-        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_TOKEN) == nil {
-            CustomerGlu.getInstance.printlog(cglog: "Fail to call openWallet", isException: false, methodName: "CustomerGlu-openWallet", posttoserver: true)
-            return
-        }
+//        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_TOKEN) == nil {
+//            CustomerGlu.getInstance.printlog(cglog: "Fail to call openWallet", isException: false, methodName: "CustomerGlu-openWallet", posttoserver: true)
+//            return
+//        }
         
-        DispatchQueue.main.async {
-            let openWalletVC = StoryboardType.main.instantiate(vcType: OpenWalletViewController.self)
-            guard let topController = UIViewController.topViewController() else {
-                return
-            }
-            openWalletVC.auto_close_webview = auto_close_webview
-            openWalletVC.modalPresentationStyle = .fullScreen
-            self.hideFloatingButtons()
-            topController.present(openWalletVC, animated: true, completion: nil)
-        }
+//        DispatchQueue.main.async {
+//            let openWalletVC = StoryboardType.main.instantiate(vcType: OpenWalletViewController.self)
+//            guard let topController = UIViewController.topViewController() else {
+//                return
+//            }
+//            openWalletVC.auto_close_webview = auto_close_webview
+//            openWalletVC.modalPresentationStyle = .fullScreen
+//            self.hideFloatingButtons()
+//            topController.present(openWalletVC, animated: true, completion: nil)
+//        }
+        
+        CustomerGlu.getInstance.loadCampaignById(campaign_id: "", auto_close_webview: auto_close_webview)
     }
     
     @objc public func loadAllCampaigns(auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
