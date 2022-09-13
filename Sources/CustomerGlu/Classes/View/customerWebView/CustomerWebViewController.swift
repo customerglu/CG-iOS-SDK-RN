@@ -41,6 +41,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     
     var postdata = [String:Any]()
     var canpost = false
+    public var nudgeConfiguration: CGNudgeConfiguration?
     
     public func configureSafeAreaForDevices() {
         let window = UIApplication.shared.keyWindow
@@ -101,9 +102,21 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                                                selector: #selector(rotated),
                                                name: UIDevice.orientationDidChangeNotification,
                                                object: nil)
-
-        
         navigationController?.setNavigationBarHidden(true, animated: false)
+        
+        if(self.nudgeConfiguration != nil){
+            self.alpha = nudgeConfiguration!.opacity
+            self.auto_close_webview = nudgeConfiguration!.closeOnDeepLink
+            
+            if(nudgeConfiguration!.layout == Constants.MIDDLE_NOTIFICATIONS || nudgeConfiguration!.layout == Constants.MIDDLE_NOTIFICATIONS_POPUP){
+                self.ismiddle = true
+            }else if(nudgeConfiguration!.layout == Constants.BOTTOM_DEFAULT_NOTIFICATION || nudgeConfiguration!.layout == Constants.BOTTOM_DEFAULT_NOTIFICATION_POPUP){
+                self.isbottomdefault = true
+            }else if(nudgeConfiguration!.layout == Constants.BOTTOM_SHEET_NOTIFICATION){
+                self.isbottomsheet = true
+            }
+
+        }
         
         contentController.add(self, name: WebViewsKey.callback) //name is the key you want the app to listen to.
         config.userContentController = contentController

@@ -261,13 +261,15 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    @objc public func presentToCustomerWebViewController(nudge_url: String, page_type: String, backgroundAlpha: Double, auto_close_webview : Bool) {
+    @objc public func presentToCustomerWebViewController(nudge_url: String, page_type: String, backgroundAlpha: Double, auto_close_webview : Bool, nudgeConfiguration : CGNudgeConfiguration? = nil) {
         
         let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
         customerWebViewVC.urlStr = nudge_url
         customerWebViewVC.auto_close_webview = auto_close_webview
         customerWebViewVC.notificationHandler = true
         customerWebViewVC.alpha = backgroundAlpha
+        customerWebViewVC.nudgeConfiguration = nudgeConfiguration
+        
         guard let topController = UIViewController.topViewController() else {
             return
         }
@@ -278,6 +280,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             if #available(iOS 15.0, *) {
                 if let sheet = customerWebViewVC.sheetPresentationController {
                     sheet.detents = [ .medium(), .large() ]
+                }else{
+                    customerWebViewVC.modalPresentationStyle = .pageSheet
                 }
             } else {
                 customerWebViewVC.modalPresentationStyle = .pageSheet
@@ -692,15 +696,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
  
     @objc public func openWalletWithURL(nudgeConfiguration: CGNudgeConfiguration) {
-        CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: nudgeConfiguration.url, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: nudgeConfiguration.opacity,auto_close_webview: nudgeConfiguration.closeOnDeepLink)
+        CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: nudgeConfiguration.url, page_type: nudgeConfiguration.layout, backgroundAlpha: nudgeConfiguration.opacity,auto_close_webview: nudgeConfiguration.closeOnDeepLink)
     }
     
     @objc public func openWalletWithURL(url: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
         CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: url, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview)
     }
     
-    internal func openNudgeWithValidToken(nudgeId: String, layout: String, bg_opacity: Double = 0.5, closeOnDeeplink : Bool = true) {
-        
+    internal func openNudgeWithValidToken(nudgeId: String, layout: String = Constants.FULL_SCREEN_NOTIFICATION, bg_opacity: Double = 0.5, closeOnDeeplink : Bool = true, nudgeConfiguration : CGNudgeConfiguration? = nil) {
         if(nudgeId.count > 0 && CustomerGlu.sdk_disable == false){
             APIManager.getWalletRewards(queryParameters: [:]) { result in
                 switch result {
@@ -713,6 +716,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             let host = url?.host
                             let userid = CustomerGlu.getInstance.cgUserData.userId
                             let writekey = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String
+                            
+                            var layout = layout
+                            if(nudgeConfiguration != nil){
+                                layout = nudgeConfiguration!.layout
+                            }
                             
                             var cglayout = Constants.FULL_SCREEN_NOTIFICATION
                             if(layout == "middle-popup"){
@@ -732,7 +740,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             finalurl! += "&writeKey=\(writekey ?? "")"
                             
                             DispatchQueue.main.async {
-                                CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: finalurl!, page_type: cglayout, backgroundAlpha: bg_opacity,auto_close_webview: closeOnDeeplink)
+                                if(nudgeConfiguration != nil){
+                                    CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: finalurl!, page_type: nudgeConfiguration!.layout, backgroundAlpha: nudgeConfiguration!.opacity,auto_close_webview: nudgeConfiguration!.closeOnDeepLink, nudgeConfiguration: nudgeConfiguration)
+                                    
+                                }else{
+                                        CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: finalurl!, page_type: cglayout, backgroundAlpha: bg_opacity,auto_close_webview: closeOnDeeplink)
+                                }
                             }
                         }else{
                             CustomerGlu.getInstance.printlog(cglog: "defaultUrl is not valid", isException: false, methodName: "openNudge-getWalletRewards", posttoserver: true)
@@ -767,6 +780,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 }
             }
         }
+    }
+    
+    @objc public func openWallet(nudgeConfiguration: CGNudgeConfiguration) {
+        
+        CustomerGlu.getInstance.loadCampaignById(campaign_id: "", nudgeConfiguration:nudgeConfiguration)
+        
     }
     
     @objc public func openWallet(auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
@@ -808,7 +827,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    @objc public func loadCampaignById(campaign_id: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
+    @objc public func loadCampaignById(campaign_id: String, nudgeConfiguration : CGNudgeConfiguration? = nil , auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_TOKEN) == nil {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call loadCampaignById", isException: false, methodName: "CustomerGlu-loadCampaignById", posttoserver: true)
             return
@@ -819,10 +838,41 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             guard let topController = UIViewController.topViewController() else {
                 return
             }
-            customerWebViewVC.auto_close_webview = auto_close_webview
+            customerWebViewVC.auto_close_webview = nudgeConfiguration != nil ? nudgeConfiguration?.closeOnDeepLink : auto_close_webview
             customerWebViewVC.modalPresentationStyle = .fullScreen
             customerWebViewVC.iscampignId = true
             customerWebViewVC.campaign_id = campaign_id
+            customerWebViewVC.nudgeConfiguration = nudgeConfiguration
+            
+            if(nudgeConfiguration != nil){
+                if(nudgeConfiguration!.layout == Constants.MIDDLE_NOTIFICATIONS || nudgeConfiguration!.layout == Constants.MIDDLE_NOTIFICATIONS_POPUP){
+                        customerWebViewVC.ismiddle = true
+                        customerWebViewVC.modalPresentationStyle = .overCurrentContext
+                }else if(nudgeConfiguration!.layout == Constants.BOTTOM_DEFAULT_NOTIFICATION || nudgeConfiguration!.layout == Constants.BOTTOM_DEFAULT_NOTIFICATION_POPUP){
+                    
+                        customerWebViewVC.isbottomdefault = true
+                        customerWebViewVC.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
+                        customerWebViewVC.navigationController?.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
+                    
+                }else if(nudgeConfiguration!.layout == Constants.BOTTOM_SHEET_NOTIFICATION){
+                        customerWebViewVC.isbottomsheet = true
+                        #if compiler(>=5.5)
+                        if #available(iOS 15.0, *) {
+                            if let sheet = customerWebViewVC.sheetPresentationController {
+                                sheet.detents = [ .medium(), .large() ]
+                            }else{
+                                customerWebViewVC.modalPresentationStyle = .pageSheet
+                            }
+                        } else {
+                            customerWebViewVC.modalPresentationStyle = .pageSheet
+                        }
+                        #else
+                        customerWebViewVC.modalPresentationStyle = .pageSheet
+                        #endif
+                }else{
+                    customerWebViewVC.modalPresentationStyle = .fullScreen
+                }
+            }
             self.hideFloatingButtons()
             topController.present(customerWebViewVC, animated: false, completion: nil)
         }
@@ -1198,6 +1248,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             if #available(iOS 15.0, *) {
                 if let sheet = customerWebViewVC.sheetPresentationController {
                     sheet.detents = [ .medium(), .large() ]
+                }else{
+                    customerWebViewVC.modalPresentationStyle = .pageSheet
                 }
             } else {
                 customerWebViewVC.modalPresentationStyle = .pageSheet
