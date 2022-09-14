@@ -74,7 +74,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                         let x = self.view.frame.midX - 30
                         var y = self.view.frame.midY - 30
                         
-                        let height = (self.view.frame.height) / 1.4
+                        let height = getconfiguredheight()
                         if ismiddle {
                             webView.frame = CGRect(x: 20, y: (self.view.frame.height - height)/2, width: self.view.frame.width - 40, height: height)
 
@@ -185,7 +185,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         let x = self.view.frame.midX - 30
         var y = self.view.frame.midY - 30
         
-        let height = (self.view.frame.height) / 1.4
+        let height = getconfiguredheight()
         if ismiddle {
             webView = WKWebView(frame: CGRect(x: 20, y: (self.view.frame.height - height)/2, width: self.view.frame.width - 40, height: height), configuration: config) //set your own frame
             webView.layer.cornerRadius = 20
@@ -207,7 +207,19 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         }
         loadwebView(url: url, x: x, y: y)
     }
-    
+    private func getconfiguredheight()->CGFloat {
+        var finalheight = (self.view.frame.height) * (70/100)
+        
+        if(nudgeConfiguration != nil){
+            if(nudgeConfiguration!.relativeHeight > 0){
+                finalheight = (self.view.frame.height) * (nudgeConfiguration!.relativeHeight/100)
+            }else if(nudgeConfiguration!.absoluteHeight > 0){
+                finalheight = nudgeConfiguration!.absoluteHeight
+            }
+        }
+        
+        return finalheight
+    }
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(false)
     }
