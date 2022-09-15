@@ -251,15 +251,15 @@ public class BannerView: UIView, UIScrollViewDelegate {
 
         let dict = arrContent[sender?.view?.tag ?? 0]
         if dict.campaignId != nil {
-            if dict.openLayout == "FULL-DEFAULT" {
-                CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: condition?.backgroundOpacity ?? 0.5)
-            } else if dict.openLayout == "BOTTOM-DEFAULT" {
-                CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, page_type: Constants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: condition?.backgroundOpacity ?? 0.5)
-            }  else if dict.openLayout == "BOTTOM-SLIDER" {
-                CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, page_type: Constants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: condition?.backgroundOpacity ?? 0.5)
-            } else {
-                CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: condition?.backgroundOpacity ?? 0.5)
-            }
+            
+            let nudgeConfiguration = CGNudgeConfiguration()
+            nudgeConfiguration.layout = dict.openLayout.lowercased()
+            nudgeConfiguration.opacity = condition?.backgroundOpacity ?? 0.5
+            nudgeConfiguration.closeOnDeepLink = dict.closeOnDeepLink ?? CustomerGlu.auto_close_webview!
+            nudgeConfiguration.relativeHeight = dict.relativeHeight ?? 0.0
+            nudgeConfiguration.absoluteHeight = dict.absoluteHeight ?? 0.0
+            
+            CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, nudgeConfiguration: nudgeConfiguration)
             
             var actionTarget = ""
             if dict.campaignId.count == 0 {

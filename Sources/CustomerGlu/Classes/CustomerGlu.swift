@@ -1200,16 +1200,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             popuptimer?.invalidate()
             popuptimer = nil
             
-            if finalPopUp.mobile.content[0].openLayout == "FULL-DEFAULT" {
-                CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp.mobile.content[0].campaignId)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: finalPopUp.mobile.conditions.backgroundOpacity ?? 0.5)
-            } else if finalPopUp.mobile.content[0].openLayout == "BOTTOM-DEFAULT" {
-                CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp.mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: finalPopUp.mobile.conditions.backgroundOpacity ?? 0.5)
-            }  else if finalPopUp.mobile.content[0].openLayout == "BOTTOM-SLIDER" {
-                CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp.mobile.content[0].campaignId)!, page_type: Constants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: finalPopUp.mobile.conditions.backgroundOpacity ?? 0.5)
-            } else {
-                CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp.mobile.content[0].campaignId)!, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: finalPopUp.mobile.conditions.backgroundOpacity ?? 0.5)
-            }
+            let nudgeConfiguration = CGNudgeConfiguration()
+            nudgeConfiguration.layout = finalPopUp.mobile.content[0].openLayout.lowercased()
+            nudgeConfiguration.opacity = finalPopUp.mobile.conditions.backgroundOpacity ?? 0.5
+            nudgeConfiguration.closeOnDeepLink = finalPopUp.mobile.content[0].closeOnDeepLink ?? CustomerGlu.auto_close_webview!
+            nudgeConfiguration.relativeHeight = finalPopUp.mobile.content[0].relativeHeight ?? 0.0
+            nudgeConfiguration.absoluteHeight = finalPopUp.mobile.content[0].absoluteHeight ?? 0.0
             
+            CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp.mobile.content[0].campaignId)!, nudgeConfiguration: nudgeConfiguration)
             
             self.popupDisplayScreens.append(CustomerGlu.getInstance.activescreenname)
             updateShowCount(showCount: showCount, eventData: finalPopUp)
@@ -1231,18 +1229,20 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         eventPublishNudge(pageName: className, nudgeId: data.mobile.content[0]._id, actionType: actionType, actionTarget: actionTarget, pageType: data.mobile.content[0].openLayout, campaignId: data.mobile.content[0].campaignId,nudgeType: data.mobile.container.type)
     }
   
-    internal func openCampaignById(campaign_id: String, page_type: String, backgroundAlpha: Double, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
+//    internal func openCampaignById(campaign_id: String, page_type: String, backgroundAlpha: Double, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
+    internal func openCampaignById(campaign_id: String, nudgeConfiguration : CGNudgeConfiguration) {
         
         let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
         customerWebViewVC.iscampignId = true
-        customerWebViewVC.alpha = backgroundAlpha
+        customerWebViewVC.alpha = nudgeConfiguration.opacity
         customerWebViewVC.campaign_id = campaign_id
-        customerWebViewVC.auto_close_webview = auto_close_webview
+        customerWebViewVC.auto_close_webview = nudgeConfiguration.closeOnDeepLink
+        customerWebViewVC.nudgeConfiguration = nudgeConfiguration
         guard let topController = UIViewController.topViewController() else {
             return
         }
         
-        if page_type == Constants.BOTTOM_SHEET_NOTIFICATION {
+        if (nudgeConfiguration.layout == Constants.BOTTOM_SHEET_NOTIFICATION) {
             customerWebViewVC.isbottomsheet = true
             #if compiler(>=5.5)
             if #available(iOS 15.0, *) {
@@ -1257,11 +1257,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             #else
             customerWebViewVC.modalPresentationStyle = .pageSheet
             #endif
-        } else if page_type == Constants.BOTTOM_DEFAULT_NOTIFICATION {
+        } else if ((nudgeConfiguration.layout == Constants.BOTTOM_DEFAULT_NOTIFICATION) || (nudgeConfiguration.layout == Constants.BOTTOM_DEFAULT_NOTIFICATION_POPUP)) {
             customerWebViewVC.isbottomdefault = true
             customerWebViewVC.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
             customerWebViewVC.navigationController?.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
-        } else if page_type == Constants.MIDDLE_NOTIFICATIONS {
+        } else if ((nudgeConfiguration.layout == Constants.MIDDLE_NOTIFICATIONS) || (nudgeConfiguration.layout == Constants.MIDDLE_NOTIFICATIONS_POPUP)) {
             customerWebViewVC.ismiddle = true
             customerWebViewVC.modalPresentationStyle = .overCurrentContext
         } else {
