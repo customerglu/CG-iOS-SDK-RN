@@ -309,19 +309,41 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             CustomerGlu.getInstance.printlog(cglog: "", isException: false, methodName: "CustomerGlu-displayBackgroundNotification", posttoserver: false)
             return
         }
-        let nudge_url = remoteMessage[NotificationsKey.nudge_url]
         
-        let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
-        customerWebViewVC.auto_close_webview = auto_close_webview
-        customerWebViewVC.urlStr = nudge_url as? String ?? ""
-        customerWebViewVC.notificationHandler = true
-        customerWebViewVC.modalPresentationStyle = .fullScreen
-        guard let topController = UIViewController.topViewController() else {
-            return
+        if CustomerGlu.getInstance.notificationFromCustomerGlu(remoteMessage: remoteMessage as? [String: AnyHashable] ?? [NotificationsKey.customerglu: "d"]) {
+            let nudge_url = remoteMessage[NotificationsKey.nudge_url]
+            if(true == CustomerGlu.isDebugingEnabled){
+                print(nudge_url as Any)
+            }
+            let page_type = remoteMessage[NotificationsKey.page_type]
+
+                if(true == CustomerGlu.isDebugingEnabled){
+                    print(page_type as Any)
+                }
+                if page_type as? String == CGConstants.BOTTOM_SHEET_NOTIFICATION {
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview)
+                } else if page_type as? String == CGConstants.BOTTOM_DEFAULT_NOTIFICATION {
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview)
+                } else if page_type as? String == CGConstants.MIDDLE_NOTIFICATIONS {
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.MIDDLE_NOTIFICATIONS, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview)
+                } else {
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview)
+                }
+        } else {
         }
-        topController.present(customerWebViewVC, animated: false, completion: {
-            self.hideFloatingButtons()
-        })
+//        let nudge_url = remoteMessage[NotificationsKey.nudge_url]
+//
+//        let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
+//        customerWebViewVC.auto_close_webview = auto_close_webview
+//        customerWebViewVC.urlStr = nudge_url as? String ?? ""
+//        customerWebViewVC.notificationHandler = true
+//        customerWebViewVC.modalPresentationStyle = .fullScreen
+//        guard let topController = UIViewController.topViewController() else {
+//            return
+//        }
+//        topController.present(customerWebViewVC, animated: false, completion: {
+//            self.hideFloatingButtons()
+//        })
     }
     
     @objc public func notificationFromCustomerGlu(remoteMessage: [String: AnyHashable]) -> Bool {
