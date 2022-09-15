@@ -9,9 +9,9 @@ import Foundation
 import UIKit
 import WebKit
 
-protocol CustomerGluWebViewDelegate: AnyObject {
-    func closeClicked(_ success: Bool)
-}
+//protocol CustomerGluWebViewDelegate: AnyObject {
+//    func closeClicked(_ success: Bool)
+//}
 
 public class CustomerWebViewController: UIViewController, WKNavigationDelegate, WKScriptMessageHandler {
     
@@ -25,13 +25,13 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     var webView = WKWebView()
     public var urlStr = ""
     public var auto_close_webview = CustomerGlu.auto_close_webview
-    var openWallet = false
+//    var openWallet = false
     var notificationHandler = false
     var ismiddle = false
     var isbottomsheet = false
     var isbottomdefault = false
     var iscampignId = false
-    weak var delegate: CustomerGluWebViewDelegate?
+//    weak var delegate: CustomerGluWebViewDelegate?
     var documentInteractionController: UIDocumentInteractionController!
     public var alpha = 0.0
     var campaign_id = ""
@@ -64,15 +64,8 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
 
     @objc func rotated() {
-        
-
         for subview in self.view.subviews {
             if(subview == webView){
-                //        webView.removeFromSuperview()
-                //        self.urlStr = String(url)
-                        
-                        let x = self.view.frame.midX - 30
-                        var y = self.view.frame.midY - 30
                         
                         let height = getconfiguredheight()
                         if ismiddle {
@@ -89,11 +82,6 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                         }
                     }
         }
-//        if UIDevice.current.orientation.isLandscape {
-//        }
-//
-//        if UIDevice.current.orientation.isPortrait {
-//        }
     }
     public override func viewDidLoad() {
         super.viewDidLoad()
@@ -284,9 +272,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             let bodyStruct = try? JSONDecoder().decode(CGEventModel.self, from: bodyData)
             
             if bodyStruct?.eventName == WebViewsKey.close {
-                if openWallet {
-                    delegate?.closeClicked(true)
-                } else if notificationHandler || iscampignId {
+                if notificationHandler || iscampignId {
                     self.closePage(animated: true)
                 } else {
                     self.navigationController?.popViewController(animated: true)
@@ -301,9 +287,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                     self.canpost = true
                     if self.auto_close_webview == true {
                         // Posted a notification in viewDidDisappear method
-                        if openWallet {
-                            delegate?.closeClicked(true)
-                        } else if notificationHandler || iscampignId {
+                        if notificationHandler || iscampignId {
                             self.closePage(animated: true)
                         } else {
                             self.navigationController?.popViewController(animated: true)
