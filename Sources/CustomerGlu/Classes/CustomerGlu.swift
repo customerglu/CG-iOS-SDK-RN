@@ -53,7 +53,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     internal var popupDisplayScreens = [String]()
     private var configScreens = [String]()
     private var popuptimer : Timer?
-    public static var whiteListedDomains = [Constants.default_whitelist_doamin]
+    public static var whiteListedDomains = [CGConstants.default_whitelist_doamin]
     public static var doamincode = 404
     public static var textMsg = "Requested-page-is-not-valid"
     @objc public var cgUserData = CGUser()
@@ -63,13 +63,13 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
         migrateUserDefaultKey()
         
-        if UserDefaults.standard.object(forKey: Constants.CUSTOMERGLU_TOKEN) != nil {
+        if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
             if CustomerGlu.isEntryPointEnabled {
                 getEntryPointData()
             }
         }
         
-        let jsonString = decryptUserDefaultKey(userdefaultKey: Constants.CUSTOMERGLU_USERDATA)
+        let jsonString = decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_USERDATA)
         let jsonData = Data(jsonString.utf8)
         let decoder = JSONDecoder()
         do {
@@ -82,8 +82,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
         CustomerGluCrash.add(delegate: self)
         
-        if userDefaults.object(forKey: Constants.CustomerGluCrash) != nil {
-            let jsonString = decryptUserDefaultKey(userdefaultKey: Constants.CustomerGluCrash)
+        if userDefaults.object(forKey: CGConstants.CustomerGluCrash) != nil {
+            let jsonString = decryptUserDefaultKey(userdefaultKey: CGConstants.CustomerGluCrash)
             let jsonData = Data(jsonString.utf8)
             do {
                 let decoded = try JSONSerialization.jsonObject(with: jsonData, options: [])
@@ -91,7 +91,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 // you can now cast it with the right type
                 if let crashItems = decoded as? [String: Any] {
                     // use dictFromJSON
-                    ApplicationManager.callCrashReport(cglog: (crashItems["callStack"] as? String)!, isException: true, methodName: "CustomerGluCrash", user_id: decryptUserDefaultKey(userdefaultKey: Constants.CUSTOMERGLU_USERID))
+                    ApplicationManager.callCrashReport(cglog: (crashItems["callStack"] as? String)!, isException: true, methodName: "CustomerGluCrash", user_id: decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_USERID))
                 }
             } catch {
                 CustomerGlu.getInstance.printlog(cglog: "private override init()", isException: false, methodName: "CustomerGlu-init", posttoserver: false)
@@ -123,7 +123,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             let jsonData = try JSONSerialization.data(withJSONObject: dict, options: .prettyPrinted)
             // here "jsonData" is the dictionary encoded in JSON data
             let jsonString2 = String(data: jsonData, encoding: .utf8)!
-            encryptUserDefaultKey(str: jsonString2, userdefaultKey: Constants.CustomerGluCrash)
+            encryptUserDefaultKey(str: jsonString2, userdefaultKey: CGConstants.CustomerGluCrash)
         } catch {
             print(error.localizedDescription)
         }
@@ -244,14 +244,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 if(true == CustomerGlu.isDebugingEnabled){
                     print(page_type as Any)
                 }
-                if page_type as? String == Constants.BOTTOM_SHEET_NOTIFICATION {
-                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: Constants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: backgroundAlpha,auto_close_webview: auto_close_webview)
-                } else if page_type as? String == Constants.BOTTOM_DEFAULT_NOTIFICATION {
-                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: Constants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: backgroundAlpha,auto_close_webview: auto_close_webview)
-                } else if page_type as? String == Constants.MIDDLE_NOTIFICATIONS {
-                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: Constants.MIDDLE_NOTIFICATIONS, backgroundAlpha: backgroundAlpha,auto_close_webview: auto_close_webview)
+                if page_type as? String == CGConstants.BOTTOM_SHEET_NOTIFICATION {
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: backgroundAlpha,auto_close_webview: auto_close_webview)
+                } else if page_type as? String == CGConstants.BOTTOM_DEFAULT_NOTIFICATION {
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: backgroundAlpha,auto_close_webview: auto_close_webview)
+                } else if page_type as? String == CGConstants.MIDDLE_NOTIFICATIONS {
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.MIDDLE_NOTIFICATIONS, backgroundAlpha: backgroundAlpha,auto_close_webview: auto_close_webview)
                 } else {
-                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: backgroundAlpha,auto_close_webview: auto_close_webview)
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: backgroundAlpha,auto_close_webview: auto_close_webview)
                 }
             } else {
 
@@ -274,7 +274,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             return
         }
         
-        if page_type == Constants.BOTTOM_SHEET_NOTIFICATION {
+        if page_type == CGConstants.BOTTOM_SHEET_NOTIFICATION {
             customerWebViewVC.isbottomsheet = true
             #if compiler(>=5.5)
             if #available(iOS 15.0, *) {
@@ -289,11 +289,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             #else
             customerWebViewVC.modalPresentationStyle = .pageSheet
             #endif
-        } else if page_type == Constants.BOTTOM_DEFAULT_NOTIFICATION {
+        } else if page_type == CGConstants.BOTTOM_DEFAULT_NOTIFICATION {
             customerWebViewVC.isbottomdefault = true
             customerWebViewVC.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
             customerWebViewVC.navigationController?.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
-        } else if page_type == Constants.MIDDLE_NOTIFICATIONS {
+        } else if page_type == CGConstants.MIDDLE_NOTIFICATIONS {
             customerWebViewVC.ismiddle = true
             customerWebViewVC.modalPresentationStyle = .overCurrentContext
         } else {
@@ -341,12 +341,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         entryPointPopUpModel = EntryPointPopUpModel()
         self.popupDisplayScreens.removeAll()
         
-        userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_TOKEN)
-        userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_USERID)
-        userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_ANONYMOUSID)
-        userDefaults.removeObject(forKey: Constants.CustomerGluCrash)
-        userDefaults.removeObject(forKey: Constants.CustomerGluPopupDict)
-        userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_USERDATA)
+        userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_TOKEN)
+        userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_USERID)
+        userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_ANONYMOUSID)
+        userDefaults.removeObject(forKey: CGConstants.CustomerGluCrash)
+        userDefaults.removeObject(forKey: CGConstants.CustomerGluPopupDict)
+        userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_USERDATA)
         CustomerGlu.getInstance.cgUserData = CGUser()
         ApplicationManager.appSessionId = UUID().uuidString
     }
@@ -384,7 +384,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         // Manage UserID & AnonymousId
         let t_userid = userData["userId"] as! String? ?? ""
         let t_anonymousIdP = userData["anonymousId"] as! String? ?? ""
-        let t_anonymousIdS = self.decryptUserDefaultKey(userdefaultKey: Constants.CUSTOMERGLU_ANONYMOUSID) as String? ?? ""
+        let t_anonymousIdS = self.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_ANONYMOUSID) as String? ?? ""
    
         if(t_userid.count <= 0){
             // Pass only anonymousId and removed UserID
@@ -413,14 +413,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             switch result {
                 case .success(let response):
                     if response.success! {
-                        self.encryptUserDefaultKey(str: response.data?.token ?? "", userdefaultKey: Constants.CUSTOMERGLU_TOKEN)
-                        self.encryptUserDefaultKey(str: response.data?.user?.userId ?? "", userdefaultKey: Constants.CUSTOMERGLU_USERID)
-                        self.encryptUserDefaultKey(str: response.data?.user?.anonymousId ?? "", userdefaultKey: Constants.CUSTOMERGLU_ANONYMOUSID)
+                        self.encryptUserDefaultKey(str: response.data?.token ?? "", userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN)
+                        self.encryptUserDefaultKey(str: response.data?.user?.userId ?? "", userdefaultKey: CGConstants.CUSTOMERGLU_USERID)
+                        self.encryptUserDefaultKey(str: response.data?.user?.anonymousId ?? "", userdefaultKey: CGConstants.CUSTOMERGLU_ANONYMOUSID)
                         
                         self.cgUserData = response.data?.user ?? CGUser()
                         let data = try! JSONEncoder().encode(self.cgUserData)
                         let jsonString = String(data: data, encoding: .utf8)!
-                        self.encryptUserDefaultKey(str: jsonString, userdefaultKey: Constants.CUSTOMERGLU_USERDATA)
+                        self.encryptUserDefaultKey(str: jsonString, userdefaultKey: CGConstants.CUSTOMERGLU_USERDATA)
                         
                         self.userDefaults.synchronize()
                         
@@ -479,7 +479,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func updateProfile(userdata: [String: AnyHashable], completion: @escaping (Bool) -> Void) {
-        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_TOKEN) == nil {
+        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: CGConstants.CUSTOMERGLU_TOKEN) == nil {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call updateProfile", isException: false, methodName: "CustomerGlu-updateProfile-1", posttoserver: true)
             CustomerGlu.bannersHeight = [String:Any]()
             completion(false)
@@ -493,7 +493,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
             userData[APIParameterKey.deviceId] = uuid
         }
-        let user_id = decryptUserDefaultKey(userdefaultKey: Constants.CUSTOMERGLU_USERID)
+        let user_id = decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_USERID)
         if user_id.count < 0 {
             CustomerGlu.getInstance.printlog(cglog: "user_id is nil", isException: false, methodName: "CustomerGlu-updateProfile-2", posttoserver: true)
             return
@@ -517,7 +517,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
         
         // Manage UserID & AnonymousId
-        let t_anonymousIdS = self.decryptUserDefaultKey(userdefaultKey: Constants.CUSTOMERGLU_ANONYMOUSID) as String? ?? ""
+        let t_anonymousIdS = self.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_ANONYMOUSID) as String? ?? ""
         if (t_anonymousIdS.count > 0){
             // Pass anonymousId and UserID Both
             userData["anonymousId"] = t_anonymousIdS
@@ -530,14 +530,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             switch result {
                 case .success(let response):
                     if response.success! {
-                        self.encryptUserDefaultKey(str: response.data?.token ?? "", userdefaultKey: Constants.CUSTOMERGLU_TOKEN)
-                        self.encryptUserDefaultKey(str: response.data?.user?.userId ?? "", userdefaultKey: Constants.CUSTOMERGLU_USERID)
-                        self.encryptUserDefaultKey(str: response.data?.user?.anonymousId ?? "", userdefaultKey: Constants.CUSTOMERGLU_ANONYMOUSID)
+                        self.encryptUserDefaultKey(str: response.data?.token ?? "", userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN)
+                        self.encryptUserDefaultKey(str: response.data?.user?.userId ?? "", userdefaultKey: CGConstants.CUSTOMERGLU_USERID)
+                        self.encryptUserDefaultKey(str: response.data?.user?.anonymousId ?? "", userdefaultKey: CGConstants.CUSTOMERGLU_ANONYMOUSID)
                         
                         self.cgUserData = response.data?.user ?? CGUser()
                         let data = try! JSONEncoder().encode(self.cgUserData)
                         let jsonString = String(data: data, encoding: .utf8)!
-                        self.encryptUserDefaultKey(str: jsonString, userdefaultKey: Constants.CUSTOMERGLU_USERDATA)
+                        self.encryptUserDefaultKey(str: jsonString, userdefaultKey: CGConstants.CUSTOMERGLU_USERDATA)
                         
                         self.userDefaults.synchronize()
                         
@@ -587,7 +587,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     private func getEntryPointData() {
-        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_TOKEN) == nil {
+        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: CGConstants.CUSTOMERGLU_TOKEN) == nil {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call getEntryPointData", isException: false, methodName: "CustomerGlu-getEntryPointData", posttoserver: true)
             CustomerGlu.bannersHeight = [String:Any]()
             return
@@ -622,7 +622,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 
         if entryPoint.count > 0 {
             
-            let jsonString = decryptUserDefaultKey(userdefaultKey: Constants.CustomerGluPopupDict)
+            let jsonString = decryptUserDefaultKey(userdefaultKey: CGConstants.CustomerGluPopupDict)
             let jsonData = Data(jsonString.utf8)
             let decoder = JSONDecoder()
             do {
@@ -691,7 +691,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             
             let data = try! JSONEncoder().encode(entryPointPopUpModel)
             let jsonString2 = String(data: data, encoding: .utf8)!
-            encryptUserDefaultKey(str: jsonString2, userdefaultKey: Constants.CustomerGluPopupDict)
+            encryptUserDefaultKey(str: jsonString2, userdefaultKey: CGConstants.CustomerGluPopupDict)
         }
     }
  
@@ -700,10 +700,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func openWalletWithURL(url: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
-        CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: url, page_type: Constants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview)
+        CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: url, page_type: CGConstants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview)
     }
     
-    internal func openNudgeWithValidToken(nudgeId: String, layout: String = Constants.FULL_SCREEN_NOTIFICATION, bg_opacity: Double = 0.5, closeOnDeeplink : Bool = true, nudgeConfiguration : CGNudgeConfiguration? = nil) {
+    internal func openNudgeWithValidToken(nudgeId: String, layout: String = CGConstants.FULL_SCREEN_NOTIFICATION, bg_opacity: Double = 0.5, closeOnDeeplink : Bool = true, nudgeConfiguration : CGNudgeConfiguration? = nil) {
         if(nudgeId.count > 0 && CustomerGlu.sdk_disable == false){
             APIManager.getWalletRewards(queryParameters: [:]) { result in
                 switch result {
@@ -722,13 +722,13 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                 layout = nudgeConfiguration!.layout
                             }
                             
-                            var cglayout = Constants.FULL_SCREEN_NOTIFICATION
+                            var cglayout = CGConstants.FULL_SCREEN_NOTIFICATION
                             if(layout == "middle-popup"){
-                                cglayout = Constants.MIDDLE_NOTIFICATIONS
+                                cglayout = CGConstants.MIDDLE_NOTIFICATIONS
                             }else if(layout == "bottom-popup"){
-                                cglayout = Constants.BOTTOM_DEFAULT_NOTIFICATION
+                                cglayout = CGConstants.BOTTOM_DEFAULT_NOTIFICATION
                             }else if(layout == "bottom-slider"){
-                                cglayout = Constants.BOTTOM_SHEET_NOTIFICATION
+                                cglayout = CGConstants.BOTTOM_SHEET_NOTIFICATION
                             }
                             
                             var finalurl = scheme
@@ -789,7 +789,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func openWallet(auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
-//        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_TOKEN) == nil {
+//        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: CGConstants.CUSTOMERGLU_TOKEN) == nil {
 //            CustomerGlu.getInstance.printlog(cglog: "Fail to call openWallet", isException: false, methodName: "CustomerGlu-openWallet", posttoserver: true)
 //            return
 //        }
@@ -809,7 +809,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func loadAllCampaigns(auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
-        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_TOKEN) == nil {
+        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: CGConstants.CUSTOMERGLU_TOKEN) == nil {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call loadAllCampaigns", isException: false, methodName: "CustomerGlu-loadAllCampaigns", posttoserver: true)
             return
         }
@@ -828,7 +828,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func loadCampaignById(campaign_id: String, nudgeConfiguration : CGNudgeConfiguration? = nil , auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
-        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_TOKEN) == nil {
+        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: CGConstants.CUSTOMERGLU_TOKEN) == nil {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call loadCampaignById", isException: false, methodName: "CustomerGlu-loadCampaignById", posttoserver: true)
             return
         }
@@ -845,16 +845,16 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             customerWebViewVC.nudgeConfiguration = nudgeConfiguration
             
             if(nudgeConfiguration != nil){
-                if(nudgeConfiguration!.layout == Constants.MIDDLE_NOTIFICATIONS || nudgeConfiguration!.layout == Constants.MIDDLE_NOTIFICATIONS_POPUP){
+                if(nudgeConfiguration!.layout == CGConstants.MIDDLE_NOTIFICATIONS || nudgeConfiguration!.layout == CGConstants.MIDDLE_NOTIFICATIONS_POPUP){
                         customerWebViewVC.ismiddle = true
                         customerWebViewVC.modalPresentationStyle = .overCurrentContext
-                }else if(nudgeConfiguration!.layout == Constants.BOTTOM_DEFAULT_NOTIFICATION || nudgeConfiguration!.layout == Constants.BOTTOM_DEFAULT_NOTIFICATION_POPUP){
+                }else if(nudgeConfiguration!.layout == CGConstants.BOTTOM_DEFAULT_NOTIFICATION || nudgeConfiguration!.layout == CGConstants.BOTTOM_DEFAULT_NOTIFICATION_POPUP){
                     
                         customerWebViewVC.isbottomdefault = true
                         customerWebViewVC.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
                         customerWebViewVC.navigationController?.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
                     
-                }else if(nudgeConfiguration!.layout == Constants.BOTTOM_SHEET_NOTIFICATION){
+                }else if(nudgeConfiguration!.layout == CGConstants.BOTTOM_SHEET_NOTIFICATION){
                         customerWebViewVC.isbottomsheet = true
                         #if compiler(>=5.5)
                         if #available(iOS 15.0, *) {
@@ -879,7 +879,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func loadCampaignsByType(type: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview! ) {
-        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_TOKEN) == nil {
+        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: CGConstants.CUSTOMERGLU_TOKEN) == nil {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call loadCampaignsByType", isException: false, methodName: "CustomerGlu-loadCampaignsByType", posttoserver: true)
             return
         }
@@ -900,7 +900,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func loadCampaignByStatus(status: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
-        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_TOKEN) == nil {
+        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: CGConstants.CUSTOMERGLU_TOKEN) == nil {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call loadCampaignByStatus", isException: false, methodName: "CustomerGlu-loadCampaignByStatus", posttoserver: true)
             return
         }
@@ -921,7 +921,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func loadCampaignByFilter(parameters: NSDictionary, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
-        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_TOKEN) == nil {
+        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: CGConstants.CUSTOMERGLU_TOKEN) == nil {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call loadCampaignByFilter", isException: false, methodName: "CustomerGlu-loadCampaignByFilter", posttoserver: true)
             return
         }
@@ -941,7 +941,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func sendEventData(eventName: String, eventProperties: [String: Any]?) {
-        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: Constants.CUSTOMERGLU_TOKEN) == nil {
+        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: CGConstants.CUSTOMERGLU_TOKEN) == nil {
                 CustomerGlu.getInstance.printlog(cglog: "Fail to call sendEventData", isException: false, methodName: "CustomerGlu-sendEventData-1", posttoserver: true)
             return
         }
@@ -997,12 +997,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
         }
 
-        return URL(string: ("\(Constants.default_redirect_url)code=\(String(CustomerGlu.doamincode))&message=\(CustomerGlu.textMsg)"))!
+        return URL(string: ("\(CGConstants.default_redirect_url)code=\(String(CustomerGlu.doamincode))&message=\(CustomerGlu.textMsg)"))!
     }
     
     public func configureWhiteListedDomains(domains: [String]){
         CustomerGlu.whiteListedDomains = domains
-        CustomerGlu.whiteListedDomains.append(Constants.default_whitelist_doamin)
+        CustomerGlu.whiteListedDomains.append(CGConstants.default_whitelist_doamin)
     }
     
     public func configureDomainCodeMsg(code: Int, message: String){
@@ -1186,7 +1186,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
         let data = try! JSONEncoder().encode(entryPointPopUpModel)
         let jsonString2 = String(data: data, encoding: .utf8)!
-        encryptUserDefaultKey(str: jsonString2, userdefaultKey: Constants.CustomerGluPopupDict)
+        encryptUserDefaultKey(str: jsonString2, userdefaultKey: CGConstants.CustomerGluPopupDict)
     }
     
     @objc private  func showPopupAfterTime(sender: Timer) {
@@ -1242,7 +1242,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             return
         }
         
-        if (nudgeConfiguration.layout == Constants.BOTTOM_SHEET_NOTIFICATION) {
+        if (nudgeConfiguration.layout == CGConstants.BOTTOM_SHEET_NOTIFICATION) {
             customerWebViewVC.isbottomsheet = true
             #if compiler(>=5.5)
             if #available(iOS 15.0, *) {
@@ -1257,11 +1257,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             #else
             customerWebViewVC.modalPresentationStyle = .pageSheet
             #endif
-        } else if ((nudgeConfiguration.layout == Constants.BOTTOM_DEFAULT_NOTIFICATION) || (nudgeConfiguration.layout == Constants.BOTTOM_DEFAULT_NOTIFICATION_POPUP)) {
+        } else if ((nudgeConfiguration.layout == CGConstants.BOTTOM_DEFAULT_NOTIFICATION) || (nudgeConfiguration.layout == CGConstants.BOTTOM_DEFAULT_NOTIFICATION_POPUP)) {
             customerWebViewVC.isbottomdefault = true
             customerWebViewVC.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
             customerWebViewVC.navigationController?.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
-        } else if ((nudgeConfiguration.layout == Constants.MIDDLE_NOTIFICATIONS) || (nudgeConfiguration.layout == Constants.MIDDLE_NOTIFICATIONS_POPUP)) {
+        } else if ((nudgeConfiguration.layout == CGConstants.MIDDLE_NOTIFICATIONS) || (nudgeConfiguration.layout == CGConstants.MIDDLE_NOTIFICATIONS_POPUP)) {
             customerWebViewVC.ismiddle = true
             customerWebViewVC.modalPresentationStyle = .overCurrentContext
         } else {
@@ -1311,31 +1311,31 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
         
         if(true == posttoserver){
-            ApplicationManager.callCrashReport(cglog: cglog, isException: isException, methodName: methodName, user_id:  decryptUserDefaultKey(userdefaultKey: Constants.CUSTOMERGLU_USERID))
+            ApplicationManager.callCrashReport(cglog: cglog, isException: isException, methodName: methodName, user_id:  decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_USERID))
         }
     }
     
     private func migrateUserDefaultKey() {
-        if userDefaults.object(forKey: Constants.CUSTOMERGLU_TOKEN_OLD) != nil {
-            encryptUserDefaultKey(str: UserDefaults.standard.object(forKey: Constants.CUSTOMERGLU_TOKEN_OLD) as! String, userdefaultKey: Constants.CUSTOMERGLU_TOKEN)
-            userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_TOKEN_OLD)
+        if userDefaults.object(forKey: CGConstants.CUSTOMERGLU_TOKEN_OLD) != nil {
+            encryptUserDefaultKey(str: UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN_OLD) as! String, userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN)
+            userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_TOKEN_OLD)
         }
         
-        if userDefaults.object(forKey: Constants.CUSTOMERGLU_USERID_OLD) != nil {
-            encryptUserDefaultKey(str: UserDefaults.standard.object(forKey: Constants.CUSTOMERGLU_USERID_OLD) as! String, userdefaultKey: Constants.CUSTOMERGLU_USERID)
-            userDefaults.removeObject(forKey: Constants.CUSTOMERGLU_USERID_OLD)
+        if userDefaults.object(forKey: CGConstants.CUSTOMERGLU_USERID_OLD) != nil {
+            encryptUserDefaultKey(str: UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_USERID_OLD) as! String, userdefaultKey: CGConstants.CUSTOMERGLU_USERID)
+            userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_USERID_OLD)
         }
         
-        if userDefaults.object(forKey: Constants.CustomerGluCrash_OLD) != nil {
+        if userDefaults.object(forKey: CGConstants.CustomerGluCrash_OLD) != nil {
             do {
                 // retrieving a value for a key
-                if let data = userDefaults.data(forKey: Constants.CustomerGluCrash_OLD),
+                if let data = userDefaults.data(forKey: CGConstants.CustomerGluCrash_OLD),
                    let crashItems = try NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as? Dictionary<String, Any> {
                     do {
                         let jsonData = try JSONSerialization.data(withJSONObject: crashItems, options: .prettyPrinted)
                         // here "jsonData" is the dictionary encoded in JSON data
                         let jsonString2 = String(data: jsonData, encoding: .utf8)!
-                        encryptUserDefaultKey(str: jsonString2, userdefaultKey: Constants.CustomerGluCrash)
+                        encryptUserDefaultKey(str: jsonString2, userdefaultKey: CGConstants.CustomerGluCrash)
                     } catch {
                         print(error.localizedDescription)
                     }
@@ -1343,12 +1343,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             } catch {
                 print(error)
             }
-            userDefaults.removeObject(forKey: Constants.CustomerGluCrash_OLD)
+            userDefaults.removeObject(forKey: CGConstants.CustomerGluCrash_OLD)
         }
         
-        if userDefaults.object(forKey: Constants.CustomerGluPopupDict_OLD) != nil {
+        if userDefaults.object(forKey: CGConstants.CustomerGluPopupDict_OLD) != nil {
             do {
-                let popupItems = try userDefaults.getObject(forKey: Constants.CustomerGluPopupDict_OLD, castTo: EntryPointPopUpModel.self)
+                let popupItems = try userDefaults.getObject(forKey: CGConstants.CustomerGluPopupDict_OLD, castTo: EntryPointPopUpModel.self)
                 popupDict = popupItems.popups!
             } catch {
                 print(error.localizedDescription)
@@ -1357,8 +1357,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
 
             let data = try! JSONEncoder().encode(entryPointPopUpModel)
             let jsonString2 = String(data: data, encoding: .utf8)!
-            encryptUserDefaultKey(str: jsonString2, userdefaultKey: Constants.CustomerGluPopupDict)
-            userDefaults.removeObject(forKey: Constants.CustomerGluPopupDict_OLD)
+            encryptUserDefaultKey(str: jsonString2, userdefaultKey: CGConstants.CustomerGluPopupDict)
+            userDefaults.removeObject(forKey: CGConstants.CustomerGluPopupDict_OLD)
         }
     }
     

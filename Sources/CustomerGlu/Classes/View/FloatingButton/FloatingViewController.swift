@@ -172,7 +172,7 @@ class FloatingButtonController: UIViewController {
         CustomerGlu.getInstance.callEventPublishNudge(data: floatInfo!, className: CustomerGlu.getInstance.activescreenname, actionType: "OPEN")
         
         let nudgeConfiguration = CGNudgeConfiguration()
-        nudgeConfiguration.layout = floatInfo?.mobile.content[0].openLayout.lowercased() ?? Constants.FULL_SCREEN_NOTIFICATION
+        nudgeConfiguration.layout = floatInfo?.mobile.content[0].openLayout.lowercased() ?? CGConstants.FULL_SCREEN_NOTIFICATION
         nudgeConfiguration.opacity = floatInfo?.mobile.conditions.backgroundOpacity ?? 0.5
         nudgeConfiguration.closeOnDeepLink = floatInfo?.mobile.content[0].closeOnDeepLink ?? CustomerGlu.auto_close_webview!
         nudgeConfiguration.relativeHeight = floatInfo?.mobile.content[0].relativeHeight ?? 0.0

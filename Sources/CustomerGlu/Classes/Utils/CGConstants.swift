@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Constants {
+struct CGConstants {
     static let ERROR = "CUSTOMERGLU Error:"
     static let JSON_ERROR = "CUSTOMERGLU: json parsing error:"
     static let CUSTOMERGLU_TOKEN = "CustomerGlu_Token_Encrypt"

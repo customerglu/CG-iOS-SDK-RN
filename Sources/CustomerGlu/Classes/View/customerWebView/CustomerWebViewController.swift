@@ -108,11 +108,11 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             self.alpha = nudgeConfiguration!.opacity
             self.auto_close_webview = nudgeConfiguration!.closeOnDeepLink
             
-            if(nudgeConfiguration!.layout == Constants.MIDDLE_NOTIFICATIONS || nudgeConfiguration!.layout == Constants.MIDDLE_NOTIFICATIONS_POPUP){
+            if(nudgeConfiguration!.layout == CGConstants.MIDDLE_NOTIFICATIONS || nudgeConfiguration!.layout == CGConstants.MIDDLE_NOTIFICATIONS_POPUP){
                 self.ismiddle = true
-            }else if(nudgeConfiguration!.layout == Constants.BOTTOM_DEFAULT_NOTIFICATION || nudgeConfiguration!.layout == Constants.BOTTOM_DEFAULT_NOTIFICATION_POPUP){
+            }else if(nudgeConfiguration!.layout == CGConstants.BOTTOM_DEFAULT_NOTIFICATION || nudgeConfiguration!.layout == CGConstants.BOTTOM_DEFAULT_NOTIFICATION_POPUP){
                 self.isbottomdefault = true
-            }else if(nudgeConfiguration!.layout == Constants.BOTTOM_SHEET_NOTIFICATION){
+            }else if(nudgeConfiguration!.layout == CGConstants.BOTTOM_SHEET_NOTIFICATION){
                 self.isbottomsheet = true
             }
 
