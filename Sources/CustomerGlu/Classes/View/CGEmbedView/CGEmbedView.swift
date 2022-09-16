@@ -15,7 +15,6 @@ public class CGEmbedView: UIView, UIScrollViewDelegate {
     var view = UIView()
     var arrContent = [CGContent]()
     var condition : CGCondition?
-    var timer : Timer?
     private var code = true
     var finalHeight = 0
     private var loadedapicalled = false
@@ -178,14 +177,6 @@ public class CGEmbedView: UIView, UIScrollViewDelegate {
 //        self.imgScrollView.showsVerticalScrollIndicator = false
 //        self.imgScrollView.showsHorizontalScrollIndicator = false
 //        self.imgScrollView.contentSize = CGSize(width: screenWidth * CGFloat(arrContent.count), height: self.imgScrollView.frame.size.height)
-        
-        // Timer in viewdidload()
-        if isAutoScrollEnabled {
-            if(timer != nil){
-                timer?.invalidate()
-                timer = nil
-            }
-        }
 
         invalidateIntrinsicContentSize()
         self.layoutIfNeeded()
