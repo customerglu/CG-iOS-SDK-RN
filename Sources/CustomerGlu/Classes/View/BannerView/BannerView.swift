@@ -141,7 +141,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
             self.imgScrollView.frame.size.height = CGFloat(finalHeight)
         }
 
-        let postInfo: [String: Any] = ["finalheight": finalHeight]
+        let postInfo: [String: Any] = [self.bannerId ?? "" : finalHeight]
         NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CGBANNER_FINAL_HEIGHT").rawValue), object: nil, userInfo: postInfo)
         
         invalidateIntrinsicContentSize()
@@ -154,7 +154,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
         let screenHeight = UIScreen.main.bounds.height
         finalHeight = (Int(screenHeight) * height)/100
         
-        let postInfo: [String: Any] = ["finalheight": finalHeight]
+        let postInfo: [String: Any] = [self.bannerId ?? "" : finalHeight]
         NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CGBANNER_FINAL_HEIGHT").rawValue), object: nil, userInfo: postInfo)
   
         self.constraints.filter{$0.firstAttribute == .height}.forEach({ $0.constant = CGFloat(finalHeight) })
