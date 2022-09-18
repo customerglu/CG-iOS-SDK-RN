@@ -10,14 +10,117 @@ import Foundation
 import WebKit
 
 //BannerView
-public class CGEmbedView: UIView, UIScrollViewDelegate {
+public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
+    public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        
+        if message.name == WebViewsKey.callback {
+            guard let bodyString = message.body as? String,
+                  let bodyData = bodyString.data(using: .utf8) else { fatalError() }
+            
+            let bodyStruct = try? JSONDecoder().decode(CGEventModel.self, from: bodyData)
+            
+//            if bodyStruct?.eventName == WebViewsKey.close {
+//                if notificationHandler || iscampignId {
+//                    self.closePage(animated: true)
+//                } else {
+//                    self.navigationController?.popViewController(animated: true)
+//                }
+//            }
+            
+//            if bodyStruct?.eventName == WebViewsKey.open_deeplink {
+//                let deeplink = try? JSONDecoder().decode(CGDeepLinkModel.self, from: bodyData)
+//                if  let deep_link = deeplink?.data?.deepLink {
+//                    print("link", deep_link)
+//                    postdata = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!) ?? [String:Any]()
+//                    self.canpost = true
+//                    if self.auto_close_webview == true {
+//                        // Posted a notification in viewDidDisappear method
+//                        if notificationHandler || iscampignId {
+//                            self.closePage(animated: true)
+//                        } else {
+//                            self.navigationController?.popViewController(animated: true)
+//                        }
+//                    }else{
+//                        // Post notification
+//                        self.canpost = false
+//                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_DEEPLINK_EVENT").rawValue), object: nil, userInfo: self.postdata)
+//                        self.postdata = [String:Any]()
+//                    }
+//                }
+//            }
+            
+//            if bodyStruct?.eventName == WebViewsKey.share {
+//                let share = try? JSONDecoder().decode(CGEventShareModel.self, from: bodyData)
+//                let text = share?.data?.text
+//                let channelName = share?.data?.channelName
+//                if let imageurl = share?.data?.image {
+//                    if imageurl == "" {
+//                        if channelName == "WHATSAPP" {
+//                            sendToWhatsapp(shareText: text!)
+//                        } else {
+//                            sendToOtherApps(shareText: text!)
+//                        }
+//                    } else {
+//                        if channelName == "WHATSAPP" {
+//                            shareImageToWhatsapp(imageString: imageurl, shareText: text ?? "")
+//                        } else {
+//                            sendImagesToOtherApp(imageString: imageurl, shareText: text ?? "")
+//                        }
+//                    }
+//
+////                    if self.auto_close_webview == true {
+////                        // Posted a notification in viewDidDisappear method
+////                        if openWallet {
+////                            delegate?.closeClicked(true)
+////                        } else if notificationHandler || iscampignId {
+////                            self.closePage(animated: true)
+////                        } else {
+////                            self.navigationController?.popViewController(animated: true)
+////                        }
+////                    }
+//
+//                }
+//            }
+            
+            if bodyStruct?.eventName == WebViewsKey.analytics {
+                if (true == CustomerGlu.analyticsEvent) {
+                    let dict = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!)
+                    if(dict != nil && dict!.count>0 && dict?["data"] != nil){
+                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_ANALYTICS_EVENT").rawValue), object: nil, userInfo: dict?["data"] as? [String: Any])
+                    }
+                }
+            }
+            
+            if bodyStruct?.eventName == WebViewsKey.updateheight {
+                if (true == CustomerGlu.analyticsEvent) {
+                    let dict = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!)
+                    if(dict != nil && dict!.count>0 && dict?["data"] != nil){
+                        
+                        let dictheight = dict?["data"] as! [String: Any]
+                        if(dictheight != nil && dictheight.count > 0 && dictheight["height"] != nil){
+                            finalHeight = (dictheight["height"])! as! Double
+                            bannerviewHeightchanged(height: finalHeight)
+                        }
+
+//                        setBannerView(height: finalHeight, isAutoScrollEnabled: false, autoScrollSpeed: 1)
+//                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_ANALYTICS_EVENT").rawValue), object: nil, userInfo: dict?["data"] as? [String: Any])
+                    }
+                }
+            }
+        }
+    }
+    
     
     var view = UIView()
     var arrContent = [CGContent]()
     var condition : CGCondition?
     private var code = true
-    var finalHeight = 0
+    var finalHeight = 0.0
     private var loadedapicalled = false
+    
+    var webView = WKWebView()
+    let contentController = WKUserContentController()
+    let config = WKWebViewConfiguration()
     
     @IBInspectable var bannerId: String? {
         didSet {
@@ -73,7 +176,10 @@ public class CGEmbedView: UIView, UIScrollViewDelegate {
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.translatesAutoresizingMaskIntoConstraints = true
         view.autoresizesSubviews = true
-
+        
+        contentController.add(self, name: WebViewsKey.callback) //name is the key you want the app to listen to.
+        config.userContentController = contentController
+        
         addSubview(view)
     }
     
@@ -100,39 +206,43 @@ public class CGEmbedView: UIView, UIScrollViewDelegate {
                     for content in mobile.content {
                         arrContent.append(content)
                     }
-                    self.setBannerView(height: Int(mobile.container.height)!, isAutoScrollEnabled: mobile.conditions.autoScroll, autoScrollSpeed: mobile.conditions.autoScrollSpeed)
+                    
+                    
+                    self.setBannerView(height:mobile.content[0].absoluteHeight ?? 0.0, isAutoScrollEnabled: mobile.conditions.autoScroll, autoScrollSpeed: mobile.conditions.autoScrollSpeed)
 //                    callLoadBannerAnalytics()
                 } else {
-                    bannerviewHeightZero()
+                    bannerviewHeightchanged(height: 0.0)
                 }
             } else {
-                bannerviewHeightZero()
+                bannerviewHeightchanged(height: 0.0)
             }
         }
     }
     
-    private func bannerviewHeightZero() {
-
-        finalHeight = 0
-        
-        self.constraints.filter{$0.firstAttribute == .height}.forEach({ $0.constant = CGFloat(finalHeight) })
-        self.frame.size.height = CGFloat(finalHeight)
-        if self.view != nil {
+    private func bannerviewHeightchanged(height : Double) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [self] in
+            
+            
+            self.constraints.filter{$0.firstAttribute == .height}.forEach({ $0.constant = CGFloat(finalHeight) })
+            self.frame.size.height = CGFloat(finalHeight)
             self.view.frame.size.height = CGFloat(finalHeight)
-        }
+            self.webView.frame.size.height = CGFloat(finalHeight)
 
-        let postInfo: [String: Any] = [self.bannerId ?? "" : finalHeight]
-        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CGBANNER_FINAL_HEIGHT").rawValue), object: nil, userInfo: postInfo)
-        
-        invalidateIntrinsicContentSize()
-        self.layoutIfNeeded()
+            let postInfo: [String: Any] = [self.bannerId ?? "" : finalHeight]
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CGBANNER_FINAL_HEIGHT").rawValue), object: nil, userInfo: postInfo)
+            
+            invalidateIntrinsicContentSize()
+            self.layoutIfNeeded()
+            
+        }
+        finalHeight = height
     }
-    
-    private func setBannerView(height: Int, isAutoScrollEnabled: Bool, autoScrollSpeed: Int){
+   
+    private func setBannerView(height: Double, isAutoScrollEnabled: Bool, autoScrollSpeed: Int){
 
         let screenWidth = self.frame.size.width
         let screenHeight = UIScreen.main.bounds.height
-        finalHeight = (Int(screenHeight) * height)/100
+        finalHeight = height
         
         let postInfo: [String: Any] = [self.bannerId ?? "" : finalHeight]
         NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CGBANNER_FINAL_HEIGHT").rawValue), object: nil, userInfo: postInfo)
@@ -143,40 +253,15 @@ public class CGEmbedView: UIView, UIScrollViewDelegate {
             self.view.frame.size.height = CGFloat(finalHeight)
         }
         
-        for i in 0..<arrContent.count {
-            let dict = arrContent[i]
-            if dict.type == "IMAGE" {
-                var imageView: UIImageView
-                let xOrigin = screenWidth * CGFloat(i)
-                
-                imageView = UIImageView(frame: CGRect(x: xOrigin, y: 0, width: screenWidth, height: CGFloat(finalHeight)))
-                imageView.isUserInteractionEnabled = true
-                imageView.tag = i
-                let urlStr = dict.url
-                imageView.downloadImage(urlString: urlStr!)
-                imageView.contentMode = .scaleToFill
-                self.view.addSubview(imageView)
-            } else {
-                let containerView =  UIView()
-                containerView.tag = i
-                var webView: WKWebView
-                let xOrigin = screenWidth * CGFloat(i)
-                containerView.frame  = CGRect.init(x: xOrigin, y: 0, width: screenWidth, height: CGFloat(finalHeight))
-                webView = WKWebView(frame: CGRect(x: 0, y: 0, width: screenWidth, height: CGFloat(finalHeight)))
-                webView.isUserInteractionEnabled = false
-                webView.tag = i
-                let urlStr = dict.url
-//                webView.load(URLRequest(url: URL(string: urlStr!)!))
-                webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: urlStr!)!)))
-                containerView.addSubview(webView)
-                self.view.addSubview(containerView)
-            }
-        }
-//        self.imgScrollView.isPagingEnabled = true
-//        self.imgScrollView.bounces = false
-//        self.imgScrollView.showsVerticalScrollIndicator = false
-//        self.imgScrollView.showsHorizontalScrollIndicator = false
-//        self.imgScrollView.contentSize = CGSize(width: screenWidth * CGFloat(arrContent.count), height: self.imgScrollView.frame.size.height)
+            let dict = arrContent[0]
+            let xOrigin = screenWidth * CGFloat(0)
+            webView = WKWebView(frame: CGRect(x: 0, y: 0, width: screenWidth, height: CGFloat(finalHeight)), configuration: config)
+            webView.isUserInteractionEnabled = true
+            webView.tag = 0
+            let urlStr = dict.url
+            webView.load(URLRequest(url: URL(string: "https://bmp7u0.csb.app/")!))
+//                webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: urlStr!)!)))
+            self.view.addSubview(webView)
 
         invalidateIntrinsicContentSize()
         self.layoutIfNeeded()
@@ -184,6 +269,20 @@ public class CGEmbedView: UIView, UIScrollViewDelegate {
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
+//    private func getconfiguredheight()->CGFloat {
+//        var finalheight = (self.view.frame.height) * (70/100)
+//
+//        if(nudgeConfiguration != nil){
+//            if(nudgeConfiguration!.relativeHeight > 0){
+//                finalheight = (self.view.frame.height) * (nudgeConfiguration!.relativeHeight/100)
+//            }else if(nudgeConfiguration!.absoluteHeight > 0){
+//                finalheight = nudgeConfiguration!.absoluteHeight
+//            }
+//        }
+//
+//        return finalheight
+//    }
+
 
 //    private func eventPublishNudge(pageName: String, nudgeId: String, actionType: String, actionTarget: String, pageType: String, campaignId: String) {
 //        var eventInfo = [String: AnyHashable]()

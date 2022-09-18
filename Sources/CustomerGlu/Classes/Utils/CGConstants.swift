@@ -102,6 +102,7 @@ struct WebViewsKey {
     static let open_deeplink = "OPEN_DEEPLINK"
     static let analytics = "ANALYTICS"
     static let share = "SHARE"
+    static let updateheight = "DIMENSIONS_UPDATE"
 }
 
 // TableView Identifiers Used Throught App
