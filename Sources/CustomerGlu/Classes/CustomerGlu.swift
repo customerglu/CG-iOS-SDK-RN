@@ -47,6 +47,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     @objc public static var activeViewController = ""
     internal var activescreenname = ""
     public static var bannersHeight: [String: Any]? = nil
+    public static var embedsHeight: [String: Any]? = nil
         
     internal var popupDict = [PopUpModel]()
     internal var entryPointPopUpModel = EntryPointPopUpModel()
@@ -378,6 +379,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userdata["userId"] == nil {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call registerDevice", isException: false, methodName: "CustomerGlu-registerDevice-1", posttoserver: true)
             CustomerGlu.bannersHeight = [String:Any]()
+            CustomerGlu.embedsHeight = [String:Any]()
             completion(false)
             return
         }
@@ -449,6 +451,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         
                         if CustomerGlu.isEntryPointEnabled {
                             CustomerGlu.bannersHeight = nil
+                            CustomerGlu.embedsHeight = nil
                             APIManager.getEntryPointdata(queryParameters: [:]) { result in
                                 switch result {
                                     case .success(let responseGetEntry):
@@ -472,11 +475,13 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                     case .failure(let error):
                                         CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-registerDevice-2", posttoserver: true)
                                         CustomerGlu.bannersHeight = [String:Any]()
+                                        CustomerGlu.embedsHeight = [String:Any]()
                                         completion(true)
                                 }
                             }
                         } else {
                             CustomerGlu.bannersHeight = [String:Any]()
+                            CustomerGlu.embedsHeight = [String:Any]()
                             completion(true)
                         }
                         
@@ -490,11 +495,13 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     } else {
                         CustomerGlu.getInstance.printlog(cglog: "", isException: false, methodName: "CustomerGlu-registerDevice-3", posttoserver: true)
                         CustomerGlu.bannersHeight = [String:Any]()
+                        CustomerGlu.embedsHeight = [String:Any]()
                         completion(false)
                     }
                 case .failure(let error):
                     CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-registerDevice-4", posttoserver: true)
                     CustomerGlu.bannersHeight = [String:Any]()
+                    CustomerGlu.embedsHeight = [String:Any]()
                     completion(false)
             }
         }
@@ -504,6 +511,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: CGConstants.CUSTOMERGLU_TOKEN) == nil {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call updateProfile", isException: false, methodName: "CustomerGlu-updateProfile-1", posttoserver: true)
             CustomerGlu.bannersHeight = [String:Any]()
+            CustomerGlu.embedsHeight = [String:Any]()
             completion(false)
             return
         }
@@ -565,6 +573,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         
                         if CustomerGlu.isEntryPointEnabled {
                             CustomerGlu.bannersHeight = nil
+                            CustomerGlu.embedsHeight = nil
                             APIManager.getEntryPointdata(queryParameters: [:]) { result in
                                 switch result {
                                     case .success(let responseGetEntry):
@@ -588,21 +597,25 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                     case .failure(let error):
                                         CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-updateProfile-3", posttoserver: true)
                                         CustomerGlu.bannersHeight = [String:Any]()
+                                        CustomerGlu.embedsHeight = [String:Any]()
                                         completion(true)
                                 }
                             }
                         } else {
                             CustomerGlu.bannersHeight = [String:Any]()
+                            CustomerGlu.embedsHeight = [String:Any]()
                             completion(true)
                         }
                     } else {
                         CustomerGlu.getInstance.printlog(cglog: "", isException: false, methodName: "CustomerGlu-updateProfile-4", posttoserver: true)
                         CustomerGlu.bannersHeight = [String:Any]()
+                        CustomerGlu.embedsHeight = [String:Any]()
                         completion(false)
                     }
                 case .failure(let error):
                     CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-updateProfile-5", posttoserver: true)
                     CustomerGlu.bannersHeight = [String:Any]()
+                    CustomerGlu.embedsHeight = [String:Any]()
                     completion(false)
             }
         }
@@ -612,9 +625,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: CGConstants.CUSTOMERGLU_TOKEN) == nil {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call getEntryPointData", isException: false, methodName: "CustomerGlu-getEntryPointData", posttoserver: true)
             CustomerGlu.bannersHeight = [String:Any]()
+            CustomerGlu.embedsHeight = [String:Any]()
             return
         }
         CustomerGlu.bannersHeight = nil
+        CustomerGlu.embedsHeight = nil
         APIManager.getEntryPointdata(queryParameters: [:]) { [self] result in
             switch result {
                 case .success(let response):
@@ -635,6 +650,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("EntryPointLoaded").rawValue), object: nil, userInfo: nil)
                 case .failure(let error):
                     CustomerGlu.bannersHeight = [String:Any]()
+                    CustomerGlu.embedsHeight = [String:Any]()
                     CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-getEntryPointData", posttoserver: true)
             }
         }
@@ -1139,6 +1155,36 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
         if (CustomerGlu.bannersHeight == nil) {
             CustomerGlu.bannersHeight = [String:Any]()
+        }
+    }
+    
+    internal func postEmbedsCount() {
+
+        var postInfo: [String: Any] = [:]
+        
+        let banners = CustomerGlu.entryPointdata.filter {
+            $0.mobile.container.type == "EMBEDDED" && $0.mobile.container.bannerId != nil && $0.mobile.container.bannerId.count > 0
+        }
+        
+        if(banners.count > 0){
+            for banner in banners {
+                postInfo[banner.mobile.container.bannerId] = banner.mobile.content.count
+            }
+        }
+
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_EMBEDDED_LOADED").rawValue), object: nil, userInfo: postInfo)
+        
+        let bannersforheight = CustomerGlu.entryPointdata.filter {
+            $0.mobile.container.type == "EMBEDDED" && $0.mobile.container.bannerId != nil && $0.mobile.container.bannerId.count > 0 && (Int($0.mobile.container.height)!) > 0 && $0.mobile.content.count > 0
+        }
+        if bannersforheight.count > 0 {
+            CustomerGlu.embedsHeight = [String:Any]()
+            for banner in bannersforheight {
+                CustomerGlu.embedsHeight![banner.mobile.container.bannerId] = Int(banner.mobile.container.height)
+            }
+        }
+        if (CustomerGlu.embedsHeight == nil) {
+            CustomerGlu.embedsHeight = [String:Any]()
         }
     }
     
