@@ -19,13 +19,9 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
             
             let bodyStruct = try? JSONDecoder().decode(CGEventModel.self, from: bodyData)
             
-//            if bodyStruct?.eventName == WebViewsKey.close {
-//                if notificationHandler || iscampignId {
-//                    self.closePage(animated: true)
-//                } else {
-//                    self.navigationController?.popViewController(animated: true)
-//                }
-//            }
+            if bodyStruct?.eventName == WebViewsKey.close {
+                embedviewHeightchanged(height: 0.0)
+            }
             
 //            if bodyStruct?.eventName == WebViewsKey.open_deeplink {
 //                let deeplink = try? JSONDecoder().decode(CGDeepLinkModel.self, from: bodyData)
@@ -33,14 +29,14 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
 //                    print("link", deep_link)
 //                    postdata = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!) ?? [String:Any]()
 //                    self.canpost = true
-//                    if self.auto_close_webview == true {
+//                    if self.auto_close_webview == true `{
 //                        // Posted a notification in viewDidDisappear method
 //                        if notificationHandler || iscampignId {
 //                            self.closePage(animated: true)
 //                        } else {
 //                            self.navigationController?.popViewController(animated: true)
 //                        }
-//                    }else{
+//                    }`else{
 //                        // Post notification
 //                        self.canpost = false
 //                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_DEEPLINK_EVENT").rawValue), object: nil, userInfo: self.postdata)
@@ -49,38 +45,26 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
 //                }
 //            }
             
-//            if bodyStruct?.eventName == WebViewsKey.share {
-//                let share = try? JSONDecoder().decode(CGEventShareModel.self, from: bodyData)
-//                let text = share?.data?.text
-//                let channelName = share?.data?.channelName
-//                if let imageurl = share?.data?.image {
-//                    if imageurl == "" {
-//                        if channelName == "WHATSAPP" {
-//                            sendToWhatsapp(shareText: text!)
-//                        } else {
-//                            sendToOtherApps(shareText: text!)
-//                        }
-//                    } else {
-//                        if channelName == "WHATSAPP" {
-//                            shareImageToWhatsapp(imageString: imageurl, shareText: text ?? "")
-//                        } else {
-//                            sendImagesToOtherApp(imageString: imageurl, shareText: text ?? "")
-//                        }
-//                    }
-//
-////                    if self.auto_close_webview == true {
-////                        // Posted a notification in viewDidDisappear method
-////                        if openWallet {
-////                            delegate?.closeClicked(true)
-////                        } else if notificationHandler || iscampignId {
-////                            self.closePage(animated: true)
-////                        } else {
-////                            self.navigationController?.popViewController(animated: true)
-////                        }
-////                    }
-//
-//                }
-//            }
+            if bodyStruct?.eventName == WebViewsKey.share {
+                let share = try? JSONDecoder().decode(CGEventShareModel.self, from: bodyData)
+                let text = share?.data?.text
+                let channelName = share?.data?.channelName
+                if let imageurl = share?.data?.image {
+                    if imageurl == "" {
+                        if channelName == "WHATSAPP" {
+                            sendToWhatsapp(shareText: text!)
+                        } else {
+                            sendToOtherApps(shareText: text!)
+                        }
+                    } else {
+                        if channelName == "WHATSAPP" {
+                            shareImageToWhatsapp(imageString: imageurl, shareText: text ?? "")
+                        } else {
+                            sendImagesToOtherApp(imageString: imageurl, shareText: text ?? "")
+                        }
+                    }
+                }
+            }
             
             if bodyStruct?.eventName == WebViewsKey.analytics {
                 if (true == CustomerGlu.analyticsEvent) {
@@ -95,15 +79,11 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                 if (true == CustomerGlu.analyticsEvent) {
                     let dict = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!)
                     if(dict != nil && dict!.count>0 && dict?["data"] != nil){
-                        
                         let dictheight = dict?["data"] as! [String: Any]
                         if(dictheight != nil && dictheight.count > 0 && dictheight["height"] != nil){
                             finalHeight = (dictheight["height"])! as! Double
                             embedviewHeightchanged(height: finalHeight)
                         }
-
-//                        setEmbedView(height: finalHeight, isAutoScrollEnabled: false, autoScrollSpeed: 1)
-//                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_ANALYTICS_EVENT").rawValue), object: nil, userInfo: dict?["data"] as? [String: Any])
                     }
                 }
             }
@@ -168,7 +148,98 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
         self.layoutIfNeeded()
         return CGSize(width: UIView.noIntrinsicMetric, height: CGFloat(finalHeight))
     }
-        
+    private func shareImageToWhatsapp(imageString: String, shareText: String) {
+        let urlWhats = "whatsapp://app"
+        if let urlString = urlWhats.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) {
+            if let whatsappURL = URL(string: urlString) {
+                if UIApplication.shared.canOpenURL(whatsappURL as URL) {
+                    // Set your image's URL into here
+                    let url = URL(string: imageString)!
+                    data(from: url) { data, response, error in
+                        if(true == CustomerGlu.isDebugingEnabled){
+                            print(response as Any)
+                        }
+                        guard let data = data, error == nil else { return }
+                        DispatchQueue.main.async { [weak self] in
+                            let image = UIImage(data: data)
+                            if let imageData = image!.jpegData(compressionQuality: 1.0) {
+                                let tempFile = URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Documents/whatsAppTmp.wai")
+                                do {
+                                    try imageData.write(to: tempFile, options: .atomic)
+                                    self!.documentInteractionController = UIDocumentInteractionController(url: tempFile)
+                                    self!.documentInteractionController.uti = "net.whatsapp.image"
+                                    self?.documentInteractionController.presentOpenInMenu(from: CGRect.zero, in: self!.view, animated: true)
+                                } catch {
+                                    CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "shareImageToWhatsapp", posttoserver: true)
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    CustomerGlu.getInstance.printlog(cglog: "Can't open whatsapp", isException: false, methodName: "shareImageToWhatsapp", posttoserver: true)
+                }
+            }
+        }
+    }
+    private func sendToOtherApps(shareText: String) {
+        // set up activity view controller
+        let textToShare = [ shareText ]
+        let activityViewController = UIActivityViewController(activityItems: textToShare, applicationActivities: nil)
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            activityViewController.popoverPresentationController?.sourceView = self.view
+            activityViewController.popoverPresentationController?.sourceRect = CGRect(x: UIScreen.main.bounds.width / 2, y: UIScreen.main.bounds.height / 2, width: 0, height: 0)
+            activityViewController.popoverPresentationController?.permittedArrowDirections = UIPopoverArrowDirection(rawValue: 0)
+        }
+        // present the view controller
+        guard let topController = UIViewController.topViewController() else {
+            return
+        }
+        topController.present(activityViewController, animated: true, completion: nil)
+    }
+
+    
+    private func sendToWhatsapp(shareText: String) {
+        let urlWhats = "whatsapp://send?text=\(shareText)"
+        if let urlString = urlWhats.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) {
+            if let whatsappURL = URL(string: urlString) {
+                if UIApplication.shared.canOpenURL(whatsappURL as URL) {
+                    UIApplication.shared.open(whatsappURL)
+                } else {
+                    CustomerGlu.getInstance.printlog(cglog: "Can't open whatsapp", isException: false, methodName: "sendToWhatsapp", posttoserver: true)
+                }
+            }
+        }
+    }
+    
+    private func sendImagesToOtherApp(imageString: String, shareText: String) {
+        // Set your image's URL into here
+        let url = URL(string: imageString)!
+        data(from: url) { data, response, error in
+            if(true == CustomerGlu.isDebugingEnabled){
+                print(response as Any)
+            }
+            guard let data = data, error == nil else { return }
+            DispatchQueue.main.async { [weak self] in
+                if let image = UIImage(data: data) {
+                    // set up activity view controller
+                    let imageToShare = [shareText, image] as [Any]
+                    let activityViewController = UIActivityViewController(activityItems: imageToShare, applicationActivities: nil)
+                    if UIDevice.current.userInterfaceIdiom == .pad {
+                        activityViewController.popoverPresentationController?.sourceView = self!.view
+                        activityViewController.popoverPresentationController?.sourceRect = CGRect(x: UIScreen.main.bounds.width / 2, y: UIScreen.main.bounds.height / 2, width: 0, height: 0)
+                        activityViewController.popoverPresentationController?.permittedArrowDirections = UIPopoverArrowDirection(rawValue: 0)
+                    }
+                    guard let topController = UIViewController.topViewController() else {
+                        return
+                    }
+                    topController.present(activityViewController, animated: true, completion: nil)
+                }
+            }
+        }
+    }
+    func data(from url: URL, completion: @escaping (Data?, URLResponse?, Error?) -> Void) {
+        URLSession.shared.dataTask(with: url, completionHandler: completion).resume()
+    }
     // MARK: - Nib handlers
     private func xibSetup() {
         self.autoresizesSubviews = true
@@ -259,7 +330,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
             webView.isUserInteractionEnabled = true
             webView.tag = 0
             let urlStr = dict.url
-            webView.load(URLRequest(url: URL(string: "https://bmp7u0.csb.app/")!))
+            webView.load(URLRequest(url: URL(string: "https://democlient.end-ui.customerglu.com/wallet/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0LTA4bWFyLTE3IiwiZ2x1SWQiOiIwMDZiYTk2Ni00ZDMyLTRlNjMtYmM0Ni05N2VlMDM1YWU3ZWQiLCJjbGllbnQiOiJmMWQ4YzgyNC1mYzI1LTQxM2QtYjJjYy04YjA5OGI0MDI4ODYiLCJkZXZpY2VJZCI6Ijg5QkNGNjZFLUE5RDUtNEY5QS05MjlELTQ4Q0FDQkZBMTYwQyIsImRldmljZVR5cGUiOiJpb3MiLCJpc0xvZ2dlZEluIjp0cnVlLCJpYXQiOjE2NjM1ODQ3MDcsImV4cCI6MTY5NTEyMDcwN30.An4uRcJPo3HA9mBmRRiAwOqy-D-GVmborrBMWn5LS2Y")!))
 //                webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: urlStr!)!)))
             self.view.addSubview(webView)
 
