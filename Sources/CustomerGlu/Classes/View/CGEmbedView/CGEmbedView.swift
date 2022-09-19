@@ -9,7 +9,7 @@ import UIKit
 import Foundation
 import WebKit
 
-//BannerView
+//EmbedView
 public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         
@@ -99,10 +99,10 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                         let dictheight = dict?["data"] as! [String: Any]
                         if(dictheight != nil && dictheight.count > 0 && dictheight["height"] != nil){
                             finalHeight = (dictheight["height"])! as! Double
-                            bannerviewHeightchanged(height: finalHeight)
+                            embedviewHeightchanged(height: finalHeight)
                         }
 
-//                        setBannerView(height: finalHeight, isAutoScrollEnabled: false, autoScrollSpeed: 1)
+//                        setEmbedView(height: finalHeight, isAutoScrollEnabled: false, autoScrollSpeed: 1)
 //                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_ANALYTICS_EVENT").rawValue), object: nil, userInfo: dict?["data"] as? [String: Any])
                     }
                 }
@@ -121,12 +121,13 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
     var webView = WKWebView()
     let contentController = WKUserContentController()
     let config = WKWebViewConfiguration()
+    var documentInteractionController: UIDocumentInteractionController!
     
-    @IBInspectable var bannerId: String? {
+    @IBInspectable var embedId: String? {
         didSet {
             backgroundColor = UIColor.clear
-            CustomerGlu.getInstance.postBannersCount()
-            reloadBannerView()
+            CustomerGlu.getInstance.postEmbedsCount()
+            reloadEmbedView()
             NotificationCenter.default.addObserver(
                 self,
                 selector: #selector(self.entryPointLoaded),
@@ -136,24 +137,24 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
     }
 
     @objc private func entryPointLoaded(notification: NSNotification) {
-            self.reloadBannerView()
+            self.reloadEmbedView()
     }
     
-    var commonBannerId: String {
+    var commonEmbedId: String {
         get {
-            return self.bannerId ?? ""
+            return self.embedId ?? ""
         }
         set(newWeight) {
-            bannerId = newWeight
+            embedId = newWeight
         }
     }
 
-    public init(frame: CGRect, bannerId: String) {
+    public init(frame: CGRect, embedId: String) {
         //CODE
         super.init(frame: frame)
         code = true
         self.xibSetup()
-        self.commonBannerId = bannerId
+        self.commonEmbedId = embedId
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -183,7 +184,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
         addSubview(view)
     }
     
-    public func reloadBannerView() {
+    public func reloadEmbedView() {
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [self] in
 //        DispatchQueue.main.async { [self] in
@@ -193,12 +194,12 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                 self.view.subviews.forEach({ $0.removeFromSuperview() })
             }
             
-        let bannerViews = CustomerGlu.entryPointdata.filter {
-            $0.mobile.container.type == "EMBEDDED" && $0.mobile.container.bannerId == self.bannerId
+        let embedViews = CustomerGlu.entryPointdata.filter {
+            $0.mobile.container.type == "EMBEDDED" && $0.mobile.container.bannerId == self.embedId
             }
             
-            if bannerViews.count != 0 {
-                let mobile = bannerViews[0].mobile!
+            if embedViews.count != 0 {
+                let mobile = embedViews[0].mobile!
                 arrContent = [CGContent]()
                 condition = mobile.conditions
                 
@@ -208,44 +209,43 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                     }
                     
                     
-                    self.setBannerView(height:mobile.content[0].absoluteHeight ?? 0.0, isAutoScrollEnabled: mobile.conditions.autoScroll, autoScrollSpeed: mobile.conditions.autoScrollSpeed)
-//                    callLoadBannerAnalytics()
+                    self.setEmbedView(height:mobile.content[0].absoluteHeight ?? 0.0, isAutoScrollEnabled: mobile.conditions.autoScroll, autoScrollSpeed: mobile.conditions.autoScrollSpeed)
+//                    callLoadEmbedAnalytics()
                 } else {
-                    bannerviewHeightchanged(height: 0.0)
+                    embedviewHeightchanged(height: 0.0)
                 }
             } else {
-                bannerviewHeightchanged(height: 0.0)
+                embedviewHeightchanged(height: 0.0)
             }
         }
     }
     
-    private func bannerviewHeightchanged(height : Double) {
+    private func embedviewHeightchanged(height : Double) {
+        finalHeight = height
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [self] in
-            
             
             self.constraints.filter{$0.firstAttribute == .height}.forEach({ $0.constant = CGFloat(finalHeight) })
             self.frame.size.height = CGFloat(finalHeight)
             self.view.frame.size.height = CGFloat(finalHeight)
             self.webView.frame.size.height = CGFloat(finalHeight)
 
-            let postInfo: [String: Any] = [self.bannerId ?? "" : finalHeight]
-            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CGBANNER_FINAL_HEIGHT").rawValue), object: nil, userInfo: postInfo)
+            let postInfo: [String: Any] = [self.embedId ?? "" : finalHeight]
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CGEMBED_FINAL_HEIGHT").rawValue), object: nil, userInfo: postInfo)
             
             invalidateIntrinsicContentSize()
             self.layoutIfNeeded()
             
         }
-        finalHeight = height
     }
    
-    private func setBannerView(height: Double, isAutoScrollEnabled: Bool, autoScrollSpeed: Int){
+    private func setEmbedView(height: Double, isAutoScrollEnabled: Bool, autoScrollSpeed: Int){
 
         let screenWidth = self.frame.size.width
         let screenHeight = UIScreen.main.bounds.height
         finalHeight = height
         
-        let postInfo: [String: Any] = [self.bannerId ?? "" : finalHeight]
-        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CGBANNER_FINAL_HEIGHT").rawValue), object: nil, userInfo: postInfo)
+        let postInfo: [String: Any] = [self.embedId ?? "" : finalHeight]
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CGEMBED_FINAL_HEIGHT").rawValue), object: nil, userInfo: postInfo)
   
         self.constraints.filter{$0.firstAttribute == .height}.forEach({ $0.constant = CGFloat(finalHeight) })
         self.frame.size.height = CGFloat(finalHeight)
@@ -286,7 +286,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
 
 //    private func eventPublishNudge(pageName: String, nudgeId: String, actionType: String, actionTarget: String, pageType: String, campaignId: String) {
 //        var eventInfo = [String: AnyHashable]()
-//        eventInfo[APIParameterKey.nudgeType] = "BANNER"
+//        eventInfo[APIParameterKey.nudgeType] = "EMBED"
 //
 //        eventInfo[APIParameterKey.pageName] = pageName
 //        eventInfo[APIParameterKey.nudgeId] = nudgeId
@@ -309,20 +309,20 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
 //            if success {
 //
 //            } else {
-//                CustomerGlu.getInstance.printlog(cglog: "Fail to call eventPublishNudge", isException: false, methodName: "BannerView-eventPublishNudge", posttoserver: true)
+//                CustomerGlu.getInstance.printlog(cglog: "Fail to call eventPublishNudge", isException: false, methodName: "EmbedView-eventPublishNudge", posttoserver: true)
 //            }
 //        }
 //    }
     
-//    private func callLoadBannerAnalytics(){
+//    private func callLoadEmbedAnalytics(){
 //
 //        if (false == loadedapicalled){
-//            let bannerViews = CustomerGlu.entryPointdata.filter {
-//                $0.mobile.container.type == "BANNER" && $0.mobile.container.bannerId == self.bannerId ?? ""
+//            let embedViews = CustomerGlu.entryPointdata.filter {
+//                $0.mobile.container.type == "EMBED" && $0.mobile.container.embedId == self.embedId ?? ""
 //            }
 //
-//            if bannerViews.count != 0 {
-//                let mobile = bannerViews[0].mobile!
+//            if embedViews.count != 0 {
+//                let mobile = embedViews[0].mobile!
 //                arrContent = [CGContent]()
 //                condition = mobile.conditions
 //
