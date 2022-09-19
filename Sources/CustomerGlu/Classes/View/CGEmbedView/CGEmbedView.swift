@@ -240,6 +240,8 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
     func data(from url: URL, completion: @escaping (Data?, URLResponse?, Error?) -> Void) {
         URLSession.shared.dataTask(with: url, completionHandler: completion).resume()
     }
+    
+    
     // MARK: - Nib handlers
     private func xibSetup() {
         self.autoresizesSubviews = true
@@ -279,8 +281,9 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                         arrContent.append(content)
                     }
                     
-                    
-                    self.setEmbedView(height:mobile.content[0].absoluteHeight ?? 0.0, isAutoScrollEnabled: mobile.conditions.autoScroll, autoScrollSpeed: mobile.conditions.autoScrollSpeed)
+                    finalHeight = mobile.content[0].absoluteHeight ?? 0.0
+                    loadAllCampaignsApi()
+//                    self.setEmbedView(height:mobile.content[0].absoluteHeight ?? 0.0, isAutoScrollEnabled: mobile.conditions.autoScroll, autoScrollSpeed: mobile.conditions.autoScrollSpeed)
 //                    callLoadEmbedAnalytics()
                 } else {
                     embedviewHeightchanged(height: 0.0)
@@ -308,8 +311,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
             
         }
     }
-   
-    private func setEmbedView(height: Double, isAutoScrollEnabled: Bool, autoScrollSpeed: Int){
+    private func setEmbedView(height: Double, url: String){
 
         let screenWidth = self.frame.size.width
         let screenHeight = UIScreen.main.bounds.height
@@ -323,19 +325,54 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
         if self.view != nil {
             self.view.frame.size.height = CGFloat(finalHeight)
         }
-        
-            let dict = arrContent[0]
-            let xOrigin = screenWidth * CGFloat(0)
+
             webView = WKWebView(frame: CGRect(x: 0, y: 0, width: screenWidth, height: CGFloat(finalHeight)), configuration: config)
             webView.isUserInteractionEnabled = true
             webView.tag = 0
-            let urlStr = dict.url
-            webView.load(URLRequest(url: URL(string: "https://democlient.end-ui.customerglu.com/wallet/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0LTA4bWFyLTE3IiwiZ2x1SWQiOiIwMDZiYTk2Ni00ZDMyLTRlNjMtYmM0Ni05N2VlMDM1YWU3ZWQiLCJjbGllbnQiOiJmMWQ4YzgyNC1mYzI1LTQxM2QtYjJjYy04YjA5OGI0MDI4ODYiLCJkZXZpY2VJZCI6Ijg5QkNGNjZFLUE5RDUtNEY5QS05MjlELTQ4Q0FDQkZBMTYwQyIsImRldmljZVR5cGUiOiJpb3MiLCJpc0xvZ2dlZEluIjp0cnVlLCJpYXQiOjE2NjM1ODQ3MDcsImV4cCI6MTY5NTEyMDcwN30.An4uRcJPo3HA9mBmRRiAwOqy-D-GVmborrBMWn5LS2Y")!))
-//                webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: urlStr!)!)))
+//            let urlStr = dict.url
+//            webView.load(URLRequest(url: URL(string: "https://democlient.end-ui.customerglu.com/wallet/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0LTA4bWFyLTE3IiwiZ2x1SWQiOiIwMDZiYTk2Ni00ZDMyLTRlNjMtYmM0Ni05N2VlMDM1YWU3ZWQiLCJjbGllbnQiOiJmMWQ4YzgyNC1mYzI1LTQxM2QtYjJjYy04YjA5OGI0MDI4ODYiLCJkZXZpY2VJZCI6Ijg5QkNGNjZFLUE5RDUtNEY5QS05MjlELTQ4Q0FDQkZBMTYwQyIsImRldmljZVR5cGUiOiJpb3MiLCJpc0xvZ2dlZEluIjp0cnVlLCJpYXQiOjE2NjM1ODQ3MDcsImV4cCI6MTY5NTEyMDcwN30.An4uRcJPo3HA9mBmRRiAwOqy-D-GVmborrBMWn5LS2Y")!))
+        webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: url)!)))
             self.view.addSubview(webView)
 
         invalidateIntrinsicContentSize()
         self.layoutIfNeeded()
+    }
+
+    private func loadAllCampaignsApi(){
+
+//        embedviewHeightchanged(height: 0.0)
+        ApplicationManager.loadAllCampaignsApi(type: "", value: "", loadByparams: [:]) { [self] success, campaignsModel in
+            if success {
+                CustomerGlu.getInstance.loaderHide()
+                if arrContent.first?.campaignId.count == 0 {
+                    DispatchQueue.main.async { [self] in // Make sure you're on the main thread here
+                        self.setEmbedView(height: finalHeight, url: campaignsModel?.defaultUrl ?? "")
+                    }
+                } else if (arrContent.first?.campaignId.contains("http://"))! || (arrContent.first?.campaignId.contains("https://"))! {
+                    DispatchQueue.main.async { [self] in // Make sure you're on the main thread here
+                        //self.setupWebViewCustomFrame(url: self.campaign_id)
+                        self.setEmbedView(height: finalHeight, url: (arrContent.first?.campaignId)!)
+                    }
+                } else {
+                    let campaigns: [CGCampaigns] = (campaignsModel?.campaigns)!
+                    let filteredArray = campaigns.filter{($0.campaignId.elementsEqual((arrContent.first?.campaignId)!)) || ($0.banner != nil && $0.banner?.tag != nil && $0.banner?.tag != "" && ($0.banner!.tag!.elementsEqual((arrContent.first?.campaignId)!)))}
+                    if filteredArray.count > 0 {
+                        DispatchQueue.main.async {
+                            self.setEmbedView(height: self.finalHeight, url: filteredArray[0].url)
+                        }
+                    } else {
+                        DispatchQueue.main.async { [self] in // Make sure you're on the main thread here
+                            self.setEmbedView(height: finalHeight, url: campaignsModel?.defaultUrl ?? "")
+                        }
+                    }
+                }
+            } else {
+                CustomerGlu.getInstance.loaderHide()
+                CustomerGlu.getInstance.printlog(cglog: "Fail to load loadAllCampaignsApi", isException: false, methodName: "CGEmbedView-setEmbedView", posttoserver: true)
+            }
+        }
+//        invalidateIntrinsicContentSize()
+//        self.layoutIfNeeded()
     }
     deinit {
         NotificationCenter.default.removeObserver(self)
