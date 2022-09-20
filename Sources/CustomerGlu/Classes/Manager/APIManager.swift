@@ -87,12 +87,12 @@ class APIManager {
         
         // Common Headers
         urlRequest.setValue(ContentType.json.rawValue, forHTTPHeaderField: HTTPHeaderField.contentType.rawValue)
+        urlRequest.setValue(Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String, forHTTPHeaderField: HTTPHeaderField.xapikey.rawValue)
+        urlRequest.setValue("ios", forHTTPHeaderField: HTTPHeaderField.platform.rawValue)
         
         if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
             urlRequest.setValue("\(APIParameterKey.bearer) " + CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN), forHTTPHeaderField: HTTPHeaderField.authorization.rawValue)
             urlRequest.setValue("\(APIParameterKey.bearer) " + CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN), forHTTPHeaderField: HTTPHeaderField.xgluauth.rawValue)
-            urlRequest.setValue(Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String, forHTTPHeaderField: HTTPHeaderField.xapikey.rawValue)
-            urlRequest.setValue("ios", forHTTPHeaderField: HTTPHeaderField.platform.rawValue)
         }
         
         if parametersDict!.count > 0 { // Check Parameters & Move Accordingly
