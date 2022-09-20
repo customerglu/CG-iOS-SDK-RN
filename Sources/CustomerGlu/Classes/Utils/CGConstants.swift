@@ -93,6 +93,9 @@ struct NotificationsKey {
     static let nudge_url = "nudge_url"
     static let page_type = "page_type"
     static let CustomerGlu = "CustomerGlu"
+    static let absoluteHeight = "absoluteHeight"
+    static let relativeHeight = "relativeHeight"
+    static let closeOnDeepLink = "closeOnDeepLink"
 }
 
 // Default WebViewsKey

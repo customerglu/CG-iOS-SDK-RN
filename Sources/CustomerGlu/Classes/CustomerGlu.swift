@@ -239,20 +239,38 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 print(nudge_url as Any)
             }
             let page_type = userInfo[NotificationsKey.page_type]
+            let absoluteHeight = userInfo[NotificationsKey.absoluteHeight]
+            let relativeHeight = userInfo[NotificationsKey.relativeHeight]
+            let closeOnDeepLink = userInfo[NotificationsKey.closeOnDeepLink]
             
+            let nudgeConfiguration  = CGNudgeConfiguration()
+            if(page_type != nil){
+                nudgeConfiguration.layout = page_type as! String
+            }
+            if(absoluteHeight != nil){
+                nudgeConfiguration.absoluteHeight = Double(absoluteHeight as! String) ?? 0.0
+            }
+            if(relativeHeight != nil){
+                nudgeConfiguration.relativeHeight = Double(relativeHeight as! String) ?? 0.0
+            }
+            if(closeOnDeepLink != nil){
+                nudgeConfiguration.closeOnDeepLink = Bool(closeOnDeepLink as! String) ?? CustomerGlu.auto_close_webview!
+            }
+
             if userInfo[NotificationsKey.glu_message_type] as? String == NotificationsKey.in_app {
                 
                 if(true == CustomerGlu.isDebugingEnabled){
                     print(page_type as Any)
                 }
                 if page_type as? String == CGConstants.BOTTOM_SHEET_NOTIFICATION {
-                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: backgroundAlpha,auto_close_webview: auto_close_webview)
-                } else if page_type as? String == CGConstants.BOTTOM_DEFAULT_NOTIFICATION {
-                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: backgroundAlpha,auto_close_webview: auto_close_webview)
-                } else if page_type as? String == CGConstants.MIDDLE_NOTIFICATIONS {
-                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.MIDDLE_NOTIFICATIONS, backgroundAlpha: backgroundAlpha,auto_close_webview: auto_close_webview)
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: backgroundAlpha,auto_close_webview: auto_close_webview, nudgeConfiguration: nudgeConfiguration)
+
+                } else if ((page_type as? String == CGConstants.BOTTOM_DEFAULT_NOTIFICATION) || (page_type as? String == CGConstants.BOTTOM_DEFAULT_NOTIFICATION_POPUP)) {
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: backgroundAlpha,auto_close_webview: auto_close_webview, nudgeConfiguration: nudgeConfiguration)
+                } else if ((page_type as? String == CGConstants.MIDDLE_NOTIFICATIONS) || (page_type as? String == CGConstants.MIDDLE_NOTIFICATIONS_POPUP)) {
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.MIDDLE_NOTIFICATIONS, backgroundAlpha: backgroundAlpha,auto_close_webview: auto_close_webview, nudgeConfiguration: nudgeConfiguration)
                 } else {
-                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: backgroundAlpha,auto_close_webview: auto_close_webview)
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: backgroundAlpha,auto_close_webview: auto_close_webview, nudgeConfiguration: nudgeConfiguration)
                 }
             } else {
 
@@ -318,17 +336,35 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
             let page_type = remoteMessage[NotificationsKey.page_type]
 
+            let absoluteHeight = remoteMessage[NotificationsKey.absoluteHeight]
+            let relativeHeight = remoteMessage[NotificationsKey.relativeHeight]
+            let closeOnDeepLink = remoteMessage[NotificationsKey.closeOnDeepLink]
+            
+            let nudgeConfiguration  = CGNudgeConfiguration()
+            if(page_type != nil){
+                nudgeConfiguration.layout = page_type as! String
+            }
+            if(absoluteHeight != nil){
+                nudgeConfiguration.absoluteHeight = Double(absoluteHeight as! String) ?? 0.0
+            }
+            if(relativeHeight != nil){
+                nudgeConfiguration.relativeHeight = Double(relativeHeight as! String) ?? 0.0
+            }
+            if(closeOnDeepLink != nil){
+                nudgeConfiguration.closeOnDeepLink = Bool(closeOnDeepLink as! String) ?? CustomerGlu.auto_close_webview!
+            }
+
                 if(true == CustomerGlu.isDebugingEnabled){
                     print(page_type as Any)
                 }
                 if page_type as? String == CGConstants.BOTTOM_SHEET_NOTIFICATION {
-                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview)
-                } else if page_type as? String == CGConstants.BOTTOM_DEFAULT_NOTIFICATION {
-                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview)
-                } else if page_type as? String == CGConstants.MIDDLE_NOTIFICATIONS {
-                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.MIDDLE_NOTIFICATIONS, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview)
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview, nudgeConfiguration: nudgeConfiguration)
+                } else if ((page_type as? String == CGConstants.BOTTOM_DEFAULT_NOTIFICATION) || (page_type as? String == CGConstants.BOTTOM_DEFAULT_NOTIFICATION_POPUP)) {
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview, nudgeConfiguration: nudgeConfiguration)
+                } else if((page_type as? String == CGConstants.MIDDLE_NOTIFICATIONS) || (page_type as? String == CGConstants.MIDDLE_NOTIFICATIONS_POPUP)) {
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.MIDDLE_NOTIFICATIONS, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview, nudgeConfiguration: nudgeConfiguration)
                 } else {
-                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview)
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview, nudgeConfiguration: nudgeConfiguration)
                 }
         } else {
         }
