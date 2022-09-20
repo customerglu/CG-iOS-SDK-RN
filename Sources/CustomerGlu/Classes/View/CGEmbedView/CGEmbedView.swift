@@ -23,27 +23,18 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                 embedviewHeightchanged(height: 0.0)
             }
             
-//            if bodyStruct?.eventName == WebViewsKey.open_deeplink {
-//                let deeplink = try? JSONDecoder().decode(CGDeepLinkModel.self, from: bodyData)
-//                if  let deep_link = deeplink?.data?.deepLink {
-//                    print("link", deep_link)
-//                    postdata = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!) ?? [String:Any]()
-//                    self.canpost = true
-//                    if self.auto_close_webview == true `{
-//                        // Posted a notification in viewDidDisappear method
-//                        if notificationHandler || iscampignId {
-//                            self.closePage(animated: true)
-//                        } else {
-//                            self.navigationController?.popViewController(animated: true)
-//                        }
-//                    }`else{
-//                        // Post notification
-//                        self.canpost = false
-//                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_DEEPLINK_EVENT").rawValue), object: nil, userInfo: self.postdata)
-//                        self.postdata = [String:Any]()
-//                    }
-//                }
-//            }
+            if bodyStruct?.eventName == WebViewsKey.open_deeplink {
+                let deeplink = try? JSONDecoder().decode(CGDeepLinkModel.self, from: bodyData)
+                if  let deep_link = deeplink?.data?.deepLink {
+                    print("link", deep_link)
+                    let postdata = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!) ?? [String:Any]()
+                    if self.closeOnDeepLink == true{
+                        embedviewHeightchanged(height: 0.0)
+                    }
+                    // Post notification
+                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_DEEPLINK_EVENT").rawValue), object: nil, userInfo: postdata)
+                }
+            }
             
             if bodyStruct?.eventName == WebViewsKey.share {
                 let share = try? JSONDecoder().decode(CGEventShareModel.self, from: bodyData)
@@ -102,6 +93,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
     let contentController = WKUserContentController()
     let config = WKWebViewConfiguration()
     var documentInteractionController: UIDocumentInteractionController!
+    public var closeOnDeepLink = CustomerGlu.auto_close_webview!
     
     @IBInspectable var embedId: String? {
         didSet {
