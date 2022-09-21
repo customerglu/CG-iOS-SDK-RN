@@ -71,7 +71,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                     let dict = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!)
                     if(dict != nil && dict!.count>0 && dict?["data"] != nil){
                         let dictheight = dict?["data"] as! [String: Any]
-                        if(dictheight != nil && dictheight.count > 0 && dictheight["height"] != nil){
+                        if(dictheight.count > 0 && dictheight["height"] != nil){
                             finalHeight = (dictheight["height"])! as! Double
                             embedviewHeightchanged(height: finalHeight)
                         }
@@ -252,12 +252,8 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
     public func reloadEmbedView() {
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [self] in
-//        DispatchQueue.main.async { [self] in
             
-            
-            if self.view != nil {
-                self.view.subviews.forEach({ $0.removeFromSuperview() })
-            }
+        self.view.subviews.forEach({ $0.removeFromSuperview() })
             
         let embedViews = CustomerGlu.entryPointdata.filter {
             $0.mobile.container.type == "EMBEDDED" && $0.mobile.container.bannerId == self.embedId
@@ -273,9 +269,8 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                         arrContent.append(content)
                     }
                     
-                    finalHeight = mobile.content[0].absoluteHeight ?? 0.0
+                    finalHeight = getconfiguredheight()
                     loadAllCampaignsApi()
-//                    self.setEmbedView(height:mobile.content[0].absoluteHeight ?? 0.0, isAutoScrollEnabled: mobile.conditions.autoScroll, autoScrollSpeed: mobile.conditions.autoScrollSpeed)
 //                    callLoadEmbedAnalytics()
                 } else {
                     embedviewHeightchanged(height: 0.0)
@@ -306,7 +301,6 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
     private func setEmbedView(height: Double, url: String){
 
         let screenWidth = self.frame.size.width
-        let screenHeight = UIScreen.main.bounds.height
         finalHeight = height
         
         let postInfo: [String: Any] = [self.embedId ?? "" : finalHeight]
@@ -314,16 +308,12 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
   
         self.constraints.filter{$0.firstAttribute == .height}.forEach({ $0.constant = CGFloat(finalHeight) })
         self.frame.size.height = CGFloat(finalHeight)
-        if self.view != nil {
-            self.view.frame.size.height = CGFloat(finalHeight)
-        }
+        self.view.frame.size.height = CGFloat(finalHeight)
 
             webView = WKWebView(frame: CGRect(x: 0, y: 0, width: screenWidth, height: CGFloat(finalHeight)), configuration: config)
             webView.isUserInteractionEnabled = true
             webView.tag = 0
-//            let urlStr = dict.url
-//            webView.load(URLRequest(url: URL(string: "https://democlient.end-ui.customerglu.com/wallet/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0LTA4bWFyLTE3IiwiZ2x1SWQiOiIwMDZiYTk2Ni00ZDMyLTRlNjMtYmM0Ni05N2VlMDM1YWU3ZWQiLCJjbGllbnQiOiJmMWQ4YzgyNC1mYzI1LTQxM2QtYjJjYy04YjA5OGI0MDI4ODYiLCJkZXZpY2VJZCI6Ijg5QkNGNjZFLUE5RDUtNEY5QS05MjlELTQ4Q0FDQkZBMTYwQyIsImRldmljZVR5cGUiOiJpb3MiLCJpc0xvZ2dlZEluIjp0cnVlLCJpYXQiOjE2NjM1ODQ3MDcsImV4cCI6MTY5NTEyMDcwN30.An4uRcJPo3HA9mBmRRiAwOqy-D-GVmborrBMWn5LS2Y")!))
-        webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: url)!)))
+            webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: url)!)))
             self.view.addSubview(webView)
 
         invalidateIntrinsicContentSize()
@@ -369,19 +359,23 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-//    private func getconfiguredheight()->CGFloat {
-//        var finalheight = (self.view.frame.height) * (70/100)
-//
-//        if(nudgeConfiguration != nil){
-//            if(nudgeConfiguration!.relativeHeight > 0){
-//                finalheight = (self.view.frame.height) * (nudgeConfiguration!.relativeHeight/100)
-//            }else if(nudgeConfiguration!.absoluteHeight > 0){
-//                finalheight = nudgeConfiguration!.absoluteHeight
-//            }
-//        }
-//
-//        return finalheight
-//    }
+    private func getconfiguredheight()->CGFloat {
+        var finalheight = (UIScreen.main.bounds.height) * (70/100)
+
+        if(arrContent.count > 0){
+            let content = arrContent[0]
+            let absoluteHeight = content.absoluteHeight ?? 0.0
+            let relativeHeight =  content.relativeHeight ?? 0.0
+            
+            if(relativeHeight > 0){
+                finalheight = (UIScreen.main.bounds.height) * (relativeHeight/100)
+            }else if(absoluteHeight > 0){
+                finalheight = absoluteHeight
+            }
+        }
+
+        return finalheight
+    }
 
 
 //    private func eventPublishNudge(pageName: String, nudgeId: String, actionType: String, actionTarget: String, pageType: String, campaignId: String) {
