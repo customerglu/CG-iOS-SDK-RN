@@ -94,7 +94,7 @@ class APIManager {
         urlRequest.setValue("ios", forHTTPHeaderField: HTTPHeaderField.platform.rawValue)
         urlRequest.setValue(CustomerGlu.isDebugingEnabled.description, forHTTPHeaderField: HTTPHeaderField.sandbox.rawValue)
         urlRequest.setValue(HTTPHeaderField.cgsdkversionvalue.rawValue, forHTTPHeaderField: HTTPHeaderField.cgsdkversionkey.rawValue)
-
+        
         if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
             urlRequest.setValue("\(APIParameterKey.bearer) " + CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN), forHTTPHeaderField: HTTPHeaderField.authorization.rawValue)
             urlRequest.setValue("\(APIParameterKey.bearer) " + CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN), forHTTPHeaderField: HTTPHeaderField.xgluauth.rawValue)
@@ -163,7 +163,7 @@ class APIManager {
         
         // Added Task into Queue
         blockOperation.addExecutionBlock {
-        // Call Login API with API Router
+            // Call Login API with API Router
             performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.userRegister, parametersDict: queryParameters, completion: completion)
         }
         
@@ -171,14 +171,14 @@ class APIManager {
         if(ApplicationManager.operationQueue.operations.count > 0){
             blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
         }
-         
-         //Added task into Queue
-         ApplicationManager.operationQueue.addOperation(blockOperation)
+        
+        //Added task into Queue
+        ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
     static func getWalletRewards(queryParameters: NSDictionary, completion: @escaping (Result<CGCampaignsModel, Error>) -> Void) {
         // Call Get Wallet and Rewards List
-
+        
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
         
@@ -187,10 +187,10 @@ class APIManager {
             performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.getWalletRewards, parametersDict: queryParameters,completion: completion)
         }
         
-       // Add dependency to finish previus task before starting new one
-       if(ApplicationManager.operationQueue.operations.count > 0){
-           blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-       }
+        // Add dependency to finish previus task before starting new one
+        if(ApplicationManager.operationQueue.operations.count > 0){
+            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
+        }
         
         //Added task into Queue
         ApplicationManager.operationQueue.addOperation(blockOperation)
@@ -241,7 +241,7 @@ class APIManager {
         
         // Added Task into Queue
         blockOperation.addExecutionBlock {
-        // Call Get Wallet and Rewards List
+            // Call Get Wallet and Rewards List
             performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.entryPointdata, parametersDict: queryParameters, completion: completion)
         }
         
@@ -260,7 +260,7 @@ class APIManager {
         
         // Added Task into Queue
         blockOperation.addExecutionBlock {
-        // Call Put PublishNudge
+            // Call Put PublishNudge
             performRequest(baseurl: BaseUrls.streamurl, methodandpath: MethodNameandPath.publish_nudge, parametersDict: queryParameters, completion: completion)
         }
         
@@ -279,7 +279,7 @@ class APIManager {
         
         // Added Task into Queue
         blockOperation.addExecutionBlock {
-        // Call Put EntryPoints_Config
+            // Call Put EntryPoints_Config
             performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.entrypoints_config, parametersDict: queryParameters, completion: completion)
         }
         

@@ -107,9 +107,9 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                 object: nil)
         }
     }
-
+    
     @objc private func entryPointLoaded(notification: NSNotification) {
-            self.reloadEmbedView()
+        self.reloadEmbedView()
     }
     
     var commonEmbedId: String {
@@ -120,7 +120,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
             embedId = newWeight
         }
     }
-
+    
     public init(frame: CGRect, embedId: String) {
         //CODE
         super.init(frame: frame)
@@ -188,7 +188,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
         }
         topController.present(activityViewController, animated: true, completion: nil)
     }
-
+    
     
     private func sendToWhatsapp(shareText: String) {
         let urlWhats = "whatsapp://send?text=\(shareText)"
@@ -253,10 +253,10 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [self] in
             
-        self.view.subviews.forEach({ $0.removeFromSuperview() })
+            self.view.subviews.forEach({ $0.removeFromSuperview() })
             
-        let embedViews = CustomerGlu.entryPointdata.filter {
-            $0.mobile.container.type == "EMBEDDED" && $0.mobile.container.bannerId == self.embedId
+            let embedViews = CustomerGlu.entryPointdata.filter {
+                $0.mobile.container.type == "EMBEDDED" && $0.mobile.container.bannerId == self.embedId
             }
             
             if embedViews.count != 0 {
@@ -271,7 +271,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                     
                     finalHeight = getconfiguredheight()
                     loadAllCampaignsApi()
-//                    callLoadEmbedAnalytics()
+                    //                    callLoadEmbedAnalytics()
                 } else {
                     embedviewHeightchanged(height: 0.0)
                 }
@@ -289,7 +289,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
             self.frame.size.height = CGFloat(finalHeight)
             self.view.frame.size.height = CGFloat(finalHeight)
             self.webView.frame.size.height = CGFloat(finalHeight)
-
+            
             let postInfo: [String: Any] = [self.embedId ?? "" : finalHeight]
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CGEMBED_FINAL_HEIGHT").rawValue), object: nil, userInfo: postInfo)
             
@@ -299,30 +299,30 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
         }
     }
     private func setEmbedView(height: Double, url: String){
-
+        
         let screenWidth = self.frame.size.width
         finalHeight = height
         
         let postInfo: [String: Any] = [self.embedId ?? "" : finalHeight]
         NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CGEMBED_FINAL_HEIGHT").rawValue), object: nil, userInfo: postInfo)
-  
+        
         self.constraints.filter{$0.firstAttribute == .height}.forEach({ $0.constant = CGFloat(finalHeight) })
         self.frame.size.height = CGFloat(finalHeight)
         self.view.frame.size.height = CGFloat(finalHeight)
-
-            webView = WKWebView(frame: CGRect(x: 0, y: 0, width: screenWidth, height: CGFloat(finalHeight)), configuration: config)
-            webView.isUserInteractionEnabled = true
-            webView.tag = 0
-            webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: url)!)))
-            self.view.addSubview(webView)
-
+        
+        webView = WKWebView(frame: CGRect(x: 0, y: 0, width: screenWidth, height: CGFloat(finalHeight)), configuration: config)
+        webView.isUserInteractionEnabled = true
+        webView.tag = 0
+        webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: url)!)))
+        self.view.addSubview(webView)
+        
         invalidateIntrinsicContentSize()
         self.layoutIfNeeded()
     }
-
+    
     private func loadAllCampaignsApi(){
-
-//        embedviewHeightchanged(height: 0.0)
+        
+        //        embedviewHeightchanged(height: 0.0)
         ApplicationManager.loadAllCampaignsApi(type: "", value: "", loadByparams: [:]) { [self] success, campaignsModel in
             if success {
                 CustomerGlu.getInstance.loaderHide()
@@ -353,15 +353,15 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                 CustomerGlu.getInstance.printlog(cglog: "Fail to load loadAllCampaignsApi", isException: false, methodName: "CGEmbedView-setEmbedView", posttoserver: true)
             }
         }
-//        invalidateIntrinsicContentSize()
-//        self.layoutIfNeeded()
+        //        invalidateIntrinsicContentSize()
+        //        self.layoutIfNeeded()
     }
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
     private func getconfiguredheight()->CGFloat {
         var finalheight = (UIScreen.main.bounds.height) * (70/100)
-
+        
         if(arrContent.count > 0){
             let content = arrContent[0]
             let absoluteHeight = content.absoluteHeight ?? 0.0
@@ -373,70 +373,70 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                 finalheight = absoluteHeight
             }
         }
-
+        
         return finalheight
     }
-
-
-//    private func eventPublishNudge(pageName: String, nudgeId: String, actionType: String, actionTarget: String, pageType: String, campaignId: String) {
-//        var eventInfo = [String: AnyHashable]()
-//        eventInfo[APIParameterKey.nudgeType] = "EMBED"
-//
-//        eventInfo[APIParameterKey.pageName] = pageName
-//        eventInfo[APIParameterKey.nudgeId] = nudgeId
-//        eventInfo[APIParameterKey.actionTarget] = actionTarget
-//        eventInfo[APIParameterKey.actionType] = actionType
-//        eventInfo[APIParameterKey.pageType] = pageType
-//
-//        eventInfo[APIParameterKey.campaignId] = "CAMPAIGNID_NOTPRESENT"
-//        if actionTarget == "CAMPAIGN" {
-//            if campaignId.count > 0 {
-//                if !(campaignId.contains("http://") || campaignId.contains("https://")) {
-//                    eventInfo[APIParameterKey.campaignId] = campaignId
-//                }
-//            }
-//        }
-//
-//        eventInfo[APIParameterKey.optionalPayload] = [String: String]() as [String: String]
-//
-//        ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
-//            if success {
-//
-//            } else {
-//                CustomerGlu.getInstance.printlog(cglog: "Fail to call eventPublishNudge", isException: false, methodName: "EmbedView-eventPublishNudge", posttoserver: true)
-//            }
-//        }
-//    }
     
-//    private func callLoadEmbedAnalytics(){
-//
-//        if (false == loadedapicalled){
-//            let embedViews = CustomerGlu.entryPointdata.filter {
-//                $0.mobile.container.type == "EMBED" && $0.mobile.container.embedId == self.embedId ?? ""
-//            }
-//
-//            if embedViews.count != 0 {
-//                let mobile = embedViews[0].mobile!
-//                arrContent = [CGContent]()
-//                condition = mobile.conditions
-//
-//                if mobile.content.count != 0 {
-//                    for content in mobile.content {
-//                        arrContent.append(content)
-//                        var actionTarget = ""
-//                        if content.campaignId.count == 0 {
-//                            actionTarget = "WALLET"
-//                        } else if content.campaignId.contains("http://") || content.campaignId.contains("https://"){
-//                            actionTarget = "CUSTOM_URL"
-//                        } else {
-//                            actionTarget = "CAMPAIGN"
-//                        }
-//
-//                        eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: content._id, actionType: "LOADED", actionTarget: actionTarget, pageType: content.openLayout, campaignId: content.campaignId)
-//                    }
-//                    loadedapicalled = true
-//                }
-//            }
-//        }
-//    }
+    
+    //    private func eventPublishNudge(pageName: String, nudgeId: String, actionType: String, actionTarget: String, pageType: String, campaignId: String) {
+    //        var eventInfo = [String: AnyHashable]()
+    //        eventInfo[APIParameterKey.nudgeType] = "EMBED"
+    //
+    //        eventInfo[APIParameterKey.pageName] = pageName
+    //        eventInfo[APIParameterKey.nudgeId] = nudgeId
+    //        eventInfo[APIParameterKey.actionTarget] = actionTarget
+    //        eventInfo[APIParameterKey.actionType] = actionType
+    //        eventInfo[APIParameterKey.pageType] = pageType
+    //
+    //        eventInfo[APIParameterKey.campaignId] = "CAMPAIGNID_NOTPRESENT"
+    //        if actionTarget == "CAMPAIGN" {
+    //            if campaignId.count > 0 {
+    //                if !(campaignId.contains("http://") || campaignId.contains("https://")) {
+    //                    eventInfo[APIParameterKey.campaignId] = campaignId
+    //                }
+    //            }
+    //        }
+    //
+    //        eventInfo[APIParameterKey.optionalPayload] = [String: String]() as [String: String]
+    //
+    //        ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
+    //            if success {
+    //
+    //            } else {
+    //                CustomerGlu.getInstance.printlog(cglog: "Fail to call eventPublishNudge", isException: false, methodName: "EmbedView-eventPublishNudge", posttoserver: true)
+    //            }
+    //        }
+    //    }
+    
+    //    private func callLoadEmbedAnalytics(){
+    //
+    //        if (false == loadedapicalled){
+    //            let embedViews = CustomerGlu.entryPointdata.filter {
+    //                $0.mobile.container.type == "EMBED" && $0.mobile.container.embedId == self.embedId ?? ""
+    //            }
+    //
+    //            if embedViews.count != 0 {
+    //                let mobile = embedViews[0].mobile!
+    //                arrContent = [CGContent]()
+    //                condition = mobile.conditions
+    //
+    //                if mobile.content.count != 0 {
+    //                    for content in mobile.content {
+    //                        arrContent.append(content)
+    //                        var actionTarget = ""
+    //                        if content.campaignId.count == 0 {
+    //                            actionTarget = "WALLET"
+    //                        } else if content.campaignId.contains("http://") || content.campaignId.contains("https://"){
+    //                            actionTarget = "CUSTOM_URL"
+    //                        } else {
+    //                            actionTarget = "CAMPAIGN"
+    //                        }
+    //
+    //                        eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: content._id, actionType: "LOADED", actionTarget: actionTarget, pageType: content.openLayout, campaignId: content.campaignId)
+    //                    }
+    //                    loadedapicalled = true
+    //                }
+    //            }
+    //        }
+    //    }
 }

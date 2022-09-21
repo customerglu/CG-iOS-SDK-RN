@@ -56,30 +56,30 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     public override var shouldAutorotate: Bool{
         return false;
     }
-
+    
     @objc func rotated() {
         for subview in self.view.subviews {
             if(subview == webView){
-                        
-                        let height = getconfiguredheight()
-                        if ismiddle {
-                            webView.frame = CGRect(x: 20, y: (self.view.frame.height - height)/2, width: self.view.frame.width - 40, height: height)
-
-                        } else if isbottomdefault {
-                            webView.frame = CGRect(x: 0, y: self.view.frame.height - height, width: self.view.frame.width, height: height)
-                        } else if isbottomsheet {
-                            webView.frame = CGRect(x: 0, y: 0, width: self.view.frame.width, height: UIScreen.main.bounds.height)
-                        } else {
-                            topHeight.constant = CGFloat(CustomerGlu.topSafeAreaHeight)
-                            bottomHeight.constant = CGFloat(CustomerGlu.bottomSafeAreaHeight)
-                            webView.frame = CGRect(x: 0, y: topHeight.constant, width: self.view.frame.width, height: self.view.frame.height - (topHeight.constant + bottomHeight.constant))
-                        }
-                    }
+                
+                let height = getconfiguredheight()
+                if ismiddle {
+                    webView.frame = CGRect(x: 20, y: (self.view.frame.height - height)/2, width: self.view.frame.width - 40, height: height)
+                    
+                } else if isbottomdefault {
+                    webView.frame = CGRect(x: 0, y: self.view.frame.height - height, width: self.view.frame.width, height: height)
+                } else if isbottomsheet {
+                    webView.frame = CGRect(x: 0, y: 0, width: self.view.frame.width, height: UIScreen.main.bounds.height)
+                } else {
+                    topHeight.constant = CGFloat(CustomerGlu.topSafeAreaHeight)
+                    bottomHeight.constant = CGFloat(CustomerGlu.bottomSafeAreaHeight)
+                    webView.frame = CGRect(x: 0, y: topHeight.constant, width: self.view.frame.width, height: self.view.frame.height - (topHeight.constant + bottomHeight.constant))
+                }
+            }
         }
     }
     public override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(rotated),
                                                name: UIDevice.orientationDidChangeNotification,
@@ -97,7 +97,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }else if(nudgeConfiguration!.layout == CGConstants.BOTTOM_SHEET_NOTIFICATION){
                 self.isbottomsheet = true
             }
-
+            
         }
         
         contentController.add(self, name: WebViewsKey.callback) //name is the key you want the app to listen to.
@@ -161,7 +161,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     private func setupWebViewCustomFrame(url: String) {
-
+        
         let x = self.view.frame.midX - 30
         var y = self.view.frame.midY - 30
         
@@ -245,7 +245,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-
+        
         CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "didFailProvisionalNavigation", posttoserver: true)
         
         CustomerGlu.getInstance.loaderHide()
@@ -255,7 +255,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     public func userContentController(
         _ userContentController: WKUserContentController, didReceive message: WKScriptMessage
     ) {
-
+        
         if message.name == WebViewsKey.callback {
             guard let bodyString = message.body as? String,
                   let bodyData = bodyString.data(using: .utf8) else { fatalError() }
