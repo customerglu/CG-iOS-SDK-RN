@@ -368,19 +368,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 }
         } else {
         }
-//        let nudge_url = remoteMessage[NotificationsKey.nudge_url]
-//
-//        let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
-//        customerWebViewVC.auto_close_webview = auto_close_webview
-//        customerWebViewVC.urlStr = nudge_url as? String ?? ""
-//        customerWebViewVC.notificationHandler = true
-//        customerWebViewVC.modalPresentationStyle = .fullScreen
-//        guard let topController = UIViewController.topViewController() else {
-//            return
-//        }
-//        topController.present(customerWebViewVC, animated: false, completion: {
-//            self.hideFloatingButtons()
-//        })
     }
     
     @objc public func notificationFromCustomerGlu(remoteMessage: [String: AnyHashable]) -> Bool {
@@ -863,22 +850,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func openWallet(auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
-//        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: CGConstants.CUSTOMERGLU_TOKEN) == nil {
-//            CustomerGlu.getInstance.printlog(cglog: "Fail to call openWallet", isException: false, methodName: "CustomerGlu-openWallet", posttoserver: true)
-//            return
-//        }
-        
-//        DispatchQueue.main.async {
-//            let openWalletVC = StoryboardType.main.instantiate(vcType: OpenWalletViewController.self)
-//            guard let topController = UIViewController.topViewController() else {
-//                return
-//            }
-//            openWalletVC.auto_close_webview = auto_close_webview
-//            openWalletVC.modalPresentationStyle = .fullScreen
-//            self.hideFloatingButtons()
-//            topController.present(openWalletVC, animated: true, completion: nil)
-//        }
-        
         CustomerGlu.getInstance.loadCampaignById(campaign_id: "", auto_close_webview: auto_close_webview)
     }
     
@@ -1334,7 +1305,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         eventPublishNudge(pageName: className, nudgeId: data.mobile.content[0]._id, actionType: actionType, actionTarget: actionTarget, pageType: data.mobile.content[0].openLayout, campaignId: data.mobile.content[0].campaignId,nudgeType: data.mobile.container.type)
     }
   
-//    internal func openCampaignById(campaign_id: String, page_type: String, backgroundAlpha: Double, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
     internal func openCampaignById(campaign_id: String, nudgeConfiguration : CGNudgeConfiguration) {
         
         let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
@@ -1409,7 +1379,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-//    (stackTrace: String = "", isException: Bool = false, methodName: String = "")
     internal func printlog(cglog: String = "", isException: Bool = false, methodName: String = "",posttoserver:Bool = false) {
         if(true == CustomerGlu.isDebugingEnabled){
             print("CG-LOGS: "+methodName+" : "+cglog)

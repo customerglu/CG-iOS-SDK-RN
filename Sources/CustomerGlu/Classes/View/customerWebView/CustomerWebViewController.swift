@@ -9,10 +9,6 @@ import Foundation
 import UIKit
 import WebKit
 
-//protocol CustomerGluWebViewDelegate: AnyObject {
-//    func closeClicked(_ success: Bool)
-//}
-
 public class CustomerWebViewController: UIViewController, WKNavigationDelegate, WKScriptMessageHandler {
     
     public static let storyboardVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
@@ -25,13 +21,11 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     var webView = WKWebView()
     public var urlStr = ""
     public var auto_close_webview = CustomerGlu.auto_close_webview
-//    var openWallet = false
     var notificationHandler = false
     var ismiddle = false
     var isbottomsheet = false
     var isbottomdefault = false
     var iscampignId = false
-//    weak var delegate: CustomerGluWebViewDelegate?
     var documentInteractionController: UIDocumentInteractionController!
     public var alpha = 0.0
     var campaign_id = ""
@@ -167,9 +161,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     private func setupWebViewCustomFrame(url: String) {
-//        webView.removeFromSuperview()
-//        self.urlStr = String(url)
-        
+
         let x = self.view.frame.midX - 30
         var y = self.view.frame.midY - 30
         
@@ -227,7 +219,6 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     func loadwebView(url: String, x: CGFloat, y: CGFloat) {
         webView.navigationDelegate = self
         if url != "" || !url.isEmpty {
-//            webView.load(URLRequest(url: URL(string: url)!))
             webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: url)!)))
         } else {
             self.closePage(animated: false)
@@ -319,18 +310,6 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                             sendImagesToOtherApp(imageString: imageurl, shareText: text ?? "")
                         }
                     }
-                    
-//                    if self.auto_close_webview == true {
-//                        // Posted a notification in viewDidDisappear method
-//                        if openWallet {
-//                            delegate?.closeClicked(true)
-//                        } else if notificationHandler || iscampignId {
-//                            self.closePage(animated: true)
-//                        } else {
-//                            self.navigationController?.popViewController(animated: true)
-//                        }
-//                    }
-
                 }
             }
             

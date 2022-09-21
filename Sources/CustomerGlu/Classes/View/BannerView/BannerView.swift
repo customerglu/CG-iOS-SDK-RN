@@ -97,9 +97,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
     public func reloadBannerView() {
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [self] in
-//        DispatchQueue.main.async { [self] in
-            
-            
+
             if self.imgScrollView != nil {
                 self.imgScrollView.subviews.forEach({ $0.removeFromSuperview() })
             }
@@ -134,9 +132,8 @@ public class BannerView: UIView, UIScrollViewDelegate {
         
         self.constraints.filter{$0.firstAttribute == .height}.forEach({ $0.constant = CGFloat(finalHeight) })
         self.frame.size.height = CGFloat(finalHeight)
-        if self.view != nil {
-            self.view.frame.size.height = CGFloat(finalHeight)
-        }
+        self.view.frame.size.height = CGFloat(finalHeight)
+
         if self.imgScrollView != nil {
             self.imgScrollView.frame.size.height = CGFloat(finalHeight)
         }
@@ -159,9 +156,8 @@ public class BannerView: UIView, UIScrollViewDelegate {
   
         self.constraints.filter{$0.firstAttribute == .height}.forEach({ $0.constant = CGFloat(finalHeight) })
         self.frame.size.height = CGFloat(finalHeight)
-        if self.view != nil {
-            self.view.frame.size.height = CGFloat(finalHeight)
-        }
+        self.view.frame.size.height = CGFloat(finalHeight)
+
         if self.imgScrollView != nil {
             self.imgScrollView.frame.size.height = CGFloat(finalHeight)
         }
