@@ -16,6 +16,9 @@ private enum HTTPHeaderField: String {
     case xapikey = "x-api-key"
     case platform = "platform"
     case xgluauth = "X-GLU-AUTH"
+    case cgsdkversionkey = "cg-sdk-version"
+    case cgsdkversionvalue = "2.0.7"
+    case sandbox = "sandbox"
 }
 
 // HTTP Header Value's for API's
@@ -89,7 +92,9 @@ class APIManager {
         urlRequest.setValue(ContentType.json.rawValue, forHTTPHeaderField: HTTPHeaderField.contentType.rawValue)
         urlRequest.setValue(Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String, forHTTPHeaderField: HTTPHeaderField.xapikey.rawValue)
         urlRequest.setValue("ios", forHTTPHeaderField: HTTPHeaderField.platform.rawValue)
-        
+        urlRequest.setValue(CustomerGlu.isDebugingEnabled.description, forHTTPHeaderField: HTTPHeaderField.sandbox.rawValue)
+        urlRequest.setValue(HTTPHeaderField.cgsdkversionvalue.rawValue, forHTTPHeaderField: HTTPHeaderField.cgsdkversionkey.rawValue)
+
         if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
             urlRequest.setValue("\(APIParameterKey.bearer) " + CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN), forHTTPHeaderField: HTTPHeaderField.authorization.rawValue)
             urlRequest.setValue("\(APIParameterKey.bearer) " + CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN), forHTTPHeaderField: HTTPHeaderField.xgluauth.rawValue)
