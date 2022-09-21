@@ -308,11 +308,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             #else
             customerWebViewVC.modalPresentationStyle = .pageSheet
             #endif
-        } else if page_type == CGConstants.BOTTOM_DEFAULT_NOTIFICATION {
+        } else if ((page_type == CGConstants.BOTTOM_DEFAULT_NOTIFICATION) || (page_type == CGConstants.BOTTOM_DEFAULT_NOTIFICATION_POPUP)) {
             customerWebViewVC.isbottomdefault = true
             customerWebViewVC.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
             customerWebViewVC.navigationController?.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
-        } else if page_type == CGConstants.MIDDLE_NOTIFICATIONS {
+        } else if ((page_type == CGConstants.MIDDLE_NOTIFICATIONS) || (page_type == CGConstants.MIDDLE_NOTIFICATIONS_POPUP)) {
             customerWebViewVC.ismiddle = true
             customerWebViewVC.modalPresentationStyle = .overCurrentContext
         } else {
