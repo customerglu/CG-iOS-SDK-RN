@@ -366,6 +366,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
             let content = arrContent[0]
             let absoluteHeight = content.absoluteHeight ?? 0.0
             let relativeHeight =  content.relativeHeight ?? 0.0
+            self.closeOnDeepLink = content.closeOnDeepLink ?? CustomerGlu.auto_close_webview!
             
             if(relativeHeight > 0){
                 finalheight = (UIScreen.main.bounds.height) * (relativeHeight/100)
