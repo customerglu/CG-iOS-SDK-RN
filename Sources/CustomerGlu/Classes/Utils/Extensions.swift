@@ -37,35 +37,38 @@ extension String {
 
 extension UIViewController {
     static func topViewController() -> UIViewController? {
-//        let keyWindow = UIApplication.shared.windows[0]
-//        if var topController = keyWindow.rootViewController {
-//            while let presentedViewController = topController.presentedViewController {
-//                topController = presentedViewController
-//            }
-//            return topController
-//        }
-//        return UIViewController()
         
         if var presentedVC = UIApplication.shared.keyWindow?.rootViewController{
-            while let pVC = presentedVC.presentedViewController {
-                presentedVC = pVC
+            // only for flotingbuttons
+            if(presentedVC.isKind(of: FloatingButtonController.self)){
+                let keyWindow = UIApplication.shared.windows[0]
+                if var topController = keyWindow.rootViewController {
+                    while let presentedViewController = topController.presentedViewController {
+                        topController = presentedViewController
+                    }
+                    return topController
+                }
+            }else{
+                while let pVC = presentedVC.presentedViewController {
+                    presentedVC = pVC
+                }
+                return presentedVC
             }
-            return presentedVC
         }
         return UIViewController()
     }
 }
 
 extension UIApplication {
-
+    
     class func getTopViewController(base: UIViewController? = UIApplication.shared.keyWindow?.rootViewController) -> UIViewController? {
-
+        
         if let nav = base as? UINavigationController {
             return getTopViewController(base: nav.visibleViewController)
-
+            
         } else if let tab = base as? UITabBarController, let selected = tab.selectedViewController {
             return getTopViewController(base: selected)
-
+            
         } else if let presented = base?.presentedViewController {
             return getTopViewController(base: presented)
         }
