@@ -198,6 +198,10 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }
         }
         
+        if (finalheight > (UIScreen.main.bounds.height - (topHeight.constant + bottomHeight.constant))){
+            finalheight = (UIScreen.main.bounds.height - (topHeight.constant + bottomHeight.constant))
+        }
+        
         return finalheight
     }
     public override func viewWillAppear(_ animated: Bool) {
