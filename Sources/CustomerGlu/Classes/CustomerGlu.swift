@@ -222,6 +222,111 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
+    public func parseJSONForArray(array: Array<Any>, targatkey: String, targatvalue: String, deft: Int = 1) -> String? {
+        
+        if(array == nil){
+            return nil
+        }
+        for valueatindex in array {
+            
+            if let value = valueatindex as? String {
+                //Do something with myData
+                //...
+                if (value == targatvalue/* && key == targatkey*/){
+                    print("D - \(deft), Key - , Value - \(value)")
+                    return value
+                }
+            }
+            else if let value = valueatindex as? [String:Any]{
+                if let finalvalue = parseJSONForValue(remoteMessage: value, targatkey: targatkey, targatvalue: targatvalue, deft: (deft+1)){
+                    return finalvalue
+                }
+            }
+            else if let values = valueatindex as? Array<Any> {
+                if let finalvalue = parseJSONForArray(array: values, targatkey: targatkey, targatvalue: targatvalue, deft: (deft+1)){
+                    return finalvalue
+                }
+                
+            }
+            
+            
+        }
+        return nil
+    }
+    public func parseJSONForValue(remoteMessage: [String: Any], targatkey: String, targatvalue: String, deft: Int = 1) -> String? {
+        
+        //    •    a string ----
+        //    •    an object (JSON object) -----
+        //    •    an array ----
+        //    •    a number
+        //    •    a boolean
+        //    •    null
+        
+        
+        if(remoteMessage == nil){
+            return nil
+        }
+        for key in remoteMessage.keys {
+            
+            if let value = remoteMessage[key] as? String {
+                //Do something with myData
+                //...
+                if (value == targatvalue/* && key == targatkey*/){
+                    print("D - \(deft), Key - \(key), Value - \(value)")
+                    return value
+                }
+            }else if let value = remoteMessage[key] as? [String: Any] {
+                if let finalvalue = parseJSONForValue(remoteMessage: value, targatkey: targatkey, targatvalue: targatvalue, deft: (deft+1)){
+                    return finalvalue
+                }
+            }
+            //            else if let values = remoteMessage[key] as? Array<[String: Any]> {
+            //                 for value in values {
+            //                     if let finalvalue = parseJSONForValue(remoteMessage: value, targatkey: targatkey, targatvalue: targatvalue, deft: (deft+1)){
+            //                         return finalvalue
+            //                     }
+            //                 }
+            //              }
+            else if let values = remoteMessage[key] as? Array<Any> {
+                if let finalvalue = parseJSONForArray(array: values, targatkey: targatkey, targatvalue: targatvalue, deft: (deft+1)){
+                    return finalvalue
+                }
+            }
+            
+        }
+        return nil
+        
+    }
+    
+    //    public func parseJSONForValue(remoteMessage: [String: AnyHashable], targatvalue: String) -> String? {
+    //        if(remoteMessage == nil){
+    //            return nil
+    //        }
+    //        for key in remoteMessage.keys {
+    //
+    //            if let value = remoteMessage[key] as? String {
+    //                 //Do something with myData
+    //                 //...
+    //                if (value == targatvalue){
+    //                    return value
+    //                }
+    //             }
+    //            else if let values = remoteMessage[key] as? Array<[String: AnyHashable]> {
+    //                 for value in values {
+    //                     if let finalvalue = parseJSONForValue(remoteMessage: value, targatvalue: targatvalue){
+    //                         return finalvalue
+    //                     }
+    //                 }
+    //              } else if let value = remoteMessage[key] as? [String: AnyHashable] {
+    //                  if let finalvalue = parseJSONForValue(remoteMessage: value, targatvalue: targatvalue){
+    //                      return finalvalue
+    //                  }
+    //              }
+    //        }
+    //            return nil
+    //
+    //    }
+    
     @objc public func cgapplication(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], backgroundAlpha: Double = 0.5,auto_close_webview : Bool = CustomerGlu.auto_close_webview!, fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
         if CustomerGlu.sdk_disable! == true {
             CustomerGlu.getInstance.printlog(cglog: "", isException: false, methodName: "CustomerGlu-cgapplication", posttoserver: true)
@@ -846,6 +951,21 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     @objc public func openWallet(nudgeConfiguration: CGNudgeConfiguration) {
         
         CustomerGlu.getInstance.loadCampaignById(campaign_id: "", nudgeConfiguration:nudgeConfiguration)
+        
+        //        let JSON = ["f1" : "v1","f2" : "v2","f3" : "v3","f4" : 4,"f5" : "v5","f6" : "v6",
+        //                    "nested" : ["f11" : "v11","f12" : "v12","f13" : "v13","f14" : 14,"f15" : "v15","f16" : "v16",
+        //                                "nestedin" : ["f111" : "v111","f112" : "v112","f113" : "v113","f114" : 114,"f115" : "v115","f116" : "v116"]
+        //                               ],
+        //                    "nested12" : ["f21" : "v22","f22" : "v22","f23" : "v23","f24" : 24,"f25" : "v25","f26" : "v26",
+        //                                "nestedin12" : ["f221" : "v222","f222" : "v222","f223" : "v223","f224" : 224,"f225" : "v225","f226" : "v226"]
+        //                               ]
+        //        ] as [String : Any]
+        //        let teststr = CustomerGlu.getInstance.parseJSONForValue(remoteMessage: JSON as! [String:Any], targatvalue: "v116")
+        //        print("\(teststr)")
+        
+        
+//        let teststr = CustomerGlu.getInstance.parseJSONForValue(remoteMessage: CustomerGlu.entryPointdata[3].toDictionary() as! [String:Any], targatkey: "",targatvalue: "6239be52fb085e0013a1fc7e") //  AndroidCart
+//        print("\(teststr)")
         
     }
     
