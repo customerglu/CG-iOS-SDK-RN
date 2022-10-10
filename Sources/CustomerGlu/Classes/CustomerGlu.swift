@@ -398,7 +398,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     // MARK: - API Calls Methods
-    @objc public func registerDevice(userdata: [String: AnyHashable], loadcampaigns: Bool = false, completion: @escaping (Bool) -> Void) {
+    @objc public func registerDevice(userdata: [String: AnyHashable], completion: @escaping (Bool) -> Void) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userdata["userId"] == nil {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call registerDevice", isException: false, methodName: "CustomerGlu-registerDevice-1", posttoserver: true)
             CustomerGlu.bannersHeight = [String:Any]()
@@ -470,51 +470,49 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     self.encryptUserDefaultKey(str: jsonString, userdefaultKey: CGConstants.CUSTOMERGLU_USERDATA)
                     
                     self.userDefaults.synchronize()
-                    
-                    
-                    if CustomerGlu.isEntryPointEnabled {
-                        CustomerGlu.bannersHeight = nil
-                        CustomerGlu.embedsHeight = nil
-                        APIManager.getEntryPointdata(queryParameters: [:]) { result in
-                            switch result {
-                            case .success(let responseGetEntry):
-                                DispatchQueue.main.async {
-                                    self.dismissFloatingButtons(is_remove: false)
+                        ApplicationManager.openWalletApi { success, _ in
+                            if success {
+                                if CustomerGlu.isEntryPointEnabled {
+                                    CustomerGlu.bannersHeight = nil
+                                    CustomerGlu.embedsHeight = nil
+                                    APIManager.getEntryPointdata(queryParameters: [:]) { result in
+                                        switch result {
+                                        case .success(let responseGetEntry):
+                                            DispatchQueue.main.async {
+                                                self.dismissFloatingButtons(is_remove: false)
+                                            }
+                                            CustomerGlu.entryPointdata.removeAll()
+                                            CustomerGlu.entryPointdata = responseGetEntry.data
+                                            
+                                            // FLOATING Buttons
+                                            let floatingButtons = CustomerGlu.entryPointdata.filter {
+                                                $0.mobile.container.type == "FLOATING" || $0.mobile.container.type == "POPUP"
+                                            }
+                                            
+                                            self.entryPointInfoAddDelete(entryPoint: floatingButtons)
+                                            self.addFloatingBtns()
+                                            self.postBannersCount()
+                                            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("EntryPointLoaded").rawValue), object: nil, userInfo: nil)
+                                            completion(true)
+                                            
+                                        case .failure(let error):
+                                            CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-registerDevice-2", posttoserver: true)
+                                            CustomerGlu.bannersHeight = [String:Any]()
+                                            CustomerGlu.embedsHeight = [String:Any]()
+                                            completion(true)
+                                        }
+                                    }
+                                } else {
+                                    CustomerGlu.bannersHeight = [String:Any]()
+                                    CustomerGlu.embedsHeight = [String:Any]()
+                                    completion(true)
                                 }
-                                CustomerGlu.entryPointdata.removeAll()
-                                CustomerGlu.entryPointdata = responseGetEntry.data
-                                
-                                // FLOATING Buttons
-                                let floatingButtons = CustomerGlu.entryPointdata.filter {
-                                    $0.mobile.container.type == "FLOATING" || $0.mobile.container.type == "POPUP"
-                                }
-                                
-                                self.entryPointInfoAddDelete(entryPoint: floatingButtons)
-                                self.addFloatingBtns()
-                                self.postBannersCount()
-                                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("EntryPointLoaded").rawValue), object: nil, userInfo: nil)
-                                completion(true)
-                                
-                            case .failure(let error):
-                                CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-registerDevice-2", posttoserver: true)
+                            } else {
                                 CustomerGlu.bannersHeight = [String:Any]()
                                 CustomerGlu.embedsHeight = [String:Any]()
                                 completion(true)
                             }
                         }
-                    } else {
-                        CustomerGlu.bannersHeight = [String:Any]()
-                        CustomerGlu.embedsHeight = [String:Any]()
-                        completion(true)
-                    }
-                    
-                    if loadcampaigns == true {
-                        ApplicationManager.openWalletApi { success, _ in
-                            if success {
-                            } else {
-                            }
-                        }
-                    }
                 } else {
                     CustomerGlu.getInstance.printlog(cglog: "", isException: false, methodName: "CustomerGlu-registerDevice-3", posttoserver: true)
                     CustomerGlu.bannersHeight = [String:Any]()
