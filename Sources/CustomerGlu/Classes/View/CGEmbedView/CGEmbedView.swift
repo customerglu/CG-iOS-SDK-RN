@@ -360,7 +360,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
         NotificationCenter.default.removeObserver(self)
     }
     private func getconfiguredheight()->CGFloat {
-        var finalheight = (UIScreen.main.bounds.height) * (70/100)
+        var finalheight = 0.0// Default height should be zero (UIScreen.main.bounds.height) * (70/100)
         
         if(arrContent.count > 0){
             let content = arrContent[0]
