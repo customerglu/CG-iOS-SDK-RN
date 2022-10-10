@@ -9,10 +9,6 @@ import Foundation
 import UIKit
 import WebKit
 
-protocol CustomerGluWebViewDelegate: AnyObject {
-    func closeClicked(_ success: Bool)
-}
-
 public class CustomerWebViewController: UIViewController, WKNavigationDelegate, WKScriptMessageHandler {
     
     public static let storyboardVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
@@ -25,13 +21,11 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     var webView = WKWebView()
     public var urlStr = ""
     public var auto_close_webview = CustomerGlu.auto_close_webview
-    var openWallet = false
     var notificationHandler = false
     var ismiddle = false
     var isbottomsheet = false
     var isbottomdefault = false
     var iscampignId = false
-    weak var delegate: CustomerGluWebViewDelegate?
     var documentInteractionController: UIDocumentInteractionController!
     public var alpha = 0.0
     var campaign_id = ""
@@ -41,6 +35,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     
     var postdata = [String:Any]()
     var canpost = false
+    public var nudgeConfiguration: CGNudgeConfiguration?
     
     public func configureSafeAreaForDevices() {
         let window = UIApplication.shared.keyWindow
@@ -58,10 +53,52 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         topSafeArea.backgroundColor = CustomerGlu.topSafeAreaColor
         bottomSafeArea.backgroundColor = CustomerGlu.bottomSafeAreaColor
     }
+    public override var shouldAutorotate: Bool{
+        return false;
+    }
+    
+    @objc func rotated() {
+        for subview in self.view.subviews {
+            if(subview == webView){
+                
+                let height = getconfiguredheight()
+                if ismiddle {
+                    webView.frame = CGRect(x: 20, y: (self.view.frame.height - height)/2, width: self.view.frame.width - 40, height: height)
+                    
+                } else if isbottomdefault {
+                    webView.frame = CGRect(x: 0, y: self.view.frame.height - height, width: self.view.frame.width, height: height)
+                } else if isbottomsheet {
+                    webView.frame = CGRect(x: 0, y: 0, width: self.view.frame.width, height: UIScreen.main.bounds.height)
+                } else {
+                    topHeight.constant = CGFloat(CustomerGlu.topSafeAreaHeight)
+                    bottomHeight.constant = CGFloat(CustomerGlu.bottomSafeAreaHeight)
+                    webView.frame = CGRect(x: 0, y: topHeight.constant, width: self.view.frame.width, height: self.view.frame.height - (topHeight.constant + bottomHeight.constant))
+                }
+            }
+        }
+    }
     public override func viewDidLoad() {
         super.viewDidLoad()
         
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(rotated),
+                                               name: UIDevice.orientationDidChangeNotification,
+                                               object: nil)
         navigationController?.setNavigationBarHidden(true, animated: false)
+        
+        if(self.nudgeConfiguration != nil){
+            self.alpha = nudgeConfiguration!.opacity
+            self.auto_close_webview = nudgeConfiguration!.closeOnDeepLink
+            
+            if(nudgeConfiguration!.layout == CGConstants.MIDDLE_NOTIFICATIONS || nudgeConfiguration!.layout == CGConstants.MIDDLE_NOTIFICATIONS_POPUP){
+                self.ismiddle = true
+            }else if(nudgeConfiguration!.layout == CGConstants.BOTTOM_DEFAULT_NOTIFICATION || nudgeConfiguration!.layout == CGConstants.BOTTOM_DEFAULT_NOTIFICATION_POPUP){
+                self.isbottomdefault = true
+            }else if(nudgeConfiguration!.layout == CGConstants.BOTTOM_SHEET_NOTIFICATION){
+                self.isbottomsheet = true
+            }
+            
+        }
         
         contentController.add(self, name: WebViewsKey.callback) //name is the key you want the app to listen to.
         config.userContentController = contentController
@@ -124,10 +161,11 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     private func setupWebViewCustomFrame(url: String) {
+        
         let x = self.view.frame.midX - 30
         var y = self.view.frame.midY - 30
         
-        let height = (self.view.frame.height) / 1.4
+        let height = getconfiguredheight()
         if ismiddle {
             webView = WKWebView(frame: CGRect(x: 20, y: (self.view.frame.height - height)/2, width: self.view.frame.width - 40, height: height), configuration: config) //set your own frame
             webView.layer.cornerRadius = 20
@@ -149,7 +187,23 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         }
         loadwebView(url: url, x: x, y: y)
     }
-    
+    private func getconfiguredheight()->CGFloat {
+        var finalheight = (self.view.frame.height) * (70/100)
+        
+        if(nudgeConfiguration != nil){
+            if(nudgeConfiguration!.relativeHeight > 0){
+                finalheight = (self.view.frame.height) * (nudgeConfiguration!.relativeHeight/100)
+            }else if(nudgeConfiguration!.absoluteHeight > 0){
+                finalheight = nudgeConfiguration!.absoluteHeight
+            }
+        }
+        
+        if (finalheight > (UIScreen.main.bounds.height - (topHeight.constant + bottomHeight.constant))){
+            finalheight = (UIScreen.main.bounds.height - (topHeight.constant + bottomHeight.constant))
+        }
+        
+        return finalheight
+    }
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(false)
     }
@@ -169,7 +223,6 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     func loadwebView(url: String, x: CGFloat, y: CGFloat) {
         webView.navigationDelegate = self
         if url != "" || !url.isEmpty {
-//            webView.load(URLRequest(url: URL(string: url)!))
             webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: url)!)))
         } else {
             self.closePage(animated: false)
@@ -196,7 +249,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-
+        
         CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "didFailProvisionalNavigation", posttoserver: true)
         
         CustomerGlu.getInstance.loaderHide()
@@ -206,17 +259,15 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     public func userContentController(
         _ userContentController: WKUserContentController, didReceive message: WKScriptMessage
     ) {
-
+        
         if message.name == WebViewsKey.callback {
             guard let bodyString = message.body as? String,
                   let bodyData = bodyString.data(using: .utf8) else { fatalError() }
             
-            let bodyStruct = try? JSONDecoder().decode(EventModel.self, from: bodyData)
+            let bodyStruct = try? JSONDecoder().decode(CGEventModel.self, from: bodyData)
             
             if bodyStruct?.eventName == WebViewsKey.close {
-                if openWallet {
-                    delegate?.closeClicked(true)
-                } else if notificationHandler || iscampignId {
+                if notificationHandler || iscampignId {
                     self.closePage(animated: true)
                 } else {
                     self.navigationController?.popViewController(animated: true)
@@ -224,16 +275,14 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }
             
             if bodyStruct?.eventName == WebViewsKey.open_deeplink {
-                let deeplink = try? JSONDecoder().decode(DeepLinkModel.self, from: bodyData)
+                let deeplink = try? JSONDecoder().decode(CGDeepLinkModel.self, from: bodyData)
                 if  let deep_link = deeplink?.data?.deepLink {
                     print("link", deep_link)
                     postdata = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!) ?? [String:Any]()
                     self.canpost = true
                     if self.auto_close_webview == true {
                         // Posted a notification in viewDidDisappear method
-                        if openWallet {
-                            delegate?.closeClicked(true)
-                        } else if notificationHandler || iscampignId {
+                        if notificationHandler || iscampignId {
                             self.closePage(animated: true)
                         } else {
                             self.navigationController?.popViewController(animated: true)
@@ -248,7 +297,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }
             
             if bodyStruct?.eventName == WebViewsKey.share {
-                let share = try? JSONDecoder().decode(EventShareModel.self, from: bodyData)
+                let share = try? JSONDecoder().decode(CGEventShareModel.self, from: bodyData)
                 let text = share?.data?.text
                 let channelName = share?.data?.channelName
                 if let imageurl = share?.data?.image {

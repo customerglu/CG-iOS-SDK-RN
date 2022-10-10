@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Constants {
+struct CGConstants {
     static let ERROR = "CUSTOMERGLU Error:"
     static let JSON_ERROR = "CUSTOMERGLU: json parsing error:"
     static let CUSTOMERGLU_TOKEN = "CustomerGlu_Token_Encrypt"
@@ -18,6 +18,8 @@ struct Constants {
     static let FULL_SCREEN_NOTIFICATION = "full-default"
     static let BOTTOM_SHEET_NOTIFICATION = "bottom-slider"
     static let BOTTOM_DEFAULT_NOTIFICATION = "bottom-default"
+    static let MIDDLE_NOTIFICATIONS_POPUP = "middle-popup"
+    static let BOTTOM_DEFAULT_NOTIFICATION_POPUP     = "bottom-popup"
     static let FCM_APN = "fcm_apn"
     static let CustomerGluCrash = "CustomerGluCrash_Encrypt"
     static let CustomerGluPopupDict = "CustomerGluPopupDict_Encrypt"
@@ -91,6 +93,9 @@ struct NotificationsKey {
     static let nudge_url = "nudge_url"
     static let page_type = "page_type"
     static let CustomerGlu = "CustomerGlu"
+    static let absoluteHeight = "absoluteHeight"
+    static let relativeHeight = "relativeHeight"
+    static let closeOnDeepLink = "closeOnDeepLink"
 }
 
 // Default WebViewsKey
@@ -100,6 +105,7 @@ struct WebViewsKey {
     static let open_deeplink = "OPEN_DEEPLINK"
     static let analytics = "ANALYTICS"
     static let share = "SHARE"
+    static let updateheight = "DIMENSIONS_UPDATE"
 }
 
 // TableView Identifiers Used Throught App
