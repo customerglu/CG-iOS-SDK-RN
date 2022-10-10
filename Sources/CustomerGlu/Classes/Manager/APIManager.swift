@@ -17,7 +17,7 @@ private enum HTTPHeaderField: String {
     case platform = "platform"
     case xgluauth = "X-GLU-AUTH"
     case cgsdkversionkey = "cg-sdk-version"
-    case cgsdkversionvalue = "2.1.0"
+    case cgsdkversionvalue = "2.1.1"
     case sandbox = "sandbox"
 }
 
