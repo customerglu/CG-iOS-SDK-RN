@@ -168,7 +168,7 @@ class ApplicationManager {
         }
     }
     
-    private static func fetchTimeStamp(dateFormat: String) -> String {
+    public static func fetchTimeStamp(dateFormat: String) -> String {
         let date = Date()
         let dateformatter = DateFormatter()
         dateformatter.dateFormat = dateFormat

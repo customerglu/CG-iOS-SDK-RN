@@ -45,6 +45,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     @objc public static var isDebugingEnabled = false
     @objc public static var isEntryPointEnabled = false
     @objc public static var activeViewController = ""
+    @objc public static var app_platform = "IOS"
+    @objc public static var sdk_version = APIParameterKey.cgsdkversionvalue
+    
     internal var activescreenname = ""
     public static var bannersHeight: [String: Any]? = nil
     public static var embedsHeight: [String: Any]? = nil

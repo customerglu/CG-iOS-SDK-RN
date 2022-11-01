@@ -20,6 +20,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     
     var webView = WKWebView()
     public var urlStr = ""
+    private var loadedurl = ""
     public var auto_close_webview = CustomerGlu.auto_close_webview
     var notificationHandler = false
     var ismiddle = false
@@ -236,6 +237,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     private func closePage(animated: Bool){
+        postOpenCloseEvent(isopenevent: false)
         self.dismiss(animated: animated) {
             CustomerGlu.getInstance.showFloatingButtons()
         }
@@ -246,6 +248,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         CustomerGlu.getInstance.loaderHide()
+        postOpenCloseEvent(isopenevent: true)
     }
     
     public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
@@ -414,5 +417,78 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     
     func data(from url: URL, completion: @escaping (Data?, URLResponse?, Error?) -> Void) {
         URLSession.shared.dataTask(with: url, completionHandler: completion).resume()
+    }
+    
+    func postOpenCloseEvent(isopenevent:Bool){
+        if(true == isopenevent){
+            
+        }else{//Close Event
+            
+        }
+        eventPublishNudge(isopenevent: isopenevent)
+    }
+    
+    private func eventPublishNudge(isopenevent:Bool) {
+        var eventInfo = [String: Any]()
+        
+        eventInfo[APIParameterKey.analytics_version] = APIParameterKey.analytics_version_value
+        if(isopenevent){
+            eventInfo[APIParameterKey.event_name] = "WEBVIEW_LOAD" // WEBVIEW_LOAD
+        }else{
+            eventInfo[APIParameterKey.event_name] = "WEBVIEW_DISMISS" // WEBVIEW_LOAD
+            eventInfo[APIParameterKey.dismiss_trigger] = "PHYSICAL_BUTTON"/// | "UI_BUTTON" | "CTA_REDIRECT"
+        }
+
+        eventInfo[APIParameterKey.event_id] = UUID().uuidString
+        eventInfo[APIParameterKey.user_id] = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_USERID)
+        eventInfo[APIParameterKey.timestamp] = ApplicationManager.fetchTimeStamp(dateFormat: CGConstants.DATE_FORMAT)
+
+        
+        var webview_content = [String: String]()
+        webview_content[APIParameterKey.webview_url] = loadedurl
+        
+        var webview_layout = ""
+        var absolute_height = String(0.0)
+        var relative_height = String(70.0)
+        if(nudgeConfiguration != nil){
+            webview_layout = nudgeConfiguration!.layout
+            absolute_height = String(nudgeConfiguration!.absoluteHeight)
+            relative_height = String(nudgeConfiguration!.relativeHeight)
+        }else{
+            if ismiddle {
+                webview_layout = CGConstants.MIDDLE_NOTIFICATIONS_POPUP
+            } else if isbottomdefault {
+                webview_layout = CGConstants.BOTTOM_DEFAULT_NOTIFICATION_POPUP
+            } else if isbottomsheet {
+                webview_layout = CGConstants.BOTTOM_SHEET_NOTIFICATION
+            } else {
+                webview_layout = CGConstants.FULL_SCREEN_NOTIFICATION
+                relative_height = String(100.0)
+            }
+        }
+        webview_content[APIParameterKey.webview_layout] = webview_layout
+        webview_content[APIParameterKey.absolute_height] = absolute_height
+        webview_content[APIParameterKey.relative_height] = relative_height
+        eventInfo[APIParameterKey.webview_content] = webview_content
+        
+        var platform_details = [String: String]()
+        platform_details[APIParameterKey.device_type] = "MOBILE"
+        platform_details[APIParameterKey.os] = "IOS"
+        platform_details[APIParameterKey.app_platform] = CustomerGlu.app_platform
+        platform_details[APIParameterKey.sdk_version] = CustomerGlu.sdk_version
+        eventInfo[APIParameterKey.platform_details] = platform_details
+                
+        print(eventInfo)
+//        ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
+//            if success {
+//
+//            } else {
+//                CustomerGlu.getInstance.printlog(cglog: "Fail to call eventPublishNudge", isException: false, methodName: "WebView-eventPublishNudge", posttoserver: true)
+//            }
+//        }
+        
+
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_ANALYTICS_EVENT").rawValue), object: nil, userInfo: eventInfo as? [String: Any])
+
     }
 }
