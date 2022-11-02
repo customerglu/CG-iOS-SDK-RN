@@ -434,10 +434,10 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         
         eventInfo[APIParameterKey.analytics_version] = APIParameterKey.analytics_version_value
         if(isopenevent){
-            eventInfo[APIParameterKey.event_name] = "WEBVIEW_LOAD" // WEBVIEW_LOAD
+            eventInfo[APIParameterKey.event_name] = "WEBVIEW_LOAD"
         }else{
-            eventInfo[APIParameterKey.event_name] = "WEBVIEW_DISMISS" // WEBVIEW_LOAD
-            eventInfo[APIParameterKey.dismiss_trigger] = dismissaction/// | "UI_BUTTON" | "CTA_REDIRECT"
+            eventInfo[APIParameterKey.event_name] = "WEBVIEW_DISMISS"
+            eventInfo[APIParameterKey.dismiss_trigger] = dismissaction
         }
 
         eventInfo[APIParameterKey.event_id] = UUID().uuidString
@@ -478,14 +478,15 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         platform_details[APIParameterKey.app_platform] = CustomerGlu.app_platform
         platform_details[APIParameterKey.sdk_version] = CustomerGlu.sdk_version
         eventInfo[APIParameterKey.platform_details] = platform_details
-                
-//        ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
-//            if success {
-//
-//            } else {
-//                CustomerGlu.getInstance.printlog(cglog: "Fail to call eventPublishNudge", isException: false, methodName: "WebView-eventPublishNudge", posttoserver: true)
-//            }
-//        }
+             
+        
+        ApplicationManager.sendAnalyticsEvent(eventNudge: eventInfo) { success, _ in
+            if success {
+                print(success)
+            } else {
+                CustomerGlu.getInstance.printlog(cglog: "Fail to call sendAnalyticsEvent", isException: false, methodName: "WebView-sendAnalyticsEvent", posttoserver: true)
+            }
+        }
         
 
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_ANALYTICS_EVENT").rawValue), object: nil, userInfo: eventInfo as? [String: Any])

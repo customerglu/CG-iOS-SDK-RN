@@ -47,6 +47,7 @@ private struct MethodNameandPath {
     static let entryPointdata = MethodandPath(method: "GET", path: "entrypoints/v1/list?consumer=MOBILE")
     static let publish_nudge = MethodandPath(method: "POST", path: "v4/nudge")
     static let entrypoints_config = MethodandPath(method: "POST", path: "entrypoints/v1/config")
+    static let send_analytics_event = MethodandPath(method: "POST", path: "v4/analytics")
 }
 
 // Parameter Key's for all API's
@@ -291,6 +292,25 @@ class APIManager {
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
+    static func sendAnalyticsEvent(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, Error>) -> Void) {
+        
+        // create a blockOperation for avoiding miltiple API call at same time
+        let blockOperation = BlockOperation()
+        
+        // Added Task into Queue
+        blockOperation.addExecutionBlock {
+            // Call Get Wallet and Rewards List
+            performRequest(baseurl: BaseUrls.streamurl, methodandpath: MethodNameandPath.send_analytics_event, parametersDict: queryParameters, completion: completion)
+        }
+        
+        // Add dependency to finish previus task before starting new one
+        if(ApplicationManager.operationQueue.operations.count > 0){
+            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
+        }
+        
+        //Added task into Queue
+        ApplicationManager.operationQueue.addOperation(blockOperation)
+    }
     // MARK: - Private Class Methods
     
     // Recursive Method
