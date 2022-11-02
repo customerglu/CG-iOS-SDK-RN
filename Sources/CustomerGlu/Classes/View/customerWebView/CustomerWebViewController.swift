@@ -21,6 +21,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     var webView = WKWebView()
     public var urlStr = ""
     private var loadedurl = ""
+    private var defaultwalleturl = ""
     public var auto_close_webview = CustomerGlu.auto_close_webview
     var notificationHandler = false
     var ismiddle = false
@@ -30,6 +31,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     var documentInteractionController: UIDocumentInteractionController!
     public var alpha = 0.0
     var campaign_id = ""
+    private var dismissactionglobal = CGDismissAction.UI_BUTTON
     
     let contentController = WKUserContentController()
     let config = WKWebViewConfiguration()
@@ -128,6 +130,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             ApplicationManager.loadAllCampaignsApi(type: "", value: campaign_id, loadByparams: [:]) { success, campaignsModel in
                 if success {
                     CustomerGlu.getInstance.loaderHide()
+                    self.defaultwalleturl = String(campaignsModel?.defaultUrl ?? "")
                     if self.campaign_id.count == 0 {
                         DispatchQueue.main.async { [self] in // Make sure you're on the main thread here
                             self.setupWebViewCustomFrame(url: campaignsModel?.defaultUrl ?? "")
@@ -224,20 +227,27 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     func loadwebView(url: String, x: CGFloat, y: CGFloat) {
         webView.navigationDelegate = self
         if url != "" || !url.isEmpty {
+            self.loadedurl = url
+            if ((campaign_id != CGConstants.CGOPENWALLET) && (loadedurl != nil && loadedurl.count > 0 && loadedurl == defaultwalleturl)){
+                var eventInfo = [String: Any]()
+                eventInfo["campaignId"] = campaign_id
+                eventInfo[APIParameterKey.messagekey] = "Invalid campaignId, opening Wallet"
+                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CG_INVALID_CAMPAIGN_ID").rawValue), object: nil, userInfo: eventInfo as? [String: Any])
+            }
             webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: url)!)))
         } else {
-            self.closePage(animated: false,dismissaction: CGDismissAction.PHYSICAL_BUTTON)
+            self.closePage(animated: false,dismissaction: CGDismissAction.UI_BUTTON)
         }
         self.view.addSubview(webView)
         CustomerGlu.getInstance.loaderShow(withcoordinate: x, y: y)
     }
     
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
-        self.closePage(animated: false,dismissaction: CGDismissAction.PHYSICAL_BUTTON)
+        self.closePage(animated: false,dismissaction: CGDismissAction.UI_BUTTON)
     }
     
     private func closePage(animated: Bool,dismissaction:String){
-        postOpenCloseEvent(isopenevent: false,dismissaction: dismissaction)
+        self.dismissactionglobal = dismissaction
         self.dismiss(animated: animated) {
             CustomerGlu.getInstance.showFloatingButtons()
         }
@@ -248,7 +258,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         CustomerGlu.getInstance.loaderHide()
-        postOpenCloseEvent(isopenevent: true,dismissaction:CGDismissAction.DEFAULT)
+        eventPublishNudge(isopenevent: true, dismissaction: CGDismissAction.UI_BUTTON)
     }
     
     public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
@@ -418,16 +428,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     func data(from url: URL, completion: @escaping (Data?, URLResponse?, Error?) -> Void) {
         URLSession.shared.dataTask(with: url, completionHandler: completion).resume()
     }
-    
-    func postOpenCloseEvent(isopenevent:Bool,dismissaction:String){
-        if(true == isopenevent){
-            
-        }else{//Close Event
-            
-        }
-        eventPublishNudge(isopenevent: isopenevent,dismissaction: dismissaction)
-    }
-    
+
     private func eventPublishNudge(isopenevent:Bool,dismissaction:String) {
         var eventInfo = [String: Any]()
         
@@ -478,7 +479,6 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         platform_details[APIParameterKey.sdk_version] = CustomerGlu.sdk_version
         eventInfo[APIParameterKey.platform_details] = platform_details
                 
-        print(eventInfo)
 //        ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
 //            if success {
 //
@@ -490,5 +490,13 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
 
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_ANALYTICS_EVENT").rawValue), object: nil, userInfo: eventInfo as? [String: Any])
 
+    }
+
+    public override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        if isBeingDismissed {
+            // TODO: Do your stuff here.
+            eventPublishNudge(isopenevent: false, dismissaction: dismissactionglobal)
+        }
     }
 }

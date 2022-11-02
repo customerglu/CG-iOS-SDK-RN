@@ -846,12 +846,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     @objc public func openWallet(nudgeConfiguration: CGNudgeConfiguration) {
         
-        CustomerGlu.getInstance.loadCampaignById(campaign_id: "", nudgeConfiguration:nudgeConfiguration)
+        CustomerGlu.getInstance.loadCampaignById(campaign_id: CGConstants.CGOPENWALLET, nudgeConfiguration:nudgeConfiguration)
         
     }
     
     @objc public func openWallet(auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
-        CustomerGlu.getInstance.loadCampaignById(campaign_id: "", auto_close_webview: auto_close_webview)
+        CustomerGlu.getInstance.loadCampaignById(campaign_id: CGConstants.CGOPENWALLET, auto_close_webview: auto_close_webview)
     }
     
     @objc public func loadAllCampaigns(auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {

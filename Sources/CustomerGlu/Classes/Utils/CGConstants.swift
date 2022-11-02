@@ -35,6 +35,7 @@ struct CGConstants {
     static let default_whitelist_doamin = "customerglu.com"
     static var default_redirect_url = "https://end-user-ui.customerglu.com/error/?source=native-sdk&"
     static let customerglu_encryptedKey = "customerglu_encryptedKey"
+    static let CGOPENWALLET = "CG-OPEN-WALLET"
 }
 
 // Default APIParameterKey
@@ -94,6 +95,8 @@ struct APIParameterKey {
     static let os = "os"
     static let app_platform = "app_platform"
     static let sdk_version = "sdk_version"
+    static let messagekey = "message"
+    
 }
 
 // Default NotificationsKey
