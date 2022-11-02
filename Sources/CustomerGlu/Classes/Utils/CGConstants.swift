@@ -124,3 +124,11 @@ struct WebViewsKey {
 struct TableViewID {
     static let BannerCell = "BannerCell"
 }
+
+// Default WebViewsKey
+struct CGDismissAction {
+    static let PHYSICAL_BUTTON = "PHYSICAL_BUTTON"
+    static let UI_BUTTON = "UI_BUTTON"
+    static let CTA_REDIRECT = "CTA_REDIRECT"
+    static let DEFAULT = "DEFAULT"
+}

@@ -226,18 +226,18 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         if url != "" || !url.isEmpty {
             webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: url)!)))
         } else {
-            self.closePage(animated: false)
+            self.closePage(animated: false,dismissaction: CGDismissAction.PHYSICAL_BUTTON)
         }
         self.view.addSubview(webView)
         CustomerGlu.getInstance.loaderShow(withcoordinate: x, y: y)
     }
     
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
-        self.closePage(animated: false)
+        self.closePage(animated: false,dismissaction: CGDismissAction.PHYSICAL_BUTTON)
     }
     
-    private func closePage(animated: Bool){
-        postOpenCloseEvent(isopenevent: false)
+    private func closePage(animated: Bool,dismissaction:String){
+        postOpenCloseEvent(isopenevent: false,dismissaction: dismissaction)
         self.dismiss(animated: animated) {
             CustomerGlu.getInstance.showFloatingButtons()
         }
@@ -248,7 +248,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         CustomerGlu.getInstance.loaderHide()
-        postOpenCloseEvent(isopenevent: true)
+        postOpenCloseEvent(isopenevent: true,dismissaction:CGDismissAction.DEFAULT)
     }
     
     public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
@@ -271,7 +271,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             
             if bodyStruct?.eventName == WebViewsKey.close {
                 if notificationHandler || iscampignId {
-                    self.closePage(animated: true)
+                    self.closePage(animated: true,dismissaction: CGDismissAction.UI_BUTTON)
                 } else {
                     self.navigationController?.popViewController(animated: true)
                 }
@@ -286,7 +286,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                     if self.auto_close_webview == true {
                         // Posted a notification in viewDidDisappear method
                         if notificationHandler || iscampignId {
-                            self.closePage(animated: true)
+                            self.closePage(animated: true,dismissaction: CGDismissAction.CTA_REDIRECT)
                         } else {
                             self.navigationController?.popViewController(animated: true)
                         }
@@ -419,16 +419,16 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         URLSession.shared.dataTask(with: url, completionHandler: completion).resume()
     }
     
-    func postOpenCloseEvent(isopenevent:Bool){
+    func postOpenCloseEvent(isopenevent:Bool,dismissaction:String){
         if(true == isopenevent){
             
         }else{//Close Event
             
         }
-        eventPublishNudge(isopenevent: isopenevent)
+        eventPublishNudge(isopenevent: isopenevent,dismissaction: dismissaction)
     }
     
-    private func eventPublishNudge(isopenevent:Bool) {
+    private func eventPublishNudge(isopenevent:Bool,dismissaction:String) {
         var eventInfo = [String: Any]()
         
         eventInfo[APIParameterKey.analytics_version] = APIParameterKey.analytics_version_value
@@ -436,7 +436,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             eventInfo[APIParameterKey.event_name] = "WEBVIEW_LOAD" // WEBVIEW_LOAD
         }else{
             eventInfo[APIParameterKey.event_name] = "WEBVIEW_DISMISS" // WEBVIEW_LOAD
-            eventInfo[APIParameterKey.dismiss_trigger] = "PHYSICAL_BUTTON"/// | "UI_BUTTON" | "CTA_REDIRECT"
+            eventInfo[APIParameterKey.dismiss_trigger] = dismissaction/// | "UI_BUTTON" | "CTA_REDIRECT"
         }
 
         eventInfo[APIParameterKey.event_id] = UUID().uuidString
