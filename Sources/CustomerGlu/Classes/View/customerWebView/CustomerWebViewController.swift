@@ -430,6 +430,9 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
 
     private func eventPublishNudge(isopenevent:Bool,dismissaction:String) {
+        if (false == CustomerGlu.analyticsEvent) {
+            return
+        }
         var eventInfo = [String: Any]()
         
         eventInfo[APIParameterKey.analytics_version] = APIParameterKey.analytics_version_value
@@ -453,8 +456,20 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         var relative_height = String(70.0)
         if(nudgeConfiguration != nil){
             webview_layout = nudgeConfiguration!.layout
-            absolute_height = String(nudgeConfiguration!.absoluteHeight)
-            relative_height = String(nudgeConfiguration!.relativeHeight)
+            if(nudgeConfiguration!.absoluteHeight != 0.0 && nudgeConfiguration!.relativeHeight != 0.0){
+                absolute_height = String(nudgeConfiguration!.absoluteHeight)
+                relative_height = String(nudgeConfiguration!.relativeHeight)
+            }else if(nudgeConfiguration!.relativeHeight != 0.0){
+                relative_height = String(nudgeConfiguration!.relativeHeight)
+            }else if(nudgeConfiguration!.absoluteHeight != 0.0){
+                absolute_height = String(nudgeConfiguration!.absoluteHeight)
+                relative_height = String(0.0)
+            }
+            
+            if(nudgeConfiguration!.layout == CGConstants.FULL_SCREEN_NOTIFICATION){
+                relative_height = String(100.0)
+            }
+            
         }else{
             if ismiddle {
                 webview_layout = CGConstants.MIDDLE_NOTIFICATIONS_POPUP
@@ -489,7 +504,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         }
         
 
-            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_ANALYTICS_EVENT").rawValue), object: nil, userInfo: eventInfo as? [String: Any])
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_ANALYTICS_EVENT").rawValue), object: nil, userInfo: eventInfo as? [String: Any])
 
     }
 
