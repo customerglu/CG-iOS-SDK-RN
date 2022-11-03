@@ -456,17 +456,17 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         var relative_height = String(70.0)
         if(nudgeConfiguration != nil){
             webview_layout = nudgeConfiguration!.layout
-            if(nudgeConfiguration!.absoluteHeight != 0.0 && nudgeConfiguration!.relativeHeight != 0.0){
+            if(nudgeConfiguration!.absoluteHeight > 0 && nudgeConfiguration!.relativeHeight > 0){
                 absolute_height = String(nudgeConfiguration!.absoluteHeight)
                 relative_height = String(nudgeConfiguration!.relativeHeight)
-            }else if(nudgeConfiguration!.relativeHeight != 0.0){
+            }else if(nudgeConfiguration!.relativeHeight > 0){
                 relative_height = String(nudgeConfiguration!.relativeHeight)
-            }else if(nudgeConfiguration!.absoluteHeight != 0.0){
+            }else if(nudgeConfiguration!.absoluteHeight > 0){
                 absolute_height = String(nudgeConfiguration!.absoluteHeight)
                 relative_height = String(0.0)
             }
             
-            if(nudgeConfiguration!.layout == CGConstants.FULL_SCREEN_NOTIFICATION){
+            if(nudgeConfiguration!.layout == CGConstants.FULL_SCREEN_NOTIFICATION || nudgeConfiguration!.relativeHeight > 100){
                 relative_height = String(100.0)
             }
             
