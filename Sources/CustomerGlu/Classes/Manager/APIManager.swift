@@ -17,7 +17,6 @@ private enum HTTPHeaderField: String {
     case platform = "platform"
     case xgluauth = "X-GLU-AUTH"
     case cgsdkversionkey = "cg-sdk-version"
-    case cgsdkversionvalue = "2.1.0"
     case sandbox = "sandbox"
 }
 
@@ -48,6 +47,7 @@ private struct MethodNameandPath {
     static let entryPointdata = MethodandPath(method: "GET", path: "entrypoints/v1/list?consumer=MOBILE")
     static let publish_nudge = MethodandPath(method: "POST", path: "v4/nudge")
     static let entrypoints_config = MethodandPath(method: "POST", path: "entrypoints/v1/config")
+    static let send_analytics_event = MethodandPath(method: "POST", path: "v4/analytics")
 }
 
 // Parameter Key's for all API's
@@ -93,7 +93,7 @@ class APIManager {
         urlRequest.setValue(Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String, forHTTPHeaderField: HTTPHeaderField.xapikey.rawValue)
         urlRequest.setValue("ios", forHTTPHeaderField: HTTPHeaderField.platform.rawValue)
         urlRequest.setValue(CustomerGlu.isDebugingEnabled.description, forHTTPHeaderField: HTTPHeaderField.sandbox.rawValue)
-        urlRequest.setValue(HTTPHeaderField.cgsdkversionvalue.rawValue, forHTTPHeaderField: HTTPHeaderField.cgsdkversionkey.rawValue)
+        urlRequest.setValue(APIParameterKey.cgsdkversionvalue, forHTTPHeaderField: HTTPHeaderField.cgsdkversionkey.rawValue)
         
         if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
             urlRequest.setValue("\(APIParameterKey.bearer) " + CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN), forHTTPHeaderField: HTTPHeaderField.authorization.rawValue)
@@ -292,6 +292,25 @@ class APIManager {
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
+    static func sendAnalyticsEvent(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, Error>) -> Void) {
+        
+        // create a blockOperation for avoiding miltiple API call at same time
+        let blockOperation = BlockOperation()
+        
+        // Added Task into Queue
+        blockOperation.addExecutionBlock {
+            // Call Get Wallet and Rewards List
+            performRequest(baseurl: BaseUrls.streamurl, methodandpath: MethodNameandPath.send_analytics_event, parametersDict: queryParameters, completion: completion)
+        }
+        
+        // Add dependency to finish previus task before starting new one
+        if(ApplicationManager.operationQueue.operations.count > 0){
+            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
+        }
+        
+        //Added task into Queue
+        ApplicationManager.operationQueue.addOperation(blockOperation)
+    }
     // MARK: - Private Class Methods
     
     // Recursive Method
