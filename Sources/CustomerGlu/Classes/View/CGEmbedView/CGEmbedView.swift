@@ -67,7 +67,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
             }
             
             if bodyStruct?.eventName == WebViewsKey.updateheight {
-                if (true == CustomerGlu.analyticsEvent) {
+//                if (true == CustomerGlu.analyticsEvent) {
                     let dict = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!)
                     if(dict != nil && dict!.count>0 && dict?["data"] != nil){
                         let dictheight = dict?["data"] as! [String: Any]
@@ -76,7 +76,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                             embedviewHeightchanged(height: finalHeight)
                         }
                     }
-                }
+//                }
             }
         }
     }
