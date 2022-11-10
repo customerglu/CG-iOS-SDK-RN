@@ -48,7 +48,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         if topPadding <= 20 || bottomPadding < 20 {
             CustomerGlu.topSafeAreaHeight = 20
             CustomerGlu.bottomSafeAreaHeight = 0
-            CustomerGlu.topSafeAreaColor = UIColor.clear
+//            CustomerGlu.topSafeAreaColor = UIColor.clear
         }
         
         topHeight.constant = CGFloat(CustomerGlu.topSafeAreaHeight)
