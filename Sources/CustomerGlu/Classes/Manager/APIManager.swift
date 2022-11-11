@@ -48,6 +48,7 @@ private struct MethodNameandPath {
     static let publish_nudge = MethodandPath(method: "POST", path: "v4/nudge")
     static let entrypoints_config = MethodandPath(method: "POST", path: "entrypoints/v1/config")
     static let send_analytics_event = MethodandPath(method: "POST", path: "v4/analytics")
+    static let appconfig = MethodandPath(method: "POST", path: "v4/analytics")
 }
 
 // Parameter Key's for all API's
@@ -311,6 +312,26 @@ class APIManager {
         //Added task into Queue
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
+    
+    static func appConfig(queryParameters: NSDictionary, completion: @escaping (Result<CGAppConfig, Error>) -> Void) {
+        // create a blockOperation for avoiding miltiple API call at same time
+        let blockOperation = BlockOperation()
+        
+        // Added Task into Queue
+        blockOperation.addExecutionBlock {
+            // Call Login API with API Router
+            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.appconfig, parametersDict: queryParameters, completion: completion)
+        }
+        
+        // Add dependency to finish previus task before starting new one
+        if(ApplicationManager.operationQueue.operations.count > 0){
+            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
+        }
+        
+        //Added task into Queue
+        ApplicationManager.operationQueue.addOperation(blockOperation)
+    }
+
     // MARK: - Private Class Methods
     
     // Recursive Method
