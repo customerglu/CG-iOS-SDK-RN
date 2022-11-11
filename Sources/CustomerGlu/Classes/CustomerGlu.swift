@@ -46,7 +46,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     @objc public static var isEntryPointEnabled = false
     @objc public static var activeViewController = ""
     @objc public static var app_platform = "IOS"
-    @objc public static var defaultBGCollor = UIColor.green//UIColor(red: 0.0, green: 255.0, blue: 0.0, alpha: 1.0)
+    @objc public static var defaultBGCollor = UIColor.white//UIColor(red: 255.0, green: 255.0, blue: 0.0, alpha: 0.1)
     @objc public static var sdk_version = APIParameterKey.cgsdkversionvalue
     
     internal var activescreenname = ""
