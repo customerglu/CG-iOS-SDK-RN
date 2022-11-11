@@ -320,7 +320,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             customerWebViewVC.ismiddle = true
             customerWebViewVC.modalPresentationStyle = .overCurrentContext
         } else {
-            customerWebViewVC.modalPresentationStyle = .fullScreen
+            customerWebViewVC.modalPresentationStyle = .overCurrentContext//.fullScreen
         }
         topController.present(customerWebViewVC, animated: true, completion: {
             self.hideFloatingButtons()
@@ -868,7 +868,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
             loadAllCampign.auto_close_webview = auto_close_webview
             let navController = UINavigationController(rootViewController: loadAllCampign)
-            navController.modalPresentationStyle = .fullScreen
+            navController.modalPresentationStyle = .overCurrentContext
             self.hideFloatingButtons()
             topController.present(navController, animated: true, completion: nil)
         }
@@ -886,7 +886,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 return
             }
             customerWebViewVC.auto_close_webview = nudgeConfiguration != nil ? nudgeConfiguration?.closeOnDeepLink : auto_close_webview
-            customerWebViewVC.modalPresentationStyle = .fullScreen
+            customerWebViewVC.modalPresentationStyle = .overCurrentContext//.fullScreen
             customerWebViewVC.iscampignId = true
             customerWebViewVC.campaign_id = campaign_id
             customerWebViewVC.nudgeConfiguration = nudgeConfiguration
@@ -917,7 +917,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     customerWebViewVC.modalPresentationStyle = .pageSheet
 #endif
                 }else{
-                    customerWebViewVC.modalPresentationStyle = .fullScreen
+                    customerWebViewVC.modalPresentationStyle = .overCurrentContext//.fullScreen
                 }
             }
             self.hideFloatingButtons()
@@ -940,7 +940,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 return
             }
             let navController = UINavigationController(rootViewController: loadAllCampign)
-            navController.modalPresentationStyle = .fullScreen
+            navController.modalPresentationStyle = .overCurrentContext
             self.hideFloatingButtons()
             topController.present(navController, animated: true, completion: nil)
         }
@@ -961,7 +961,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 return
             }
             let navController = UINavigationController(rootViewController: loadAllCampign)
-            navController.modalPresentationStyle = .fullScreen
+            navController.modalPresentationStyle = .overCurrentContext
             self.hideFloatingButtons()
             topController.present(navController, animated: true, completion: nil)
         }
@@ -981,7 +981,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 return
             }
             let navController = UINavigationController(rootViewController: loadAllCampign)
-            navController.modalPresentationStyle = .fullScreen
+            navController.modalPresentationStyle = .overCurrentContext
             self.hideFloatingButtons()
             topController.present(navController, animated: true, completion: nil)
         }
@@ -1342,7 +1342,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             customerWebViewVC.ismiddle = true
             customerWebViewVC.modalPresentationStyle = .overCurrentContext
         } else {
-            customerWebViewVC.modalPresentationStyle = .fullScreen
+            customerWebViewVC.modalPresentationStyle = .overCurrentContext//.fullScreen
         }
         topController.present(customerWebViewVC, animated: true) {
             CustomerGlu.getInstance.hideFloatingButtons()
