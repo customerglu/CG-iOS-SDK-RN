@@ -48,7 +48,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         if topPadding <= 20 || bottomPadding < 20 {
             CustomerGlu.topSafeAreaHeight = 20
             CustomerGlu.bottomSafeAreaHeight = 0
-            CustomerGlu.topSafeAreaColor = UIColor.clear
+//            CustomerGlu.topSafeAreaColor = UIColor.clear
         }
         
         topHeight.constant = CGFloat(CustomerGlu.topSafeAreaHeight)
@@ -105,6 +105,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         
         contentController.add(self, name: WebViewsKey.callback) //name is the key you want the app to listen to.
         config.userContentController = contentController
+        config.allowsInlineMediaPlayback = true
         
         topHeight.constant = CGFloat(0.0)
         bottomHeight.constant = CGFloat(0.0)
@@ -210,6 +211,9 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(false)
+        if (!(ismiddle || isbottomdefault || isbottomsheet)){
+            self.view.backgroundColor = CustomerGlu.defaultBGCollor
+        }
     }
     
     public override func viewDidDisappear(_ animated: Bool) {
@@ -234,6 +238,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 eventInfo[APIParameterKey.messagekey] = "Invalid campaignId, opening Wallet"
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CG_INVALID_CAMPAIGN_ID").rawValue), object: nil, userInfo: eventInfo as? [String: Any])
             }
+            webView.backgroundColor = CustomerGlu.defaultBGCollor
             webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: url)!)))
         } else {
             self.closePage(animated: false,dismissaction: CGDismissAction.UI_BUTTON)

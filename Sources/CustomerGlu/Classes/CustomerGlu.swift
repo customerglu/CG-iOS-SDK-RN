@@ -46,6 +46,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     @objc public static var isEntryPointEnabled = false
     @objc public static var activeViewController = ""
     @objc public static var app_platform = "IOS"
+    @objc public static var defaultBGCollor = UIColor.white//UIColor(red: 255.0, green: 255.0, blue: 0.0, alpha: 0.1)
     @objc public static var sdk_version = APIParameterKey.cgsdkversionvalue
     
     internal var activescreenname = ""
@@ -148,7 +149,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     @objc public func configureLoaderColour(color: [UIColor]) {
         CustomerGlu.arrColor = color
     }
-    
+    @objc public func configureLoadingScreenColor(color: UIColor) {
+        CustomerGlu.defaultBGCollor = color
+    }
+
     func loaderShow(withcoordinate x: CGFloat, y: CGFloat) {
         DispatchQueue.main.async { [self] in
             if let controller = topMostController() {
@@ -319,7 +323,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             customerWebViewVC.ismiddle = true
             customerWebViewVC.modalPresentationStyle = .overCurrentContext
         } else {
-            customerWebViewVC.modalPresentationStyle = .fullScreen
+            customerWebViewVC.modalPresentationStyle = .overCurrentContext//.fullScreen
         }
         topController.present(customerWebViewVC, animated: true, completion: {
             self.hideFloatingButtons()
@@ -845,7 +849,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func openWallet(nudgeConfiguration: CGNudgeConfiguration) {
-        
         CustomerGlu.getInstance.loadCampaignById(campaign_id: CGConstants.CGOPENWALLET, nudgeConfiguration:nudgeConfiguration)
         
     }
@@ -867,7 +870,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
             loadAllCampign.auto_close_webview = auto_close_webview
             let navController = UINavigationController(rootViewController: loadAllCampign)
-            navController.modalPresentationStyle = .fullScreen
+            navController.modalPresentationStyle = .overCurrentContext
             self.hideFloatingButtons()
             topController.present(navController, animated: true, completion: nil)
         }
@@ -885,7 +888,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 return
             }
             customerWebViewVC.auto_close_webview = nudgeConfiguration != nil ? nudgeConfiguration?.closeOnDeepLink : auto_close_webview
-            customerWebViewVC.modalPresentationStyle = .fullScreen
+            customerWebViewVC.modalPresentationStyle = .overCurrentContext//.fullScreen
             customerWebViewVC.iscampignId = true
             customerWebViewVC.campaign_id = campaign_id
             customerWebViewVC.nudgeConfiguration = nudgeConfiguration
@@ -916,7 +919,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     customerWebViewVC.modalPresentationStyle = .pageSheet
 #endif
                 }else{
-                    customerWebViewVC.modalPresentationStyle = .fullScreen
+                    customerWebViewVC.modalPresentationStyle = .overCurrentContext//.fullScreen
                 }
             }
             self.hideFloatingButtons()
@@ -939,7 +942,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 return
             }
             let navController = UINavigationController(rootViewController: loadAllCampign)
-            navController.modalPresentationStyle = .fullScreen
+            navController.modalPresentationStyle = .overCurrentContext
             self.hideFloatingButtons()
             topController.present(navController, animated: true, completion: nil)
         }
@@ -960,7 +963,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 return
             }
             let navController = UINavigationController(rootViewController: loadAllCampign)
-            navController.modalPresentationStyle = .fullScreen
+            navController.modalPresentationStyle = .overCurrentContext
             self.hideFloatingButtons()
             topController.present(navController, animated: true, completion: nil)
         }
@@ -980,7 +983,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 return
             }
             let navController = UINavigationController(rootViewController: loadAllCampign)
-            navController.modalPresentationStyle = .fullScreen
+            navController.modalPresentationStyle = .overCurrentContext
             self.hideFloatingButtons()
             topController.present(navController, animated: true, completion: nil)
         }
@@ -1341,7 +1344,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             customerWebViewVC.ismiddle = true
             customerWebViewVC.modalPresentationStyle = .overCurrentContext
         } else {
-            customerWebViewVC.modalPresentationStyle = .fullScreen
+            customerWebViewVC.modalPresentationStyle = .overCurrentContext//.fullScreen
         }
         topController.present(customerWebViewVC, animated: true) {
             CustomerGlu.getInstance.hideFloatingButtons()
