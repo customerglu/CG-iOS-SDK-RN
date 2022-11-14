@@ -149,7 +149,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     @objc public func configureLoaderColour(color: [UIColor]) {
         CustomerGlu.arrColor = color
     }
-    
+    @objc public func configureLoadingScreenColor(color: UIColor) {
+        CustomerGlu.defaultBGCollor = color
+    }
+
     func loaderShow(withcoordinate x: CGFloat, y: CGFloat) {
         DispatchQueue.main.async { [self] in
             if let controller = topMostController() {
@@ -846,7 +849,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func openWallet(nudgeConfiguration: CGNudgeConfiguration) {
-        
         CustomerGlu.getInstance.loadCampaignById(campaign_id: CGConstants.CGOPENWALLET, nudgeConfiguration:nudgeConfiguration)
         
     }
