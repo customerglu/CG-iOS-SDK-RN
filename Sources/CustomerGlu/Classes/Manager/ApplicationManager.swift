@@ -174,15 +174,18 @@ class ApplicationManager {
         }
      
         var eventInfo = eventNudge
-//        eventInfo[APIParameterKey.timestamp] = fetchTimeStamp(dateFormat: CGConstants.Analitics_DATE_FORMAT)
-//
-//        eventInfo[APIParameterKey.appSessionId] = ApplicationManager.appSessionId
-//        eventInfo[APIParameterKey.userAgent] = "APP"
-//        eventInfo[APIParameterKey.deviceType] = "iOS"
-//        eventInfo[APIParameterKey.eventId] = UUID().uuidString
-//      eventInfo[APIParameterKey.eventName] = "NUDGE_INTERACTION"
-////        eventInfo["actionStore"] = "NUDGE_INTERACTION"
-//        eventInfo["version"] = "4.0.0"
+        
+        eventInfo[APIParameterKey.analytics_version] = APIParameterKey.analytics_version_value
+        eventInfo[APIParameterKey.event_id] = UUID().uuidString
+        eventInfo[APIParameterKey.user_id] = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_USERID)
+        eventInfo[APIParameterKey.timestamp] = ApplicationManager.fetchTimeStamp(dateFormat: CGConstants.DATE_FORMAT)
+        
+        var platform_details = [String: String]()
+        platform_details[APIParameterKey.device_type] = "MOBILE"
+        platform_details[APIParameterKey.os] = "IOS"
+        platform_details[APIParameterKey.app_platform] = CustomerGlu.app_platform
+        platform_details[APIParameterKey.sdk_version] = CustomerGlu.sdk_version
+        eventInfo[APIParameterKey.platform_details] = platform_details
         
                 
         APIManager.sendAnalyticsEvent(queryParameters: eventInfo as NSDictionary) { result in

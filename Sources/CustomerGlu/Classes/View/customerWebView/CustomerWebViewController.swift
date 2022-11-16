@@ -440,7 +440,6 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         }
         var eventInfo = [String: Any]()
         
-        eventInfo[APIParameterKey.analytics_version] = APIParameterKey.analytics_version_value
         if(isopenevent){
             eventInfo[APIParameterKey.event_name] = "WEBVIEW_LOAD"
         }else{
@@ -448,11 +447,6 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             eventInfo[APIParameterKey.dismiss_trigger] = dismissaction
         }
 
-        eventInfo[APIParameterKey.event_id] = UUID().uuidString
-        eventInfo[APIParameterKey.user_id] = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_USERID)
-        eventInfo[APIParameterKey.timestamp] = ApplicationManager.fetchTimeStamp(dateFormat: CGConstants.DATE_FORMAT)
-
-        
         var webview_content = [String: String]()
         webview_content[APIParameterKey.webview_url] = loadedurl
         
@@ -491,15 +485,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         webview_content[APIParameterKey.absolute_height] = absolute_height
         webview_content[APIParameterKey.relative_height] = relative_height
         eventInfo[APIParameterKey.webview_content] = webview_content
-        
-        var platform_details = [String: String]()
-        platform_details[APIParameterKey.device_type] = "MOBILE"
-        platform_details[APIParameterKey.os] = "IOS"
-        platform_details[APIParameterKey.app_platform] = CustomerGlu.app_platform
-        platform_details[APIParameterKey.sdk_version] = CustomerGlu.sdk_version
-        eventInfo[APIParameterKey.platform_details] = platform_details
              
-        
         ApplicationManager.sendAnalyticsEvent(eventNudge: eventInfo) { success, _ in
             if success {
                 print(success)
