@@ -1383,6 +1383,38 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
+    internal func postAnalyticsEventForNotification(type:String) {
+        if (false == CustomerGlu.analyticsEvent) {
+            return
+        }
+        var eventInfo = [String: Any]()
+        var nudge = [String: String]()
+
+        if(type == NotificationsKey.in_app){
+            eventInfo[APIParameterKey.event_name] = "NOTIFICATION_LOAD"
+            nudge[APIParameterKey.nudgeId] = type
+        }else{
+            eventInfo[APIParameterKey.event_name] = "PUSH_NOTIFICATION_CLICK"
+            nudge[APIParameterKey.nudgeId] = type
+        }
+
+        nudge[APIParameterKey.nudgeId] = ""
+        nudge[APIParameterKey.campaign_id] = ""
+        nudge[APIParameterKey.title] = ""
+        nudge[APIParameterKey.body] = ""
+        nudge[APIParameterKey.nudge_layout] = ""
+        nudge[APIParameterKey.click_action] = ""
+        eventInfo[APIParameterKey.nudge] = nudge
+                     
+        ApplicationManager.sendAnalyticsEvent(eventNudge: eventInfo) { success, _ in
+            if success {
+                print(success)
+            } else {
+                CustomerGlu.getInstance.printlog(cglog: "Fail to call sendAnalyticsEvent ", isException: false, methodName: "postAnalyticsEventForNotification", posttoserver: true)
+            }
+        }
+    }
+    
     internal func printlog(cglog: String = "", isException: Bool = false, methodName: String = "",posttoserver:Bool = false) {
         if(true == CustomerGlu.isDebugingEnabled){
             print("CG-LOGS: "+methodName+" : "+cglog)

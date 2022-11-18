@@ -263,7 +263,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         CustomerGlu.getInstance.loaderHide()
-        eventPublishNudge(isopenevent: true, dismissaction: CGDismissAction.UI_BUTTON)
+        postAnalyticsEventForWebView(isopenevent: true, dismissaction: CGDismissAction.UI_BUTTON)
     }
     
     public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
@@ -434,7 +434,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         URLSession.shared.dataTask(with: url, completionHandler: completion).resume()
     }
 
-    private func eventPublishNudge(isopenevent:Bool,dismissaction:String) {
+    private func postAnalyticsEventForWebView(isopenevent:Bool,dismissaction:String) {
         if (false == CustomerGlu.analyticsEvent) {
             return
         }
@@ -490,7 +490,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             if success {
                 print(success)
             } else {
-                CustomerGlu.getInstance.printlog(cglog: "Fail to call sendAnalyticsEvent", isException: false, methodName: "WebView-sendAnalyticsEvent", posttoserver: true)
+                CustomerGlu.getInstance.printlog(cglog: "Fail to call sendAnalyticsEvent", isException: false, methodName: "WebView-postAnalyticsEventForWebView", posttoserver: true)
             }
         }
         
@@ -503,7 +503,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         super.viewWillDisappear(animated)
         if isBeingDismissed {
             // TODO: Do your stuff here.
-            eventPublishNudge(isopenevent: false, dismissaction: dismissactionglobal)
+            postAnalyticsEventForWebView(isopenevent: false, dismissaction: dismissactionglobal)
         }
     }
 }
