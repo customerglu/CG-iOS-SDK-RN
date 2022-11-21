@@ -279,6 +279,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 } else {
                     presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: backgroundAlpha,auto_close_webview: auto_close_webview, nudgeConfiguration: nudgeConfiguration)
                 }
+                
+                self.postAnalyticsEventForNotification(userInfo: userInfo as! [String:AnyHashable])
+                
             } else {
                 
                 return
@@ -373,6 +376,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             } else {
                 presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview, nudgeConfiguration: nudgeConfiguration)
             }
+            
+            self.postAnalyticsEventForNotification(userInfo: remoteMessage)
         } else {
         }
     }
@@ -1383,27 +1388,35 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    internal func postAnalyticsEventForNotification(type:String) {
+    internal func postAnalyticsEventForNotification(userInfo: [String: AnyHashable]) {
         if (false == CustomerGlu.analyticsEvent) {
             return
         }
         var eventInfo = [String: Any]()
         var nudge = [String: String]()
 
+        let nudge_id = userInfo[APIParameterKey.nudge_id] as? String ?? ""
+        let campaign_id = userInfo[APIParameterKey.campaign_id] as? String ?? ""
+        let title = userInfo[APIParameterKey.title] as? String ?? ""
+        let body = userInfo[APIParameterKey.body] as? String ?? ""
+        
+        let nudge_url = userInfo[NotificationsKey.nudge_url] as? String ?? ""
+        let nudge_layout = userInfo[NotificationsKey.page_type] as? String ?? ""
+        let type = userInfo[NotificationsKey.glu_message_type] as? String ?? ""
+
+        nudge[APIParameterKey.nudgeId] = type
         if(type == NotificationsKey.in_app){
             eventInfo[APIParameterKey.event_name] = "NOTIFICATION_LOAD"
-            nudge[APIParameterKey.nudgeId] = type
         }else{
             eventInfo[APIParameterKey.event_name] = "PUSH_NOTIFICATION_CLICK"
-            nudge[APIParameterKey.nudgeId] = type
         }
 
-        nudge[APIParameterKey.nudgeId] = ""
-        nudge[APIParameterKey.campaign_id] = ""
-        nudge[APIParameterKey.title] = ""
-        nudge[APIParameterKey.body] = ""
-        nudge[APIParameterKey.nudge_layout] = ""
-        nudge[APIParameterKey.click_action] = ""
+        nudge[APIParameterKey.nudgeId] = nudge_id
+        nudge[APIParameterKey.campaign_id] = campaign_id
+        nudge[APIParameterKey.title] = title
+        nudge[APIParameterKey.body] = body
+        nudge[APIParameterKey.nudge_layout] = nudge_layout
+        nudge[APIParameterKey.click_action] = nudge_url
         eventInfo[APIParameterKey.nudge] = nudge
                      
         ApplicationManager.sendAnalyticsEvent(eventNudge: eventInfo) { success, _ in
