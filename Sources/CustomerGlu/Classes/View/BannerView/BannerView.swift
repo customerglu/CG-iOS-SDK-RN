@@ -271,6 +271,8 @@ public class BannerView: UIView, UIScrollViewDelegate {
     }
     
     private func eventPublishNudge(pageName: String, nudgeId: String, actionType: String, actionTarget: String, pageType: String, campaignId: String) {
+        
+        postAnalyticsEventForBanner(event_name: "event_name")
         var eventInfo = [String: AnyHashable]()
         eventInfo[APIParameterKey.nudgeType] = "BANNER"
         
@@ -297,6 +299,60 @@ public class BannerView: UIView, UIScrollViewDelegate {
             } else {
                 CustomerGlu.getInstance.printlog(cglog: "Fail to call eventPublishNudge", isException: false, methodName: "BannerView-eventPublishNudge", posttoserver: true)
             }
+        }
+    }
+    
+    internal func postAnalyticsEventForBanner(event_name:String) {
+        if (false == CustomerGlu.analyticsEvent) {
+            return
+        }
+
+        if(("ENTRY_POINT_DISMISS" == event_name) || ("ENTRY_POINT_LOAD" == event_name) || ("ENTRY_POINT_CLICK" == event_name)){
+            
+            var eventInfo = [String: Any]()
+            eventInfo[APIParameterKey.event_name] = event_name
+            var entry_point_data = [String: Any]()
+            
+            entry_point_data[APIParameterKey.entry_point_id] = ""
+            entry_point_data[APIParameterKey.entry_point_name] = ""
+            entry_point_data[APIParameterKey.entry_point_location] = CustomerGlu.getInstance.activescreenname
+            
+            if(("ENTRY_POINT_LOAD" == event_name) || ("ENTRY_POINT_CLICK" == event_name)){
+                
+                entry_point_data[APIParameterKey.entry_point_container] = ""
+                var entry_point_content = [String: String]()
+                entry_point_content[APIParameterKey.type] = ""
+                entry_point_content[APIParameterKey.campaign_id] = ""
+                entry_point_content[APIParameterKey.static_url] = ""
+                entry_point_data[APIParameterKey.entry_point_content] = entry_point_content
+                
+                if(("ENTRY_POINT_CLICK" == event_name)){
+                    
+                    var entry_point_action = [String: Any]()
+                    entry_point_action[APIParameterKey.action_type] = ""
+                    entry_point_action[APIParameterKey.open_container] = ""
+                    
+                    var open_content = [String: String]()
+                    open_content[APIParameterKey.type] = ""
+                    open_content[APIParameterKey.static_url] = ""
+                    open_content[APIParameterKey.campaign_id] = ""
+                    
+                    entry_point_action[APIParameterKey.open_content] = open_content
+                    entry_point_data[APIParameterKey.entry_point_action] = entry_point_action
+                }
+            }
+            eventInfo[APIParameterKey.entry_point_data] = entry_point_data
+            ApplicationManager.sendAnalyticsEvent(eventNudge: eventInfo) { success, _ in
+                if success {
+                    print(success)
+                } else {
+                    CustomerGlu.getInstance.printlog(cglog: "Fail to call sendAnalyticsEvent ", isException: false, methodName: "postAnalyticsEventForBanner", posttoserver: true)
+                }
+            }
+            
+        }else{
+            CustomerGlu.getInstance.printlog(cglog: "Invalid event_name", isException: false, methodName: "postAnalyticsEventForBanner", posttoserver: true)
+            return
         }
     }
     

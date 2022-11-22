@@ -103,6 +103,29 @@ struct APIParameterKey {
     static let sdk_version = "sdk_version"
     static let messagekey = "message"
     
+    static let entry_point_data = "entry_point_data"
+    static let entry_point_id = "entry_point_id"
+    static let entry_point_name = "entry_point_name"
+    static let entry_point_location = "entry_point_location"
+    static let entry_point_container = "entry_point_container"
+    static let entry_point_content = "entry_point_content"
+    static let static_url = "static_url"
+    static let entry_point_action = "entry_point_action"
+    static let action_type = "action_type"
+    static let open_container = "open_container"
+    static let open_content = "open_content"
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 }
 
 // Default NotificationsKey
