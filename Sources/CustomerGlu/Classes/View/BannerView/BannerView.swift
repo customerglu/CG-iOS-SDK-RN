@@ -258,21 +258,36 @@ public class BannerView: UIView, UIScrollViewDelegate {
             CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, nudgeConfiguration: nudgeConfiguration)
             
             var actionTarget = ""
+            var actionTarget2 = ""
             if dict.campaignId.count == 0 {
                 actionTarget = "WALLET"
+                actionTarget2 = "WALLET"
             } else if dict.campaignId.contains("http://") || dict.campaignId.contains("https://"){
                 actionTarget = "CUSTOM_URL"
+                actionTarget2 = "STATIC"
             } else {
                 actionTarget = "CAMPAIGN"
+                actionTarget2 = "CAMPAIGN"
             }
             
             eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: dict._id, actionType: "OPEN", actionTarget: actionTarget, pageType: dict.openLayout, campaignId: dict.campaignId)
+            
+            let bannerViews = CustomerGlu.entryPointdata.filter {
+                $0.mobile.container.type == "BANNER" && $0.mobile.container.bannerId == self.bannerId ?? ""
+            }
+            
+            if bannerViews.count != 0 {
+                let name = bannerViews[0].name ?? ""
+                CustomerGlu.getInstance.postAnalyticsEventForEntryPoints(event_name: "ENTRY_POINT_CLICK", entry_point_id: dict._id, entry_point_name: name, entry_point_container: "BANNER", content_type: "STATIC", content_campaign_id: "", content_static_url: dict.url, action_type: "OPEN", open_container:dict.openLayout, action_c_type: actionTarget2, action_c_campaign_id: dict.campaignId)
+            }
+
         }
     }
     
     private func eventPublishNudge(pageName: String, nudgeId: String, actionType: String, actionTarget: String, pageType: String, campaignId: String) {
         
-        postAnalyticsEventForBanner(event_name: "event_name")
+//        CustomerGlu.getInstance.postAnalyticsEventForBanner(event_name: "fgsdfx")
+        
         var eventInfo = [String: AnyHashable]()
         eventInfo[APIParameterKey.nudgeType] = "BANNER"
         
@@ -302,60 +317,6 @@ public class BannerView: UIView, UIScrollViewDelegate {
         }
     }
     
-    internal func postAnalyticsEventForBanner(event_name:String) {
-        if (false == CustomerGlu.analyticsEvent) {
-            return
-        }
-
-        if(("ENTRY_POINT_DISMISS" == event_name) || ("ENTRY_POINT_LOAD" == event_name) || ("ENTRY_POINT_CLICK" == event_name)){
-            
-            var eventInfo = [String: Any]()
-            eventInfo[APIParameterKey.event_name] = event_name
-            var entry_point_data = [String: Any]()
-            
-            entry_point_data[APIParameterKey.entry_point_id] = ""
-            entry_point_data[APIParameterKey.entry_point_name] = ""
-            entry_point_data[APIParameterKey.entry_point_location] = CustomerGlu.getInstance.activescreenname
-            
-            if(("ENTRY_POINT_LOAD" == event_name) || ("ENTRY_POINT_CLICK" == event_name)){
-                
-                entry_point_data[APIParameterKey.entry_point_container] = ""
-                var entry_point_content = [String: String]()
-                entry_point_content[APIParameterKey.type] = ""
-                entry_point_content[APIParameterKey.campaign_id] = ""
-                entry_point_content[APIParameterKey.static_url] = ""
-                entry_point_data[APIParameterKey.entry_point_content] = entry_point_content
-                
-                if(("ENTRY_POINT_CLICK" == event_name)){
-                    
-                    var entry_point_action = [String: Any]()
-                    entry_point_action[APIParameterKey.action_type] = ""
-                    entry_point_action[APIParameterKey.open_container] = ""
-                    
-                    var open_content = [String: String]()
-                    open_content[APIParameterKey.type] = ""
-                    open_content[APIParameterKey.static_url] = ""
-                    open_content[APIParameterKey.campaign_id] = ""
-                    
-                    entry_point_action[APIParameterKey.open_content] = open_content
-                    entry_point_data[APIParameterKey.entry_point_action] = entry_point_action
-                }
-            }
-            eventInfo[APIParameterKey.entry_point_data] = entry_point_data
-            ApplicationManager.sendAnalyticsEvent(eventNudge: eventInfo) { success, _ in
-                if success {
-                    print(success)
-                } else {
-                    CustomerGlu.getInstance.printlog(cglog: "Fail to call sendAnalyticsEvent ", isException: false, methodName: "postAnalyticsEventForBanner", posttoserver: true)
-                }
-            }
-            
-        }else{
-            CustomerGlu.getInstance.printlog(cglog: "Invalid event_name", isException: false, methodName: "postAnalyticsEventForBanner", posttoserver: true)
-            return
-        }
-    }
-    
     private func callLoadBannerAnalytics(){
         
         if (false == loadedapicalled){
@@ -372,15 +333,21 @@ public class BannerView: UIView, UIScrollViewDelegate {
                     for content in mobile.content {
                         arrContent.append(content)
                         var actionTarget = ""
+                        var actionTarget2 = ""
                         if content.campaignId.count == 0 {
                             actionTarget = "WALLET"
+                            actionTarget2 = "WALLET"
                         } else if content.campaignId.contains("http://") || content.campaignId.contains("https://"){
                             actionTarget = "CUSTOM_URL"
+                            actionTarget2 = "STATIC"
                         } else {
                             actionTarget = "CAMPAIGN"
+                            actionTarget2 = "CAMPAIGN"
                         }
                         
                         eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: content._id, actionType: "LOADED", actionTarget: actionTarget, pageType: content.openLayout, campaignId: content.campaignId)
+                        
+                        CustomerGlu.getInstance.postAnalyticsEventForEntryPoints(event_name: "ENTRY_POINT_LOAD", entry_point_id: content._id, entry_point_name: bannerViews[0].name ?? "", entry_point_container: "BANNER", content_type: "STATIC", content_campaign_id: "", content_static_url: content.url, action_type: "OPEN", open_container:content.openLayout, action_c_type: actionTarget2, action_c_campaign_id: content.campaignId)
                     }
                     loadedapicalled = true
                 }

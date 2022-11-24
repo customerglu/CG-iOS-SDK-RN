@@ -271,7 +271,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                     
                     finalHeight = getconfiguredheight()
                     loadAllCampaignsApi()
-                    //                    callLoadEmbedAnalytics()
+                    callLoadEmbedAnalytics()
                 } else {
                     embedviewHeightchanged(height: 0.0)
                 }
@@ -381,7 +381,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
     
     //    private func eventPublishNudge(pageName: String, nudgeId: String, actionType: String, actionTarget: String, pageType: String, campaignId: String) {
     //        var eventInfo = [String: AnyHashable]()
-    //        eventInfo[APIParameterKey.nudgeType] = "EMBED"
+    //        eventInfo[APIParameterKey.nudgeType] = "EMBEDDED"
     //
     //        eventInfo[APIParameterKey.pageName] = pageName
     //        eventInfo[APIParameterKey.nudgeId] = nudgeId
@@ -409,35 +409,35 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
     //        }
     //    }
     
-    //    private func callLoadEmbedAnalytics(){
-    //
-    //        if (false == loadedapicalled){
-    //            let embedViews = CustomerGlu.entryPointdata.filter {
-    //                $0.mobile.container.type == "EMBED" && $0.mobile.container.embedId == self.embedId ?? ""
-    //            }
-    //
-    //            if embedViews.count != 0 {
-    //                let mobile = embedViews[0].mobile!
-    //                arrContent = [CGContent]()
-    //                condition = mobile.conditions
-    //
-    //                if mobile.content.count != 0 {
-    //                    for content in mobile.content {
-    //                        arrContent.append(content)
-    //                        var actionTarget = ""
-    //                        if content.campaignId.count == 0 {
-    //                            actionTarget = "WALLET"
-    //                        } else if content.campaignId.contains("http://") || content.campaignId.contains("https://"){
-    //                            actionTarget = "CUSTOM_URL"
-    //                        } else {
-    //                            actionTarget = "CAMPAIGN"
-    //                        }
-    //
-    //                        eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: content._id, actionType: "LOADED", actionTarget: actionTarget, pageType: content.openLayout, campaignId: content.campaignId)
-    //                    }
-    //                    loadedapicalled = true
-    //                }
-    //            }
-    //        }
-    //    }
+        private func callLoadEmbedAnalytics(){
+    
+            if (false == loadedapicalled){
+                let embedViews = CustomerGlu.entryPointdata.filter {
+                    $0.mobile.container.type == "EMBEDDED" && $0.mobile.container.bannerId == self.embedId ?? ""
+                }
+    
+                if embedViews.count != 0 {
+                    let mobile = embedViews[0].mobile!
+                    arrContent = [CGContent]()
+                    condition = mobile.conditions
+    
+                    if mobile.content.count != 0 {
+                        for content in mobile.content {
+                            arrContent.append(content)
+                            var actionTarget = ""
+                            if content.campaignId.count == 0 {
+                                actionTarget = "WALLET"
+                            } else if content.campaignId.contains("http://") || content.campaignId.contains("https://"){
+                                actionTarget = "STATIC"
+                            } else {
+                                actionTarget = "CAMPAIGN"
+                            }
+    
+                            CustomerGlu.getInstance.postAnalyticsEventForEntryPoints(event_name: "ENTRY_POINT_LOAD", entry_point_id: content._id, entry_point_name: embedViews[0].name ?? "", entry_point_container: "EMBEDDED", content_type: "STATIC", content_campaign_id: "", content_static_url: content.url, action_type: "OPEN", open_container:content.openLayout, action_c_type: actionTarget, action_c_campaign_id: content.campaignId)
+                        }
+                        loadedapicalled = true
+                    }
+                }
+            }
+        }
 }

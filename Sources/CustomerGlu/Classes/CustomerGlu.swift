@@ -1101,17 +1101,17 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 && (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
                     if  !(floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className))! {
                         floatBtn.hideFloatingButton(ishidden: false)
-                        callEventPublishNudge(data: floatBtn.floatInfo!, className: className, actionType: "LOADED")
+                        callEventPublishNudge(data: floatBtn.floatInfo!, className: className, actionType: "LOADED", event_name: "ENTRY_POINT_LOAD")
                     }
                 } else if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.count)! > 0 {
                     if (floatBtn.floatInfo?.mobile.container.ios.allowedActitivityList.contains(className))! {
                         floatBtn.hideFloatingButton(ishidden: false)
-                        callEventPublishNudge(data: floatBtn.floatInfo!, className: className, actionType: "LOADED")
+                        callEventPublishNudge(data: floatBtn.floatInfo!, className: className, actionType: "LOADED",event_name: "ENTRY_POINT_LOAD")
                     }
                 } else if (floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.count)! > 0 {
                     if !(floatBtn.floatInfo?.mobile.container.ios.disallowedActitivityList.contains(className))! {
                         floatBtn.hideFloatingButton(ishidden: false)
-                        callEventPublishNudge(data: floatBtn.floatInfo!, className: className, actionType: "LOADED")
+                        callEventPublishNudge(data: floatBtn.floatInfo!, className: className, actionType: "LOADED", event_name: "ENTRY_POINT_LOAD")
                     }
                 }
             }
@@ -1296,22 +1296,30 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             
             self.popupDisplayScreens.append(CustomerGlu.getInstance.activescreenname)
             updateShowCount(showCount: showCount, eventData: finalPopUp)
-            callEventPublishNudge(data: finalPopUp, className: CustomerGlu.getInstance.activescreenname, actionType: "OPEN")
+            callEventPublishNudge(data: finalPopUp, className: CustomerGlu.getInstance.activescreenname, actionType: "OPEN", event_name: "ENTRY_POINT_LOAD")
             
         }
     }
     
-    internal func callEventPublishNudge(data: CGData, className: String, actionType: String) {
+    internal func callEventPublishNudge(data: CGData, className: String, actionType: String, event_name:String) {
+        
         var actionTarget = ""
+        var actionTarget2 = ""
         if data.mobile.content[0].campaignId.count == 0 {
             actionTarget = "WALLET"
+            actionTarget2 = "WALLET"
         } else if data.mobile.content[0].campaignId.contains("http://") || data.mobile.content[0].campaignId.contains("https://") {
             actionTarget = "CUSTOM_URL"
+            actionTarget2 = "STATIC"
         } else {
             actionTarget = "CAMPAIGN"
+            actionTarget2 = "CAMPAIGN"
         }
         
         eventPublishNudge(pageName: className, nudgeId: data.mobile.content[0]._id, actionType: actionType, actionTarget: actionTarget, pageType: data.mobile.content[0].openLayout, campaignId: data.mobile.content[0].campaignId,nudgeType: data.mobile.container.type)
+        
+        postAnalyticsEventForEntryPoints(event_name: event_name, entry_point_id: data.mobile.content[0]._id, entry_point_name: data.name ?? "", entry_point_container: data.mobile.container.type, content_type: "STATIC", content_campaign_id: "", content_static_url: data.mobile.content[0].url, action_type: "OPEN", open_container: data.mobile.content[0].openLayout, action_c_type: actionTarget2, action_c_campaign_id: data.mobile.content[0].campaignId)
+        
     }
     
     internal func openCampaignById(campaign_id: String, nudgeConfiguration : CGNudgeConfiguration) {
@@ -1385,6 +1393,72 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             } else {
                 CustomerGlu.getInstance.printlog(cglog: "Fail to call publishNudge", isException: false, methodName: "CustomerGlu-eventPublishNudge", posttoserver: true)
             }
+        }
+    }
+    
+    internal func postAnalyticsEventForEntryPoints(event_name:String, entry_point_id:String, entry_point_name:String, entry_point_container:String, content_type:String, content_campaign_id:String, content_static_url:String, action_type: String, open_container:String, action_c_type:String, action_c_campaign_id:String) {
+        if (false == CustomerGlu.analyticsEvent) {
+            return
+        }
+
+        if(("ENTRY_POINT_DISMISS" == event_name) || ("ENTRY_POINT_LOAD" == event_name) || ("ENTRY_POINT_CLICK" == event_name)){
+            
+            var eventInfo = [String: Any]()
+            eventInfo[APIParameterKey.event_name] = event_name
+            var entry_point_data = [String: Any]()
+            
+            entry_point_data[APIParameterKey.entry_point_id] = entry_point_id
+            entry_point_data[APIParameterKey.entry_point_name] = entry_point_name
+            entry_point_data[APIParameterKey.entry_point_location] = CustomerGlu.getInstance.activescreenname
+            
+            if(("ENTRY_POINT_LOAD" == event_name) || ("ENTRY_POINT_CLICK" == event_name)){
+                
+                entry_point_data[APIParameterKey.entry_point_container] = entry_point_container
+                var entry_point_content = [String: String]()
+                entry_point_content[APIParameterKey.type] = content_type
+                entry_point_content[APIParameterKey.campaign_id] = content_campaign_id
+                entry_point_content[APIParameterKey.static_url] = content_static_url
+                entry_point_data[APIParameterKey.entry_point_content] = entry_point_content
+                
+                if(("ENTRY_POINT_CLICK" == event_name)){
+                    
+                    var entry_point_action = [String: Any]()
+                    entry_point_action[APIParameterKey.action_type] = action_type
+                    entry_point_action[APIParameterKey.open_container] = open_container
+                    
+                    var open_content = [String: String]()
+                    open_content[APIParameterKey.type] = action_c_type
+                    
+                    var static_url = ""
+                    var campaign_id = ""
+                    
+                    if (action_c_campaign_id.count > 0){
+                        if action_c_campaign_id.contains("http://") || action_c_campaign_id.contains("https://"){
+                            static_url = action_c_campaign_id
+                        } else {
+                            campaign_id = action_c_campaign_id
+                        }
+                    }
+
+                    open_content[APIParameterKey.static_url] = static_url
+                    open_content[APIParameterKey.campaign_id] = campaign_id
+                    
+                    entry_point_action[APIParameterKey.open_content] = open_content
+                    entry_point_data[APIParameterKey.entry_point_action] = entry_point_action
+                }
+            }
+            eventInfo[APIParameterKey.entry_point_data] = entry_point_data
+            ApplicationManager.sendAnalyticsEvent(eventNudge: eventInfo) { success, _ in
+                if success {
+                    print(success)
+                } else {
+                    CustomerGlu.getInstance.printlog(cglog: "Fail to call sendAnalyticsEvent ", isException: false, methodName: "postAnalyticsEventForBanner", posttoserver: true)
+                }
+            }
+            
+        }else{
+            CustomerGlu.getInstance.printlog(cglog: "Invalid event_name", isException: false, methodName: "postAnalyticsEventForBanner", posttoserver: true)
+            return
         }
     }
     
