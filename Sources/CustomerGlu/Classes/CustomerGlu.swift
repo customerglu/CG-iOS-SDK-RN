@@ -1318,7 +1318,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
         eventPublishNudge(pageName: className, nudgeId: data.mobile.content[0]._id, actionType: actionType, actionTarget: actionTarget, pageType: data.mobile.content[0].openLayout, campaignId: data.mobile.content[0].campaignId,nudgeType: data.mobile.container.type)
         
-        postAnalyticsEventForEntryPoints(event_name: event_name, entry_point_id: data.mobile.content[0]._id, entry_point_name: data.name ?? "", entry_point_container: data.mobile.container.type, content_type: "STATIC", content_campaign_id: "", content_static_url: data.mobile.content[0].url, action_type: "OPEN", open_container: data.mobile.content[0].openLayout, action_c_type: actionTarget2, action_c_campaign_id: data.mobile.content[0].campaignId)
+        postAnalyticsEventForEntryPoints(event_name: event_name, entry_point_id: data.mobile.content[0]._id, entry_point_name: data.name ?? "", entry_point_container: data.mobile.container.type, content_static_url: data.mobile.content[0].url, open_container: data.mobile.content[0].openLayout, action_c_type: actionTarget2, action_c_campaign_id: data.mobile.content[0].campaignId)
         
     }
     
@@ -1396,7 +1396,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    internal func postAnalyticsEventForEntryPoints(event_name:String, entry_point_id:String, entry_point_name:String, entry_point_container:String, content_type:String, content_campaign_id:String, content_static_url:String, action_type: String, open_container:String, action_c_type:String, action_c_campaign_id:String) {
+    internal func postAnalyticsEventForEntryPoints(event_name:String, entry_point_id:String, entry_point_name:String, entry_point_container:String, content_type:String = "STATIC", content_campaign_id:String = "", content_static_url:String, action_type: String = "OPEN", open_container:String, action_c_type:String, action_c_campaign_id:String) {
         if (false == CustomerGlu.analyticsEvent) {
             return
         }
