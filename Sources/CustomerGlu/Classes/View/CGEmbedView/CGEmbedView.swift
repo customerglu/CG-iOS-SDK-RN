@@ -433,7 +433,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                                 actionTarget = "CAMPAIGN"
                             }
     
-                            CustomerGlu.getInstance.postAnalyticsEventForEntryPoints(event_name: "ENTRY_POINT_LOAD", entry_point_id: content._id, entry_point_name: embedViews[0].name ?? "", entry_point_container: "EMBEDDED", content_static_url: content.url, open_container:content.openLayout, action_c_type: actionTarget, action_c_campaign_id: content.campaignId)
+                            CustomerGlu.getInstance.postAnalyticsEventForEntryPoints(event_name: "ENTRY_POINT_LOAD", entry_point_id: content._id, entry_point_name: embedViews[0].name ?? "", entry_point_container: "EMBEDDED", content_static_url: content.url, open_container:content.openLayout, action_c_campaign_id: content.campaignId)
                         }
                         loadedapicalled = true
                     }

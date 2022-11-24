@@ -1304,21 +1304,17 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     internal func callEventPublishNudge(data: CGData, className: String, actionType: String, event_name:String) {
         
         var actionTarget = ""
-        var actionTarget2 = ""
         if data.mobile.content[0].campaignId.count == 0 {
             actionTarget = "WALLET"
-            actionTarget2 = "WALLET"
         } else if data.mobile.content[0].campaignId.contains("http://") || data.mobile.content[0].campaignId.contains("https://") {
             actionTarget = "CUSTOM_URL"
-            actionTarget2 = "STATIC"
         } else {
             actionTarget = "CAMPAIGN"
-            actionTarget2 = "CAMPAIGN"
         }
         
         eventPublishNudge(pageName: className, nudgeId: data.mobile.content[0]._id, actionType: actionType, actionTarget: actionTarget, pageType: data.mobile.content[0].openLayout, campaignId: data.mobile.content[0].campaignId,nudgeType: data.mobile.container.type)
         
-        postAnalyticsEventForEntryPoints(event_name: event_name, entry_point_id: data.mobile.content[0]._id, entry_point_name: data.name ?? "", entry_point_container: data.mobile.container.type, content_static_url: data.mobile.content[0].url, open_container: data.mobile.content[0].openLayout, action_c_type: actionTarget2, action_c_campaign_id: data.mobile.content[0].campaignId)
+        postAnalyticsEventForEntryPoints(event_name: event_name, entry_point_id: data.mobile.content[0]._id, entry_point_name: data.name ?? "", entry_point_container: data.mobile.container.type, content_static_url: data.mobile.content[0].url, open_container: data.mobile.content[0].openLayout, action_c_campaign_id: data.mobile.content[0].campaignId)
         
     }
     
@@ -1396,7 +1392,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    internal func postAnalyticsEventForEntryPoints(event_name:String, entry_point_id:String, entry_point_name:String, entry_point_container:String, content_type:String = "STATIC", content_campaign_id:String = "", content_static_url:String, action_type: String = "OPEN", open_container:String, action_c_type:String, action_c_campaign_id:String) {
+    internal func postAnalyticsEventForEntryPoints(event_name:String, entry_point_id:String, entry_point_name:String, entry_point_container:String, content_type:String = "STATIC", content_campaign_id:String = "", content_static_url:String, action_type: String = "OPEN", open_container:String, action_c_campaign_id:String) {
         if (false == CustomerGlu.analyticsEvent) {
             return
         }
@@ -1427,19 +1423,19 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     entry_point_action[APIParameterKey.open_container] = open_container
                     
                     var open_content = [String: String]()
-                    open_content[APIParameterKey.type] = action_c_type
-                    
                     var static_url = ""
                     var campaign_id = ""
-                    
-                    if (action_c_campaign_id.count > 0){
-                        if action_c_campaign_id.contains("http://") || action_c_campaign_id.contains("https://"){
-                            static_url = action_c_campaign_id
-                        } else {
-                            campaign_id = action_c_campaign_id
-                        }
+                    var type = ""
+                    if action_c_campaign_id.count == 0 {
+                        type = "WALLET"
+                    } else if action_c_campaign_id.contains("http://") || action_c_campaign_id.contains("https://"){
+                        type = "STATIC"
+                        static_url = action_c_campaign_id
+                    } else {
+                        type = "CAMPAIGN"
+                        campaign_id = action_c_campaign_id
                     }
-
+                    open_content[APIParameterKey.type] = type
                     open_content[APIParameterKey.static_url] = static_url
                     open_content[APIParameterKey.campaign_id] = campaign_id
                     

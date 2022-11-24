@@ -258,16 +258,12 @@ public class BannerView: UIView, UIScrollViewDelegate {
             CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, nudgeConfiguration: nudgeConfiguration)
             
             var actionTarget = ""
-            var actionTarget2 = ""
             if dict.campaignId.count == 0 {
                 actionTarget = "WALLET"
-                actionTarget2 = "WALLET"
             } else if dict.campaignId.contains("http://") || dict.campaignId.contains("https://"){
                 actionTarget = "CUSTOM_URL"
-                actionTarget2 = "STATIC"
             } else {
                 actionTarget = "CAMPAIGN"
-                actionTarget2 = "CAMPAIGN"
             }
             
             eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: dict._id, actionType: "OPEN", actionTarget: actionTarget, pageType: dict.openLayout, campaignId: dict.campaignId)
@@ -278,7 +274,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
             
             if bannerViews.count != 0 {
                 let name = bannerViews[0].name ?? ""
-                CustomerGlu.getInstance.postAnalyticsEventForEntryPoints(event_name: "ENTRY_POINT_CLICK", entry_point_id: dict._id, entry_point_name: name, entry_point_container: "BANNER", content_static_url: dict.url, open_container:dict.openLayout, action_c_type: actionTarget2, action_c_campaign_id: dict.campaignId)
+                CustomerGlu.getInstance.postAnalyticsEventForEntryPoints(event_name: "ENTRY_POINT_CLICK", entry_point_id: dict._id, entry_point_name: name, entry_point_container: "BANNER", content_static_url: dict.url, open_container:dict.openLayout, action_c_campaign_id: dict.campaignId)
             }
 
         }
@@ -333,21 +329,17 @@ public class BannerView: UIView, UIScrollViewDelegate {
                     for content in mobile.content {
                         arrContent.append(content)
                         var actionTarget = ""
-                        var actionTarget2 = ""
                         if content.campaignId.count == 0 {
                             actionTarget = "WALLET"
-                            actionTarget2 = "WALLET"
                         } else if content.campaignId.contains("http://") || content.campaignId.contains("https://"){
                             actionTarget = "CUSTOM_URL"
-                            actionTarget2 = "STATIC"
                         } else {
                             actionTarget = "CAMPAIGN"
-                            actionTarget2 = "CAMPAIGN"
                         }
                         
                         eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: content._id, actionType: "LOADED", actionTarget: actionTarget, pageType: content.openLayout, campaignId: content.campaignId)
                         
-                        CustomerGlu.getInstance.postAnalyticsEventForEntryPoints(event_name: "ENTRY_POINT_LOAD", entry_point_id: content._id, entry_point_name: bannerViews[0].name ?? "", entry_point_container: "BANNER", content_static_url: content.url, open_container:content.openLayout, action_c_type: actionTarget2, action_c_campaign_id: content.campaignId)
+                        CustomerGlu.getInstance.postAnalyticsEventForEntryPoints(event_name: "ENTRY_POINT_LOAD", entry_point_id: content._id, entry_point_name: bannerViews[0].name ?? "", entry_point_container: "BANNER", content_static_url: content.url, open_container:content.openLayout, action_c_campaign_id: content.campaignId)
                     }
                     loadedapicalled = true
                 }
