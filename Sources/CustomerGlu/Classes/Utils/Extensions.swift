@@ -151,7 +151,7 @@ extension UIImageView {
                         if imageExtensions.contains(pathExtention) {
                             image = UIImage.gif(data: data)!
                         } else {
-                            image = UIImage(data: data)!
+                            image = UIImage(data: data) ?? UIImage()
                         }
                         imageCache.setObject(image, forKey: url.absoluteString as NSString)
                         self?.image = image
