@@ -53,6 +53,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var bannersHeight: [String: Any]? = nil
     public static var embedsHeight: [String: Any]? = nil
     
+    internal var appconfigdata = CGMobileData()
     internal var popupDict = [PopUpModel]()
     internal var entryPointPopUpModel = EntryPointPopUpModel()
     internal var popupDisplayScreens = [String]()
@@ -410,6 +411,27 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     // MARK: - API Calls Methods
+    @objc public func getappconfig(userdata: [String: AnyHashable], completion: @escaping (Bool) -> Void) {
+        
+        var eventInfo = [String: String]()
+        
+                
+        APIManager.appConfig(queryParameters: eventInfo as NSDictionary) { result in
+            switch result {
+            case .success(let response):
+                if (response != nil && response.data != nil && response.data?.mobile != nil){
+                    self.appconfigdata = (response.data?.mobile)!
+                }
+                completion(true)
+                    
+            case .failure(let error):
+                CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "ApplicationManager-sendAnalyticsEvent", posttoserver: true)
+                completion(false)
+            }
+        }
+
+        
+    }
     @objc public func registerDevice(userdata: [String: AnyHashable], completion: @escaping (Bool) -> Void) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userdata["userId"] == nil {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call registerDevice", isException: false, methodName: "CustomerGlu-registerDevice-1", posttoserver: true)

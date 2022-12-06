@@ -48,7 +48,7 @@ private struct MethodNameandPath {
     static let publish_nudge = MethodandPath(method: "POST", path: "v4/nudge")
     static let entrypoints_config = MethodandPath(method: "POST", path: "entrypoints/v1/config")
     static let send_analytics_event = MethodandPath(method: "POST", path: "v4/analytics")
-    static let appconfig = MethodandPath(method: "POST", path: "v4/analytics")
+    static let appconfig = MethodandPath(method: "GET", path: "client/v1/sdk/config")
 }
 
 // Parameter Key's for all API's
