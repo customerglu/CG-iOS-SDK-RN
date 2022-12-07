@@ -28,9 +28,6 @@ public class CGMobileData: Codable {
     public var loadScreenColor: String? = "#ffffffff"
     public var loaderColor: String? = "#000000"
     public var whiteListedDomains: [String]? = []
-    public var datareceived: Bool? = false
-    
-
 }
 
 public class CGIosSafeArea: Codable {

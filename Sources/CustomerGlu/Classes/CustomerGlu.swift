@@ -53,7 +53,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var bannersHeight: [String: Any]? = nil
     public static var embedsHeight: [String: Any]? = nil
     
-    internal var appconfigdata = CGMobileData()
+    internal var appconfigdata: CGMobileData? = nil
     internal var popupDict = [PopUpModel]()
     internal var entryPointPopUpModel = EntryPointPopUpModel()
     internal var popupDisplayScreens = [String]()
@@ -421,6 +421,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             case .success(let response):
                 if (response != nil && response.data != nil && response.data?.mobile != nil){
                     self.appconfigdata = (response.data?.mobile)!
+                    self.updatedAllConfigParam()
                 }
                 completion(true)
                     
@@ -431,6 +432,46 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
 
         
+    }
+    func updatedAllConfigParam() -> Void{
+        if(self.appconfigdata != nil)
+        {
+            if(self.appconfigdata!.disableSdk != nil){
+                CustomerGlu.getInstance.disableGluSdk(disable: self.appconfigdata!.disableSdk ?? false)
+            }
+            
+            if(self.appconfigdata!.enableAnalytics != nil){
+                CustomerGlu.getInstance.enableAnalyticsEvent(event: self.appconfigdata!.enableAnalytics ?? false)
+            }
+            
+            if(self.appconfigdata!.enableEntryPoints != nil){
+                CustomerGlu.getInstance.enableEntryPoints(enabled: self.appconfigdata!.enableEntryPoints ?? false)
+            }
+            
+            if(self.appconfigdata!.errorCodeForDomain != nil && self.appconfigdata!.errorMessageForDomain != nil){
+                CustomerGlu.getInstance.configureDomainCodeMsg(code: self.appconfigdata!.errorCodeForDomain ?? 404 , message: self.appconfigdata!.errorMessageForDomain ?? "Requested-page-is-not-valid")
+            }
+            
+            if(self.appconfigdata!.iosSafeArea != nil){
+                                
+                CustomerGlu.getInstance.configureSafeArea(topHeight: Int(self.appconfigdata!.iosSafeArea?.topHeight ?? 44) , bottomHeight: Int(self.appconfigdata!.iosSafeArea?.bottomHeight ?? 34) , topSafeAreaColor: UIColor(hex: self.appconfigdata!.iosSafeArea?.topColor ?? "#ffffff") ?? UIColor.white, bottomSafeAreaColor: UIColor(hex: self.appconfigdata!.iosSafeArea?.bottomColor ?? "#ffffff") ?? UIColor.white)
+            }
+            
+            if(self.appconfigdata!.loadScreenColor != nil){
+                CustomerGlu.getInstance.configureLoadingScreenColor(color: UIColor(hex: self.appconfigdata!.loadScreenColor ?? "#ffffff") ?? UIColor.white)
+                
+            }
+            
+            if(self.appconfigdata!.loaderColor != nil){
+                CustomerGlu.getInstance.configureLoaderColour(color: [UIColor(hex: self.appconfigdata!.loaderColor ?? "#000000") ?? UIColor.black])
+            }
+            
+            if(self.appconfigdata!.whiteListedDomains != nil){
+                CustomerGlu.getInstance.configureWhiteListedDomains(domains: self.appconfigdata!.whiteListedDomains ?? [])
+            }
+
+        }
+                
     }
     @objc public func registerDevice(userdata: [String: AnyHashable], completion: @escaping (Bool) -> Void) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userdata["userId"] == nil {
