@@ -243,6 +243,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         } else {
             self.closePage(animated: false,dismissaction: CGDismissAction.UI_BUTTON)
         }
+        webView.isHidden = true
         self.view.addSubview(webView)
         CustomerGlu.getInstance.loaderShow(withcoordinate: x, y: y)
     }
@@ -263,6 +264,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         CustomerGlu.getInstance.loaderHide()
+        webView.isHidden = false
         postAnalyticsEventForWebView(isopenevent: true, dismissaction: CGDismissAction.UI_BUTTON)
     }
     
@@ -271,6 +273,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "didFailProvisionalNavigation", posttoserver: true)
         
         CustomerGlu.getInstance.loaderHide()
+        webView.isHidden = false
     }
     
     // receive message from wkwebview
@@ -284,6 +287,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             
             let bodyStruct = try? JSONDecoder().decode(CGEventModel.self, from: bodyData)
             
+            print("bodyStruct?.eventName -- \(bodyStruct?.eventName)")
             if bodyStruct?.eventName == WebViewsKey.close {
                 if notificationHandler || iscampignId {
                     self.closePage(animated: true,dismissaction: CGDismissAction.UI_BUTTON)
@@ -342,6 +346,11 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                         NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_ANALYTICS_EVENT").rawValue), object: nil, userInfo: dict?["data"] as? [String: Any])
                     }
                 }
+            }
+            
+            if bodyStruct?.eventName == WebViewsKey.hideloader {
+                CustomerGlu.getInstance.loaderHide()
+                webView.isHidden = false
             }
         }
     }

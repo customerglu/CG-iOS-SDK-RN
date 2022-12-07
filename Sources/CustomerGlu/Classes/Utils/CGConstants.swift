@@ -150,6 +150,7 @@ struct WebViewsKey {
     static let analytics = "ANALYTICS"
     static let share = "SHARE"
     static let updateheight = "DIMENSIONS_UPDATE"
+    static let hideloader = "HIDE_LOADER"
 }
 
 // TableView Identifiers Used Throught App
