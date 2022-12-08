@@ -124,7 +124,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             setupWebViewCustomFrame(url: urlStr)
         } else if iscampignId {
             
-            CustomerGlu.getInstance.loaderShow(withcoordinate: self.view.frame.midX - 30, y: self.view.frame.midY - 30)
+            CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX-30, y: UIScreen.main.bounds.midY-30)
             
             campaign_id = campaign_id.trimSpace()
             
@@ -244,8 +244,9 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             self.closePage(animated: false,dismissaction: CGDismissAction.UI_BUTTON)
         }
         webView.isHidden = true
-        self.view.addSubview(webView)
-        CustomerGlu.getInstance.loaderShow(withcoordinate: x, y: y)
+        self.view.addSubview(webView)        
+        CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX-30, y: UIScreen.main.bounds.midY-30)
+
     }
     
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
@@ -263,8 +264,6 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        CustomerGlu.getInstance.loaderHide()
-        webView.isHidden = false
         postAnalyticsEventForWebView(isopenevent: true, dismissaction: CGDismissAction.UI_BUTTON)
     }
     
