@@ -240,13 +240,12 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }
             webView.backgroundColor = CustomerGlu.defaultBGCollor
             webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: url)!)))
+            webView.isHidden = true
+            self.view.addSubview(webView)
+            CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX-30, y: UIScreen.main.bounds.midY-30)
         } else {
             self.closePage(animated: false,dismissaction: CGDismissAction.UI_BUTTON)
         }
-        webView.isHidden = true
-        self.view.addSubview(webView)        
-        CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX-30, y: UIScreen.main.bounds.midY-30)
-
     }
     
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
