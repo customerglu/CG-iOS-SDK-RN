@@ -28,7 +28,7 @@ public class CGMobileData: Codable {
     public var iosSafeArea: CGIosSafeArea? = CGIosSafeArea()
     public var loadScreenColor: String? = CustomerGlu.defaultBGCollor.hexString
     public var loaderColor: String? = CustomerGlu.arrColor[0].hexString
-    public var whiteListedDomains: [String]? = []
+    public var whiteListedDomains: [String]? = CustomerGlu.whiteListedDomains
 }
 
 public class CGIosSafeArea: Codable {

@@ -437,41 +437,39 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         if(self.appconfigdata != nil)
         {
             if(self.appconfigdata!.disableSdk != nil){
-                CustomerGlu.getInstance.disableGluSdk(disable: self.appconfigdata!.disableSdk ?? false)
+                CustomerGlu.getInstance.disableGluSdk(disable: (self.appconfigdata!.disableSdk ?? CustomerGlu.sdk_disable)!)
             }
             
             if(self.appconfigdata!.enableAnalytics != nil){
-                CustomerGlu.getInstance.enableAnalyticsEvent(event: self.appconfigdata!.enableAnalytics ?? false)
+                CustomerGlu.getInstance.enableAnalyticsEvent(event: (self.appconfigdata!.enableAnalytics ?? CustomerGlu.analyticsEvent)!)
             }
             
             if(self.appconfigdata!.enableEntryPoints != nil){
-                CustomerGlu.getInstance.enableEntryPoints(enabled: self.appconfigdata!.enableEntryPoints ?? false)
+                CustomerGlu.getInstance.enableEntryPoints(enabled: self.appconfigdata!.enableEntryPoints ?? CustomerGlu.isEntryPointEnabled)
             }
             
             if(self.appconfigdata!.errorCodeForDomain != nil && self.appconfigdata!.errorMessageForDomain != nil){
-                CustomerGlu.getInstance.configureDomainCodeMsg(code: self.appconfigdata!.errorCodeForDomain ?? 404 , message: self.appconfigdata!.errorMessageForDomain ?? "Requested-page-is-not-valid")
+                CustomerGlu.getInstance.configureDomainCodeMsg(code: self.appconfigdata!.errorCodeForDomain ?? CustomerGlu.doamincode , message: self.appconfigdata!.errorMessageForDomain ?? CustomerGlu.textMsg)
             }
             
             if(self.appconfigdata!.iosSafeArea != nil){
                                 
-                CustomerGlu.getInstance.configureSafeArea(topHeight: Int(self.appconfigdata!.iosSafeArea?.topHeight ?? 44) , bottomHeight: Int(self.appconfigdata!.iosSafeArea?.bottomHeight ?? 34) , topSafeAreaColor: UIColor(hex: self.appconfigdata!.iosSafeArea?.topColor ?? "#ffffff") ?? UIColor.white, bottomSafeAreaColor: UIColor(hex: self.appconfigdata!.iosSafeArea?.bottomColor ?? "#ffffff") ?? UIColor.white)
+                CustomerGlu.getInstance.configureSafeArea(topHeight: Int(self.appconfigdata!.iosSafeArea?.topHeight ?? CustomerGlu.topSafeAreaHeight) , bottomHeight: Int(self.appconfigdata!.iosSafeArea?.bottomHeight ?? CustomerGlu.bottomSafeAreaHeight) , topSafeAreaColor: UIColor(hex: self.appconfigdata!.iosSafeArea?.topColor ?? CustomerGlu.topSafeAreaColor.hexString) ?? CustomerGlu.topSafeAreaColor, bottomSafeAreaColor: UIColor(hex: self.appconfigdata!.iosSafeArea?.bottomColor ?? CustomerGlu.bottomSafeAreaColor.hexString) ?? CustomerGlu.bottomSafeAreaColor)
             }
             
             if(self.appconfigdata!.loadScreenColor != nil){
-                CustomerGlu.getInstance.configureLoadingScreenColor(color: UIColor(hex: self.appconfigdata!.loadScreenColor ?? "#ffffff") ?? UIColor.white)
+                CustomerGlu.getInstance.configureLoadingScreenColor(color: UIColor(hex: self.appconfigdata!.loadScreenColor ?? CustomerGlu.defaultBGCollor.hexString) ?? CustomerGlu.defaultBGCollor)
                 
             }
             
             if(self.appconfigdata!.loaderColor != nil){
-                CustomerGlu.getInstance.configureLoaderColour(color: [UIColor(hex: self.appconfigdata!.loaderColor ?? "#000000") ?? UIColor.black])
+                CustomerGlu.getInstance.configureLoaderColour(color: [UIColor(hex: self.appconfigdata!.loaderColor ?? CustomerGlu.arrColor[0].hexString) ?? CustomerGlu.arrColor[0]])
             }
             
             if(self.appconfigdata!.whiteListedDomains != nil){
-                CustomerGlu.getInstance.configureWhiteListedDomains(domains: self.appconfigdata!.whiteListedDomains ?? [])
+                CustomerGlu.getInstance.configureWhiteListedDomains(domains: self.appconfigdata!.whiteListedDomains ?? CustomerGlu.whiteListedDomains)
             }
-
         }
-                
     }
     @objc public func registerDevice(userdata: [String: AnyHashable], completion: @escaping (Bool) -> Void) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userdata["userId"] == nil {
