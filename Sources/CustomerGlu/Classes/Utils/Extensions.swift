@@ -221,4 +221,10 @@ extension UIColor {
         self.init(red:1, green: 1, blue: 1, alpha: 1.0)
         return
     }
+    
+    var hexString: String {
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        getRed(&r, green: &g, blue: &b, alpha: &a)
+        return [r, g, b, a].map { String(format: "%02lX", Int($0 * 255)) }.reduce("#", +)
+    }
 }

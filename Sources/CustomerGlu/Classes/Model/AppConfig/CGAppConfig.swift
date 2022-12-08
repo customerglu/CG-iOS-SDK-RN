@@ -4,6 +4,7 @@
 //	Create by Mukesh Yadav on 6/12/2022
 
 import Foundation
+import UIKit
 
 public class CGAppConfig: Codable {
     public var data: CGConnfigData?
@@ -19,23 +20,23 @@ public class CGConnfigData: Codable {
 public class CGMobileData: Codable {
 
     public var androidStatusBarColor: String?
-    public var disableSdk: Bool? = false
-    public var enableAnalytics: Bool? = false
-    public var enableEntryPoints: Bool? = false
-    public var errorCodeForDomain: Int? = 404
-    public var errorMessageForDomain: String? = ""
-    public var iosSafeArea: CGIosSafeArea?
-    public var loadScreenColor: String? = "#ffffffff"
-    public var loaderColor: String? = "#000000"
+    public var disableSdk: Bool? = CustomerGlu.sdk_disable
+    public var enableAnalytics: Bool? = CustomerGlu.analyticsEvent
+    public var enableEntryPoints: Bool? = CustomerGlu.isEntryPointEnabled
+    public var errorCodeForDomain: Int? = CustomerGlu.doamincode
+    public var errorMessageForDomain: String? = CustomerGlu.textMsg
+    public var iosSafeArea: CGIosSafeArea? = CGIosSafeArea()
+    public var loadScreenColor: String? = CustomerGlu.defaultBGCollor.hexString
+    public var loaderColor: String? = CustomerGlu.arrColor[0].hexString
     public var whiteListedDomains: [String]? = []
 }
 
 public class CGIosSafeArea: Codable {
 
-    public var bottomColor: String? = "#ffffffff"
-    public var bottomHeight: Double? = 34.0
-    public var topColor: String? = "#ffffffff"
-    public var topHeight: Double? = 44.0
+    public var bottomColor: String? = CustomerGlu.bottomSafeAreaColor.hexString
+    public var bottomHeight: Int? = CustomerGlu.bottomSafeAreaHeight
+    public var topColor: String? = CustomerGlu.topSafeAreaColor.hexString
+    public var topHeight: Int? = CustomerGlu.topSafeAreaHeight
 }
 
 //public class CGWeb: Codable {
