@@ -325,7 +325,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
         //        embedviewHeightchanged(height: 0.0)
         ApplicationManager.loadAllCampaignsApi(type: "", value: "", loadByparams: [:]) { [self] success, campaignsModel in
             if success {
-                CustomerGlu.getInstance.loaderHide()
+//                CustomerGlu.getInstance.loaderHide()
                 if arrContent.first?.campaignId.count == 0 {
                     DispatchQueue.main.async { [self] in // Make sure you're on the main thread here
                         self.setEmbedView(height: finalHeight, url: campaignsModel?.defaultUrl ?? "")
@@ -349,7 +349,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                     }
                 }
             } else {
-                CustomerGlu.getInstance.loaderHide()
+//                CustomerGlu.getInstance.loaderHide()
                 CustomerGlu.getInstance.printlog(cglog: "Fail to load loadAllCampaignsApi", isException: false, methodName: "CGEmbedView-setEmbedView", posttoserver: true)
             }
         }
