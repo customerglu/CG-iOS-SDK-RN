@@ -411,7 +411,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     // MARK: - API Calls Methods
-    @objc public func getAppConfig(completion: @escaping (Bool) -> Void) {
+    
+    @objc public func initializeSdk() {
+        
+        self.getAppConfig { result in
+            
+        }
+    }
+    @objc internal func getAppConfig(completion: @escaping (Bool) -> Void) {
         
         var eventInfo = [String: String]()
         
