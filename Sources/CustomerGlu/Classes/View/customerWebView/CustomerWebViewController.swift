@@ -342,6 +342,20 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                     let dict = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!)
                     if(dict != nil && dict!.count>0 && dict?["data"] != nil){
                         NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_ANALYTICS_EVENT").rawValue), object: nil, userInfo: dict?["data"] as? [String: Any])
+                        
+                        let datadic = dict?["data"] as? [String : Any]
+                        if(datadic != nil && datadic!.count>0 && datadic!["event_properties"] != nil){
+                            
+                            let eventpropertiesdic = datadic!["event_properties"] as? [String : Any]
+                            if(eventpropertiesdic != nil && eventpropertiesdic!.count>0 && eventpropertiesdic!["action"] != nil && eventpropertiesdic!["action"] as? String == "load_success"){
+                                CustomerGlu.getInstance.loaderHide()
+                                webView.isHidden = false
+                            }else if(eventpropertiesdic != nil && eventpropertiesdic!.count>0 && eventpropertiesdic!["action"] != nil && eventpropertiesdic!["action"] as? String == "load_error"){
+                                CustomerGlu.getInstance.loaderHide()
+                                webView.isHidden = false
+                                self.closePage(animated: false,dismissaction: CGDismissAction.UI_BUTTON)
+                            }
+                        }
                     }
                 }
             }
