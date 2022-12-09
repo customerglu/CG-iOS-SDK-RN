@@ -47,7 +47,7 @@ private struct MethodNameandPath {
     static let entryPointdata = MethodandPath(method: "GET", path: "entrypoints/v1/list?consumer=MOBILE")
     static let publish_nudge = MethodandPath(method: "POST", path: "v4/nudge")
     static let entrypoints_config = MethodandPath(method: "POST", path: "entrypoints/v1/config")
-    static let send_analytics_event = MethodandPath(method: "POST", path: "v4/analytics")
+    static let send_analytics_event = MethodandPath(method: "POST", path: "v4/sdk")
     static let appconfig = MethodandPath(method: "GET", path: "client/v1/sdk/config")
 }
 

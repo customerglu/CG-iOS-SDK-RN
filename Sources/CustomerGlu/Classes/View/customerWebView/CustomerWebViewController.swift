@@ -244,7 +244,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             webView.isHidden = true
             self.view.addSubview(webView)
             CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX-30, y: UIScreen.main.bounds.midY-30)
-            defaulttimer = Timer.scheduledTimer(timeInterval: 10, target: self, selector: #selector(timeoutforpageload(sender:)), userInfo: nil, repeats: false)
+            defaulttimer = Timer.scheduledTimer(timeInterval: 5, target: self, selector: #selector(timeoutforpageload(sender:)), userInfo: nil, repeats: false)
         } else {
             self.closePage(animated: false,dismissaction: CGDismissAction.UI_BUTTON)
         }

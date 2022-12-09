@@ -411,7 +411,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     // MARK: - API Calls Methods
-    @objc public func getappconfig(userdata: [String: AnyHashable], completion: @escaping (Bool) -> Void) {
+    @objc public func getAppConfig(completion: @escaping (Bool) -> Void) {
         
         var eventInfo = [String: String]()
         
