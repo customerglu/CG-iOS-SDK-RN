@@ -39,6 +39,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     var postdata = [String:Any]()
     var canpost = false
     public var nudgeConfiguration: CGNudgeConfiguration?
+    private var defaulttimer : Timer?
     
     public func configureSafeAreaForDevices() {
         let window = UIApplication.shared.keyWindow
@@ -243,11 +244,15 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             webView.isHidden = true
             self.view.addSubview(webView)
             CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX-30, y: UIScreen.main.bounds.midY-30)
+            defaulttimer = Timer.scheduledTimer(timeInterval: 10, target: self, selector: #selector(timeoutforpageload(sender:)), userInfo: nil, repeats: false)
         } else {
             self.closePage(animated: false,dismissaction: CGDismissAction.UI_BUTTON)
         }
     }
     
+    @objc private  func timeoutforpageload(sender: Timer) {
+        hideLoaderNShowWebview()
+    }
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
         self.closePage(animated: false,dismissaction: CGDismissAction.UI_BUTTON)
     }
@@ -270,8 +275,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         
         CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "didFailProvisionalNavigation", posttoserver: true)
         
-        CustomerGlu.getInstance.loaderHide()
-        webView.isHidden = false
+        hideLoaderNShowWebview()
     }
     
     // receive message from wkwebview
@@ -348,12 +352,9 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                             
                             let eventpropertiesdic = datadic!["event_properties"] as? [String : Any]
                             if(eventpropertiesdic != nil && eventpropertiesdic!.count>0 && eventpropertiesdic!["action"] != nil && eventpropertiesdic!["action"] as? String == "load_success"){
-                                CustomerGlu.getInstance.loaderHide()
-                                webView.isHidden = false
+                                hideLoaderNShowWebview()
                             }else if(eventpropertiesdic != nil && eventpropertiesdic!.count>0 && eventpropertiesdic!["action"] != nil && eventpropertiesdic!["action"] as? String == "load_error"){
-                                CustomerGlu.getInstance.loaderHide()
-                                webView.isHidden = false
-                                self.closePage(animated: false,dismissaction: CGDismissAction.UI_BUTTON)
+                                hideLoaderNShowWebview()
                             }
                         }
                     }
@@ -361,12 +362,21 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }
             
             if bodyStruct?.eventName == WebViewsKey.hideloader {
-                CustomerGlu.getInstance.loaderHide()
-                webView.isHidden = false
+                hideLoaderNShowWebview()
             }
         }
     }
     
+    private func hideLoaderNShowWebview(){
+        
+        if(defaulttimer != nil){
+            defaulttimer?.invalidate()
+            defaulttimer = nil
+        }
+        
+        CustomerGlu.getInstance.loaderHide()
+        webView.isHidden = false
+    }
     private func sendToOtherApps(shareText: String) {
         // set up activity view controller
         let textToShare = [ shareText ]
