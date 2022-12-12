@@ -374,7 +374,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                         var contenttype = "WALLET"
                         var contenturl = ""
                         var contentcampaignId = ""
-                        var containertype = "FULLSCREEN"
+                        var containertype = CGConstants.FULL_SCREEN_NOTIFICATION
                         var containerabsoluteHeight = 0.0
                         var containerrelativeHeight = 0.0
                         var hidePrevious = false
@@ -394,7 +394,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                             
                             let containerdic = datadic!["container"] as? [String : Any]
                             
-                             containertype = containerdic!["type"] as? String ?? "FULLSCREEN"
+                             containertype = containerdic!["type"] as? String ?? CGConstants.FULL_SCREEN_NOTIFICATION
                              containerabsoluteHeight = containerdic!["absoluteHeight"] as? Double ?? 0.0
                              containerrelativeHeight = containerdic!["relativeHeight"] as? Double ?? 0.0
                             
