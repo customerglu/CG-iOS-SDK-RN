@@ -371,10 +371,10 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                         
                         let datadic = dict?["data"] as? [String : Any]
                         
-                        var contenttype = ""
+                        var contenttype = "WALLET"
                         var contenturl = ""
                         var contentcampaignId = ""
-                        var containertype = ""
+                        var containertype = "FULLSCREEN"
                         var containerabsoluteHeight = 0.0
                         var containerrelativeHeight = 0.0
                         var hidePrevious = false
@@ -384,7 +384,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                             let contentdic = datadic!["content"] as? [String : Any]
                             if(contentdic != nil && contentdic!.count > 0){
                                 
-                                 contenttype = contentdic!["type"] as? String ?? ""
+                                 contenttype = contentdic!["type"] as? String ?? "WALLET"
                                  contenturl = contentdic!["url"] as? String ?? ""
                                  contentcampaignId = contentdic!["campaignId"] as? String ?? ""
                             }
@@ -394,7 +394,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                             
                             let containerdic = datadic!["container"] as? [String : Any]
                             
-                             containertype = containerdic!["type"] as? String ?? ""
+                             containertype = containerdic!["type"] as? String ?? "FULLSCREEN"
                              containerabsoluteHeight = containerdic!["absoluteHeight"] as? Double ?? 0.0
                              containerrelativeHeight = containerdic!["relativeHeight"] as? Double ?? 0.0
                             
