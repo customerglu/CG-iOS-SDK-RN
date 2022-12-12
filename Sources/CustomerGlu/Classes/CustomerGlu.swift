@@ -433,7 +433,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 completion(true)
                     
             case .failure(let error):
-                CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "ApplicationManager-sendAnalyticsEvent", posttoserver: true)
+                CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-getAppConfig", posttoserver: true)
                 completion(false)
             }
         }
@@ -1380,7 +1380,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             actionTarget = "CAMPAIGN"
         }
         
-        postAnalyticsEventForEntryPoints(event_name: event_name, entry_point_id: data.mobile.content[0]._id, entry_point_name: data.name ?? "", entry_point_container: data.mobile.container.type, content_static_url: data.mobile.content[0].url, open_container: data.mobile.content[0].openLayout, action_c_campaign_id: data.mobile.content[0].campaignId)
+        if(event_name == "ENTRY_POINT_LOAD" && data.mobile.container.type == "POPUP"){
+            postAnalyticsEventForEntryPoints(event_name: event_name, entry_point_id: data.mobile.content[0]._id, entry_point_name: data.name ?? "", entry_point_container: data.mobile.container.type, content_campaign_id: data.mobile.content[0].campaignId, open_container: data.mobile.content[0].openLayout, action_c_campaign_id: data.mobile.content[0].campaignId)
+        }else{
+            postAnalyticsEventForEntryPoints(event_name: event_name, entry_point_id: data.mobile.content[0]._id, entry_point_name: data.name ?? "", entry_point_container: data.mobile.container.type, content_campaign_id: data.mobile.content[0].url, open_container: data.mobile.content[0].openLayout, action_c_campaign_id: data.mobile.content[0].campaignId)
+        }
         
     }
     
@@ -1426,7 +1430,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    internal func postAnalyticsEventForEntryPoints(event_name:String, entry_point_id:String, entry_point_name:String, entry_point_container:String, content_type:String = "STATIC", content_campaign_id:String = "", content_static_url:String, action_type: String = "OPEN", open_container:String, action_c_campaign_id:String) {
+    internal func postAnalyticsEventForEntryPoints(event_name:String, entry_point_id:String, entry_point_name:String, entry_point_container:String, content_campaign_id:String = "", action_type: String = "OPEN", open_container:String, action_c_campaign_id:String) {
         if (false == CustomerGlu.analyticsEvent) {
             return
         }
@@ -1445,9 +1449,24 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 
                 entry_point_data[APIParameterKey.entry_point_container] = entry_point_container
                 var entry_point_content = [String: String]()
-                entry_point_content[APIParameterKey.type] = content_type
-                entry_point_content[APIParameterKey.campaign_id] = content_campaign_id
-                entry_point_content[APIParameterKey.static_url] = content_static_url
+
+                
+                var static_url_ec = ""
+                var campaign_id_ec = ""
+                var type_ec = ""
+                if content_campaign_id.count == 0 {
+                    type_ec = "WALLET"
+                } else if content_campaign_id.contains("http://") || content_campaign_id.contains("https://"){
+                    type_ec = "STATIC"
+                    static_url_ec = content_campaign_id
+                } else {
+                    type_ec = "CAMPAIGN"
+                    campaign_id_ec = content_campaign_id
+                }
+                entry_point_content[APIParameterKey.type] = type_ec
+                entry_point_content[APIParameterKey.campaign_id] = campaign_id_ec
+                entry_point_content[APIParameterKey.static_url] = static_url_ec
+                
                 entry_point_data[APIParameterKey.entry_point_content] = entry_point_content
                 
                 if(("ENTRY_POINT_CLICK" == event_name)){
