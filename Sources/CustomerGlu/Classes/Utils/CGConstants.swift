@@ -151,6 +151,7 @@ struct WebViewsKey {
     static let share = "SHARE"
     static let updateheight = "DIMENSIONS_UPDATE"
     static let hideloader = "HIDE_LOADER"
+    static let opencgwebview = "OPEN_CG_WEBVIEW"
 }
 
 // TableView Identifiers Used Throught App

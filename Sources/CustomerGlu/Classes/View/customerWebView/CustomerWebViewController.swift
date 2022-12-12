@@ -364,6 +364,49 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             if bodyStruct?.eventName == WebViewsKey.hideloader {
                 hideLoaderNShowWebview()
             }
+            
+            if bodyStruct?.eventName == WebViewsKey.opencgwebview {
+                    let dict = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!)
+                    if(dict != nil && dict!.count>0 && dict?["data"] != nil){
+                        
+                        let datadic = dict?["data"] as? [String : Any]
+                        
+                        var contenttype = ""
+                        var contenturl = ""
+                        var contentcampaignId = ""
+                        var containertype = ""
+                        var containerabsoluteHeight = 0.0
+                        var containerrelativeHeight = 0.0
+                        var hidePrevious = false
+                        
+                        if(datadic != nil && datadic!.count>0 && datadic!["content"] != nil){
+                            
+                            let contentdic = datadic!["content"] as? [String : Any]
+                            if(contentdic != nil && contentdic!.count > 0){
+                                
+                                 contenttype = contentdic!["type"] as? String ?? ""
+                                 contenturl = contentdic!["url"] as? String ?? ""
+                                 contentcampaignId = contentdic!["campaignId"] as? String ?? ""
+                            }
+
+                        }
+                        if(datadic != nil && datadic!.count>0 && datadic!["container"] != nil){
+                            
+                            let containerdic = datadic!["container"] as? [String : Any]
+                            
+                             containertype = containerdic!["type"] as? String ?? ""
+                             containerabsoluteHeight = containerdic!["absoluteHeight"] as? Double ?? 0.0
+                             containerrelativeHeight = containerdic!["relativeHeight"] as? Double ?? 0.0
+                            
+                        }
+                        if(datadic != nil && datadic!.count>0 && datadic!["hidePrevious"] != nil){
+                            
+                            hidePrevious = datadic!["hidePrevious"] as? Bool ?? false
+
+                        }
+                    }
+            }
+
         }
     }
     
