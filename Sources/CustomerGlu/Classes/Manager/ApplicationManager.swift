@@ -139,35 +139,6 @@ class ApplicationManager {
         return false
     }
     
-    public static func publishNudge(eventNudge: [String: AnyHashable], completion: @escaping (Bool, CGPublishNudgeModel?) -> Void) {
-        if CustomerGlu.sdk_disable! == true {
-            return
-        }
-     
-        var eventInfo = eventNudge
-        eventInfo[APIParameterKey.timestamp] = fetchTimeStamp(dateFormat: CGConstants.Analitics_DATE_FORMAT)
-        
-        eventInfo[APIParameterKey.appSessionId] = ApplicationManager.appSessionId
-        eventInfo[APIParameterKey.userAgent] = "APP"
-        eventInfo[APIParameterKey.deviceType] = "iOS"
-        eventInfo[APIParameterKey.eventId] = UUID().uuidString
-      eventInfo[APIParameterKey.eventName] = "NUDGE_INTERACTION"
-//        eventInfo["actionStore"] = "NUDGE_INTERACTION"
-        eventInfo["version"] = "4.0.0"
-        
-                
-        APIManager.publishNudge(queryParameters: eventInfo as NSDictionary) { result in
-            switch result {
-            case .success(let response):
-                completion(true, response)
-                    
-            case .failure(let error):
-                CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "ApplicationManager-publishNudge", posttoserver: true)
-                completion(false, nil)
-            }
-        }
-    }
-    
     public static func sendAnalyticsEvent(eventNudge: [String: Any], completion: @escaping (Bool, CGAddCartModel?) -> Void) {
         if CustomerGlu.sdk_disable! == true {
             return

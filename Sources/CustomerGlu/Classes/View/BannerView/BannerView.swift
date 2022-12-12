@@ -266,8 +266,6 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 actionTarget = "CAMPAIGN"
             }
             
-            eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: dict._id, actionType: "OPEN", actionTarget: actionTarget, pageType: dict.openLayout, campaignId: dict.campaignId)
-            
             let bannerViews = CustomerGlu.entryPointdata.filter {
                 $0.mobile.container.type == "BANNER" && $0.mobile.container.bannerId == self.bannerId ?? ""
             }
@@ -277,39 +275,6 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 CustomerGlu.getInstance.postAnalyticsEventForEntryPoints(event_name: "ENTRY_POINT_CLICK", entry_point_id: dict._id, entry_point_name: name, entry_point_container: bannerViews[0].mobile.container.type, content_static_url: dict.url, open_container:dict.openLayout, action_c_campaign_id: dict.campaignId)
             }
 
-        }
-    }
-    
-    private func eventPublishNudge(pageName: String, nudgeId: String, actionType: String, actionTarget: String, pageType: String, campaignId: String) {
-        
-//        CustomerGlu.getInstance.postAnalyticsEventForBanner(event_name: "fgsdfx")
-        
-        var eventInfo = [String: AnyHashable]()
-        eventInfo[APIParameterKey.nudgeType] = "BANNER"
-        
-        eventInfo[APIParameterKey.pageName] = pageName
-        eventInfo[APIParameterKey.nudgeId] = nudgeId
-        eventInfo[APIParameterKey.actionTarget] = actionTarget
-        eventInfo[APIParameterKey.actionType] = actionType
-        eventInfo[APIParameterKey.pageType] = pageType
-        
-        eventInfo[APIParameterKey.campaignId] = "CAMPAIGNID_NOTPRESENT"
-        if actionTarget == "CAMPAIGN" {
-            if campaignId.count > 0 {
-                if !(campaignId.contains("http://") || campaignId.contains("https://")) {
-                    eventInfo[APIParameterKey.campaignId] = campaignId
-                }
-            }
-        }
-        
-        eventInfo[APIParameterKey.optionalPayload] = [String: String]() as [String: String]
-        
-        ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
-            if success {
-                
-            } else {
-                CustomerGlu.getInstance.printlog(cglog: "Fail to call eventPublishNudge", isException: false, methodName: "BannerView-eventPublishNudge", posttoserver: true)
-            }
         }
     }
     
@@ -336,8 +301,6 @@ public class BannerView: UIView, UIScrollViewDelegate {
                         } else {
                             actionTarget = "CAMPAIGN"
                         }
-                        
-                        eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: content._id, actionType: "LOADED", actionTarget: actionTarget, pageType: content.openLayout, campaignId: content.campaignId)
                         
                         CustomerGlu.getInstance.postAnalyticsEventForEntryPoints(event_name: "ENTRY_POINT_LOAD", entry_point_id: content._id, entry_point_name: bannerViews[0].name ?? "", entry_point_container: mobile.container.type, content_static_url: content.url, open_container:content.openLayout, action_c_campaign_id: content.campaignId)
                     }

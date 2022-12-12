@@ -1380,8 +1380,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             actionTarget = "CAMPAIGN"
         }
         
-        eventPublishNudge(pageName: className, nudgeId: data.mobile.content[0]._id, actionType: actionType, actionTarget: actionTarget, pageType: data.mobile.content[0].openLayout, campaignId: data.mobile.content[0].campaignId,nudgeType: data.mobile.container.type)
-        
         postAnalyticsEventForEntryPoints(event_name: event_name, entry_point_id: data.mobile.content[0]._id, entry_point_name: data.name ?? "", entry_point_container: data.mobile.container.type, content_static_url: data.mobile.content[0].url, open_container: data.mobile.content[0].openLayout, action_c_campaign_id: data.mobile.content[0].campaignId)
         
     }
@@ -1425,38 +1423,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
         topController.present(customerWebViewVC, animated: true) {
             CustomerGlu.getInstance.hideFloatingButtons()
-        }
-    }
-    
-    private func eventPublishNudge(pageName: String, nudgeId: String, actionType: String, actionTarget: String, pageType: String, campaignId: String, nudgeType:String ) {
-        var eventInfo = [String: AnyHashable]()
-        eventInfo[APIParameterKey.nudgeType] = nudgeType
-        
-        eventInfo[APIParameterKey.pageName] = pageName
-        eventInfo[APIParameterKey.nudgeId] = nudgeId
-        eventInfo[APIParameterKey.actionTarget] = actionTarget
-        eventInfo[APIParameterKey.actionType] = actionType
-        eventInfo[APIParameterKey.pageType] = pageType
-        
-        
-        
-        eventInfo[APIParameterKey.campaignId] = "CAMPAIGNID_NOTPRESENT"
-        if actionTarget == "CAMPAIGN" {
-            if campaignId.count > 0 {
-                if !(campaignId.contains("http://") || campaignId.contains("https://")) {
-                    eventInfo[APIParameterKey.campaignId] = campaignId
-                }
-            }
-        }
-        
-        eventInfo[APIParameterKey.optionalPayload] = [String: String]() as [String: String]
-        
-        ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
-            if success {
-                
-            } else {
-                CustomerGlu.getInstance.printlog(cglog: "Fail to call publishNudge", isException: false, methodName: "CustomerGlu-eventPublishNudge", posttoserver: true)
-            }
         }
     }
     
