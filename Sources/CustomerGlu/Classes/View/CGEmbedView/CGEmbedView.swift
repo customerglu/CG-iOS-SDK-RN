@@ -378,37 +378,6 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
         return finalheight
     }
     
-    
-    //    private func eventPublishNudge(pageName: String, nudgeId: String, actionType: String, actionTarget: String, pageType: String, campaignId: String) {
-    //        var eventInfo = [String: AnyHashable]()
-    //        eventInfo[APIParameterKey.nudgeType] = "EMBEDDED"
-    //
-    //        eventInfo[APIParameterKey.pageName] = pageName
-    //        eventInfo[APIParameterKey.nudgeId] = nudgeId
-    //        eventInfo[APIParameterKey.actionTarget] = actionTarget
-    //        eventInfo[APIParameterKey.actionType] = actionType
-    //        eventInfo[APIParameterKey.pageType] = pageType
-    //
-    //        eventInfo[APIParameterKey.campaignId] = "CAMPAIGNID_NOTPRESENT"
-    //        if actionTarget == "CAMPAIGN" {
-    //            if campaignId.count > 0 {
-    //                if !(campaignId.contains("http://") || campaignId.contains("https://")) {
-    //                    eventInfo[APIParameterKey.campaignId] = campaignId
-    //                }
-    //            }
-    //        }
-    //
-    //        eventInfo[APIParameterKey.optionalPayload] = [String: String]() as [String: String]
-    //
-    //        ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
-    //            if success {
-    //
-    //            } else {
-    //                CustomerGlu.getInstance.printlog(cglog: "Fail to call eventPublishNudge", isException: false, methodName: "EmbedView-eventPublishNudge", posttoserver: true)
-    //            }
-    //        }
-    //    }
-    
         private func callLoadEmbedAnalytics(){
     
             if (false == loadedapicalled){
