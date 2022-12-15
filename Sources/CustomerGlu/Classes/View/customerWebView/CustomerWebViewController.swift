@@ -19,6 +19,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     @IBOutlet weak var bottomHeight: NSLayoutConstraint!
     
     var webView = WKWebView()
+    var coverview = UIView()
     public var urlStr = ""
     private var loadedurl = ""
     private var defaultwalleturl = ""
@@ -78,6 +79,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                     bottomHeight.constant = CGFloat(CustomerGlu.bottomSafeAreaHeight)
                     webView.frame = CGRect(x: 0, y: topHeight.constant, width: self.view.frame.width, height: self.view.frame.height - (topHeight.constant + bottomHeight.constant))
                 }
+                coverview.frame = webView.frame
             }
         }
     }
@@ -242,7 +244,13 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             webView.backgroundColor = CustomerGlu.defaultBGCollor
             webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: url)!)))
             webView.isHidden = true
+            
+            coverview.frame = webView.frame
+            coverview.isHidden = !webView.isHidden
+            coverview.backgroundColor = webView.backgroundColor
+
             self.view.addSubview(webView)
+            self.view.addSubview(coverview)
             CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX-30, y: UIScreen.main.bounds.midY-30)
             defaulttimer = Timer.scheduledTimer(timeInterval: 8, target: self, selector: #selector(timeoutforpageload(sender:)), userInfo: nil, repeats: false)
         } else {
@@ -408,6 +416,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         
         CustomerGlu.getInstance.loaderHide()
         webView.isHidden = false
+        coverview.isHidden = !webView.isHidden
     }
     private func sendToOtherApps(shareText: String) {
         // set up activity view controller
