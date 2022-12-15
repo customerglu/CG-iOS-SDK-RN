@@ -29,6 +29,15 @@ public class CGMobileData: Codable {
     public var loadScreenColor: String? = CustomerGlu.defaultBGCollor.hexString
     public var loaderColor: String? = CustomerGlu.arrColor[0].hexString
     public var whiteListedDomains: [String]? = CustomerGlu.whiteListedDomains
+    
+    public var secretKey: String? = ""
+    public var enableSentry: Bool? = false
+    public var forceUserRegistration: Bool? = false
+    public var allowUserRegistration: Bool? = false
+    public var enableDarkMode: Bool? = false
+    public var listenToSystemDarkLightMode: Bool? = false
+    public var lightBackground: String? = ""
+    public var darkBackground: String? = ""
 }
 
 public class CGIosSafeArea: Codable {
