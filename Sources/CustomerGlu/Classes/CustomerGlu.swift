@@ -1113,7 +1113,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         let host = url.host
         if(host != nil && host!.count > 0){
             for str_url in CustomerGlu.whiteListedDomains {
-                if (host!.hasSuffix(str_url)){
+                if (str_url.count > 0 && host!.hasSuffix(str_url)){
                     return url
                 }
             }
