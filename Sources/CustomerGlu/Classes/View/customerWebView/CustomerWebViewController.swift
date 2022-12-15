@@ -62,23 +62,31 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         return false;
     }
     
+    func getframe()->CGRect{
+        var rect = CGRect.zero
+        
+        let height = getconfiguredheight()
+        if ismiddle {
+            rect = CGRect(x: 20, y: (self.view.frame.height - height)/2, width: self.view.frame.width - 40, height: height)
+            
+        } else if isbottomdefault {
+            rect = CGRect(x: 0, y: self.view.frame.height - height, width: self.view.frame.width, height: height)
+        } else if isbottomsheet {
+            rect = CGRect(x: 0, y: 0, width: self.view.frame.width, height: UIScreen.main.bounds.height)
+        } else {
+            topHeight.constant = CGFloat(CustomerGlu.topSafeAreaHeight)
+            bottomHeight.constant = CGFloat(CustomerGlu.bottomSafeAreaHeight)
+            rect = CGRect(x: 0, y: topHeight.constant, width: self.view.frame.width, height: self.view.frame.height - (topHeight.constant + bottomHeight.constant))
+        }
+        
+        return rect
+    }
     @objc func rotated() {
         for subview in self.view.subviews {
             if(subview == webView){
                 
                 let height = getconfiguredheight()
-                if ismiddle {
-                    webView.frame = CGRect(x: 20, y: (self.view.frame.height - height)/2, width: self.view.frame.width - 40, height: height)
-                    
-                } else if isbottomdefault {
-                    webView.frame = CGRect(x: 0, y: self.view.frame.height - height, width: self.view.frame.width, height: height)
-                } else if isbottomsheet {
-                    webView.frame = CGRect(x: 0, y: 0, width: self.view.frame.width, height: UIScreen.main.bounds.height)
-                } else {
-                    topHeight.constant = CGFloat(CustomerGlu.topSafeAreaHeight)
-                    bottomHeight.constant = CGFloat(CustomerGlu.bottomSafeAreaHeight)
-                    webView.frame = CGRect(x: 0, y: topHeight.constant, width: self.view.frame.width, height: self.view.frame.height - (topHeight.constant + bottomHeight.constant))
-                }
+                webView.frame = getframe()
                 coverview.frame = webView.frame
             }
         }
@@ -127,7 +135,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             setupWebViewCustomFrame(url: urlStr)
         } else if iscampignId {
             
-            CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX-30, y: UIScreen.main.bounds.midY-30)
+            CustomerGlu.getInstance.loaderShow(withcoordinate: getframe().midX-30, y: getframe().midY-30)
             
             campaign_id = campaign_id.trimSpace()
             
@@ -162,7 +170,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 }
             }
         } else {
-            webView = WKWebView(frame: CGRect(x: 0, y: topHeight.constant, width: self.view.frame.width, height: self.view.frame.height - (topHeight.constant + bottomHeight.constant)), configuration: config) //set your own frame
+            webView = WKWebView(frame: getframe(), configuration: config) //set your own frame
             loadwebView(url: urlStr, x: x, y: y)
         }
         webView.scrollView.contentInsetAdjustmentBehavior = .never
@@ -175,22 +183,22 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         
         let height = getconfiguredheight()
         if ismiddle {
-            webView = WKWebView(frame: CGRect(x: 20, y: (self.view.frame.height - height)/2, width: self.view.frame.width - 40, height: height), configuration: config) //set your own frame
+            webView = WKWebView(frame: getframe(), configuration: config) //set your own frame
             webView.layer.cornerRadius = 20
             webView.clipsToBounds = true
             y = webView.frame.midY - 30
         } else if isbottomdefault {
-            webView = WKWebView(frame: CGRect(x: 0, y: self.view.frame.height - height, width: self.view.frame.width, height: height), configuration: config) //set your own frame
+            webView = WKWebView(frame: getframe(), configuration: config) //set your own frame
             webView.layer.cornerRadius = 20
             webView.clipsToBounds = true
             y = webView.frame.midY - 30
         } else if isbottomsheet {
-            webView = WKWebView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: UIScreen.main.bounds.height), configuration: config) //set your own frame
+            webView = WKWebView(frame: getframe(), configuration: config) //set your own frame
             y = self.view.frame.midY - 30
         } else {
             topHeight.constant = CGFloat(CustomerGlu.topSafeAreaHeight)
             bottomHeight.constant = CGFloat(CustomerGlu.bottomSafeAreaHeight)
-            webView = WKWebView(frame: CGRect(x: 0, y: topHeight.constant, width: self.view.frame.width, height: self.view.frame.height - (topHeight.constant + bottomHeight.constant)), configuration: config) //set your own frame
+            webView = WKWebView(frame: getframe(), configuration: config) //set your own frame
             y = self.view.frame.midY - 30
         }
         loadwebView(url: url, x: x, y: y)
@@ -251,7 +259,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
 
             self.view.addSubview(webView)
             self.view.addSubview(coverview)
-            CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX-30, y: UIScreen.main.bounds.midY-30)
+            CustomerGlu.getInstance.loaderShow(withcoordinate: getframe().midX-30, y: getframe().midY-30)
             defaulttimer = Timer.scheduledTimer(timeInterval: 8, target: self, selector: #selector(timeoutforpageload(sender:)), userInfo: nil, repeats: false)
         } else {
             self.closePage(animated: false,dismissaction: CGDismissAction.UI_BUTTON)
