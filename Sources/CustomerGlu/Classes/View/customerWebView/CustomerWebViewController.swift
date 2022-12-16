@@ -39,7 +39,9 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     
     var postdata = [String:Any]()
     var canpost = false
+    var canopencgwebview = false
     public var nudgeConfiguration: CGNudgeConfiguration?
+    private var opencgwebview_nudgeConfiguration: CGNudgeConfiguration?
     private var defaulttimer : Timer?
     
     public func configureSafeAreaForDevices() {
@@ -237,6 +239,10 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             self.canpost = false
             self.postdata = [String:Any]()
         }
+        if (true == self.canopencgwebview){
+            self.canopencgwebview = false
+            self.openCGWebView()
+        }
     }
     
     func loadwebView(url: String, x: CGFloat, y: CGFloat) {
@@ -409,12 +415,47 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                             hidePrevious = datadic!["hidePrevious"] as? Bool ?? false
 
                         }
+                        
+                        opencgwebview_nudgeConfiguration = CGNudgeConfiguration()
+                        opencgwebview_nudgeConfiguration?.absoluteHeight = containerabsoluteHeight
+                        opencgwebview_nudgeConfiguration?.relativeHeight = containerrelativeHeight
+                        opencgwebview_nudgeConfiguration?.layout = containertype
+                        if(contenttype == "CAMPAIGN"){
+                            opencgwebview_nudgeConfiguration?.url = contentcampaignId
+                        }else if(contenttype == "WALLET"){
+                            opencgwebview_nudgeConfiguration?.url = CGConstants.CGOPENWALLET
+                        }else{
+                            opencgwebview_nudgeConfiguration?.url = contenturl
+                        }
+                        
+                        if(true == hidePrevious){
+                            canopencgwebview = true
+                            if notificationHandler || iscampignId {
+                                self.closePage(animated: true,dismissaction: CGDismissAction.CTA_REDIRECT)
+                            }else{
+                                self.navigationController?.popViewController(animated: true)
+                            }
+                        }else{
+                            canopencgwebview = false
+                            openCGWebView()
+                        }
+                        
                     }
             }
 
         }
     }
-    
+    private func openCGWebView(){
+        if(opencgwebview_nudgeConfiguration != nil){
+            
+            if(CGConstants.CGOPENWALLET == opencgwebview_nudgeConfiguration?.url){
+                CustomerGlu.getInstance.loadCampaignById(campaign_id: CGConstants.CGOPENWALLET, nudgeConfiguration: opencgwebview_nudgeConfiguration)
+            }else{
+                CustomerGlu.getInstance.loadCampaignById(campaign_id: opencgwebview_nudgeConfiguration?.url ?? "", nudgeConfiguration: opencgwebview_nudgeConfiguration)
+            }
+
+        }
+    }
     private func hideLoaderNShowWebview(){
         
         if(defaulttimer != nil){
