@@ -150,6 +150,7 @@ class ApplicationManager {
         eventInfo[APIParameterKey.event_id] = UUID().uuidString
         eventInfo[APIParameterKey.user_id] = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_USERID)
         eventInfo[APIParameterKey.timestamp] = ApplicationManager.fetchTimeStamp(dateFormat: CGConstants.DATE_FORMAT)
+        eventInfo[APIParameterKey.type] = "track"
         
         var platform_details = [String: String]()
         platform_details[APIParameterKey.device_type] = "MOBILE"
