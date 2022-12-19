@@ -223,7 +223,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         // Change this to your preferred presentation option
         if CustomerGlu.getInstance.notificationFromCustomerGlu(remoteMessage: userInfo as? [String: AnyHashable] ?? [NotificationsKey.customerglu: "d"]) {
             if userInfo[NotificationsKey.glu_message_type] as? String == "push" {
+                
                 if UIApplication.shared.applicationState == .active {
+                    self.postAnalyticsEventForNotification(userInfo: userInfo as! [String:AnyHashable])
                     completionHandler([[.alert, .badge, .sound]])
                 }
             }
@@ -1531,7 +1533,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         if(type == NotificationsKey.in_app){
             eventInfo[APIParameterKey.event_name] = "NOTIFICATION_LOAD"
         }else{
-            eventInfo[APIParameterKey.event_name] = "PUSH_NOTIFICATION_CLICK"
+            if (UIApplication.shared.applicationState == .active){
+                eventInfo[APIParameterKey.event_name] = "NOTIFICATION_LOAD"
+            }else{
+                eventInfo[APIParameterKey.event_name] = "PUSH_NOTIFICATION_CLICK"
+            }
         }
 
         nudge[APIParameterKey.nudgeId] = nudge_id
@@ -1540,6 +1546,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         nudge[APIParameterKey.body] = body
         nudge[APIParameterKey.nudge_layout] = nudge_layout
         nudge[APIParameterKey.click_action] = nudge_url
+        nudge[APIParameterKey.type] = type
         eventInfo[APIParameterKey.nudge] = nudge
                      
         ApplicationManager.sendAnalyticsEvent(eventNudge: eventInfo) { success, _ in
