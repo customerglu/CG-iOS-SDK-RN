@@ -48,6 +48,8 @@ private struct MethodNameandPath {
     static let entrypoints_config = MethodandPath(method: "POST", path: "entrypoints/v1/config")
     static let send_analytics_event = MethodandPath(method: "POST", path: "v4/sdk")
     static let appconfig = MethodandPath(method: "GET", path: "client/v1/sdk/config")
+    static let cgdeeplink = MethodandPath(method: "GET", path: "api/v1/wormhole/sdk/url")
+    
 }
 
 // Parameter Key's for all API's
@@ -282,6 +284,25 @@ class APIManager {
         blockOperation.addExecutionBlock {
             // Call Get Wallet and Rewards List
             performRequest(baseurl: BaseUrls.streamurl, methodandpath: MethodNameandPath.send_analytics_event, parametersDict: queryParameters, completion: completion)
+        }
+        
+        // Add dependency to finish previus task before starting new one
+        if(ApplicationManager.operationQueue.operations.count > 0){
+            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
+        }
+        
+        //Added task into Queue
+        ApplicationManager.operationQueue.addOperation(blockOperation)
+    }
+    
+    static func getCGDeeplinkData(queryParameters: NSDictionary, completion: @escaping (Result<CGDeeplink, Error>) -> Void) {
+        // create a blockOperation for avoiding miltiple API call at same time
+        let blockOperation = BlockOperation()
+        
+        // Added Task into Queue
+        blockOperation.addExecutionBlock {
+            // Call Login API with API Router
+            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.cgdeeplink, parametersDict: queryParameters, completion: completion)
         }
         
         // Add dependency to finish previus task before starting new one
