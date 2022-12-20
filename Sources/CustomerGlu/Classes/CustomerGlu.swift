@@ -946,6 +946,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         if(response.success == true){
                             if(domain == "c"){
                                 
+                            }else if(domain == "w"){
+                                
                             }else{
                                 
                             }
