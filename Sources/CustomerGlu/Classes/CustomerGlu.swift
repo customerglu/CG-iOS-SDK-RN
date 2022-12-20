@@ -923,6 +923,47 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
+//    getCGDeeplinkData
+    @objc public func openDeepLink(deepurl:URL!) {
+        
+//            SUCCESS,
+//            USER_NOT_SIGNED_IN,
+//            INVALID_URL,
+//            INVALID_CAMPAIGN,
+//            CAMPAIGN_UNAVAILABLE,
+//            NETWORK_EXCEPTION,
+//            EXCEPTION
+        if(deepurl != nil && deepurl.scheme != nil && deepurl.scheme!.count > 0 && (deepurl.scheme!.hasSuffix("cglu.us")) == true){
+
+            let lastpath = deepurl.lastPathComponent
+            let domain = deepurl.host?.lowercased() ?? ""
+            print("sdfgxz")
+            
+            if((domain.count > 0 && (domain == "c" || domain == "w" && domain == "u")) && lastpath.count > 0){
+                APIManager.getCGDeeplinkData(queryParameters: ["id":lastpath]) { result in
+                    switch result {
+                    case .success(let response):
+                        if(response.success == true){
+                            if(domain == "c"){
+                                
+                            }else{
+                                
+                            }
+                            print("openDeepLink \(deepurl)")
+                        }else{
+                            CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-2", posttoserver: false)
+                        }
+
+                    case .failure(let error):
+                        CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-3", posttoserver: false)
+        //                completion(false)
+                    }
+            }
+
+            }
+
+        }
+    }
     @objc public func openWallet(nudgeConfiguration: CGNudgeConfiguration) {
         CustomerGlu.getInstance.loadCampaignById(campaign_id: CGConstants.CGOPENWALLET, nudgeConfiguration:nudgeConfiguration)
         
