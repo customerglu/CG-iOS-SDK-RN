@@ -933,20 +933,20 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
 //            CAMPAIGN_UNAVAILABLE,
 //            NETWORK_EXCEPTION,
 //            EXCEPTION
-        if(deepurl != nil && deepurl.scheme != nil && deepurl.scheme!.count > 0 && (deepurl.scheme!.hasSuffix("cglu.us")) == true){
+        if(deepurl != nil && deepurl.scheme != nil && deepurl.scheme!.count > 0 && (((deepurl.scheme!.lowercased() == "http") || deepurl.scheme!.lowercased() == "https") == true) && deepurl.host != nil && deepurl.host!.count > 0 && (deepurl.host!.lowercased().hasSuffix(".cglu.us") == true)){
 
-            let lastpath = deepurl.lastPathComponent
-            let domain = deepurl.host?.lowercased() ?? ""
-            print("sdfgxz")
+            let firstpath = deepurl.pathComponents.count > 1 ? deepurl.pathComponents[1] : ""
+            let secondpath = deepurl.pathComponents.count > 2 ? deepurl.pathComponents[2] : ""
+
             
-            if((domain.count > 0 && (domain == "c" || domain == "w" && domain == "u")) && lastpath.count > 0){
-                APIManager.getCGDeeplinkData(queryParameters: ["id":lastpath]) { result in
+            if((firstpath.count > 0 && (firstpath == "c" || firstpath == "w" && firstpath == "u")) && secondpath.count > 0){
+                APIManager.getCGDeeplinkData(queryParameters: ["id":secondpath]) { result in
                     switch result {
                     case .success(let response):
                         if(response.success == true){
-                            if(domain == "c"){
+                            if(firstpath == "c"){
                                 
-                            }else if(domain == "w"){
+                            }else if(firstpath == "w"){
                                 
                             }else{
                                 
