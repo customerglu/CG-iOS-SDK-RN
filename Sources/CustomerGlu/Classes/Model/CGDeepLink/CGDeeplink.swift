@@ -33,6 +33,7 @@ public class CGDeepContent: NSObject, Codable {
     var campaignId: String?
     var closeOnDeepLink: Bool?
     var type: String?
+    var url: String?
 
 
 }
