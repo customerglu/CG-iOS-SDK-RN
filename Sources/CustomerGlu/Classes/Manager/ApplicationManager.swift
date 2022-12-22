@@ -89,6 +89,9 @@ class ApplicationManager {
         if user_id.count < 0 {
             return
         }
+        if CustomerGlu.sdk_disable != true {
+            CGSentryHelper.shared.captureExceptionEvent(exceptionLog: cglog)
+        }
         var params = OtherUtils.shared.getCrashInfo()
         if isException {
             params![APIParameterKey.type] = "Crash"
@@ -111,6 +114,7 @@ class ApplicationManager {
     
     private static func crashReport(parameters: NSDictionary, completion: @escaping (Bool, CGAddCartModel?) -> Void) {
         if CustomerGlu.sdk_disable! == true {
+            
             return
         }
         APIManager.crashReport(queryParameters: parameters) { result in

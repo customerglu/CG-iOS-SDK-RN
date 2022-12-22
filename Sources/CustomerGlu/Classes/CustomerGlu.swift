@@ -40,6 +40,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     // Singleton Instance
     @objc public static var getInstance = CustomerGlu()
     public static var sdk_disable: Bool? = false
+    public static var sentry_enable: Bool? = true
+    public static var darkMode: Bool? = false
+    public static var listenToSystemDarkMode: Bool? = false
     @objc public static var fcm_apn = ""
     public static var analyticsEvent: Bool? = false
     let userDefaults = UserDefaults.standard
@@ -148,6 +151,18 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     @objc public func disableGluSdk(disable: Bool) {
         CustomerGlu.sdk_disable = disable
+    }
+    
+    @objc public func enableDarkMode(isDarkModeEnabled: Bool){
+        CustomerGlu.darkMode = isDarkModeEnabled
+    }
+    
+    @objc public func isDarkModeEnabled()-> Bool {
+        return CustomerGlu.darkMode ?? false
+    }
+    
+    @objc public func listenToDarkMode(allowToListenDarkMode: Bool){
+        CustomerGlu.listenToSystemDarkMode = allowToListenDarkMode
     }
     
     @objc public func isFcmApn(fcmApn: String) {
@@ -426,9 +441,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     // MARK: - API Calls Methods
     
     @objc public func initializeSdk() {
-        
         self.getAppConfig { result in
-            
+
         }
     }
     @objc internal func getAppConfig(completion: @escaping (Bool) -> Void) {
@@ -464,8 +478,23 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 CustomerGlu.getInstance.enableAnalyticsEvent(event: (self.appconfigdata!.enableAnalytics ?? CustomerGlu.analyticsEvent)!)
             }
             
+            if self.appconfigdata!.enableSentry != nil  {
+                CustomerGlu.sentry_enable =  self.appconfigdata?.enableSentry ?? false
+                if CustomerGlu.sentry_enable ?? false {
+                    CGSentryHelper.shared.setupSentry()
+                }
+            }
+            
             if(self.appconfigdata!.enableEntryPoints != nil){
                 CustomerGlu.getInstance.enableEntryPoints(enabled: self.appconfigdata!.enableEntryPoints ?? CustomerGlu.isEntryPointEnabled)
+            }
+            
+            if self.appconfigdata!.enableDarkMode != nil {
+                CustomerGlu.darkMode = self.appconfigdata?.enableDarkMode
+            }
+            
+            if self.appconfigdata!.listenToSystemDarkLightMode != nil {
+                CustomerGlu.listenToSystemDarkMode = self.appconfigdata?.listenToSystemDarkLightMode
             }
             
             if(self.appconfigdata!.errorCodeForDomain != nil && self.appconfigdata!.errorMessageForDomain != nil){

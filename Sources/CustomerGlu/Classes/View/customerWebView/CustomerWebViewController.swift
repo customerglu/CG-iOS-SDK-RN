@@ -102,6 +102,8 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                                                object: nil)
         navigationController?.setNavigationBarHidden(true, animated: false)
         
+        checkIsDarkMode()
+        
         if(self.nudgeConfiguration != nil){
             self.alpha = nudgeConfiguration!.opacity
             self.auto_close_webview = nudgeConfiguration!.closeOnDeepLink
@@ -256,7 +258,9 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CG_INVALID_CAMPAIGN_ID").rawValue), object: nil, userInfo: eventInfo as? [String: Any])
             }
             webView.backgroundColor = CustomerGlu.defaultBGCollor
-            webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: url)!)))
+            let darkUrl = url + "&darkMode=" + ((CustomerGlu.darkMode ?? false) ? "true" : "false")
+            print("This is the URL ------- "+darkUrl)
+            webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: darkUrl)!)))
             webView.isHidden = true
             
             coverview.frame = webView.frame
@@ -625,6 +629,27 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         if isBeingDismissed {
             // TODO: Do your stuff here.
             postAnalyticsEventForWebView(isopenevent: false, dismissaction: dismissactionglobal)
+        }
+    }
+    
+    override public func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        checkIsDarkMode()
+    }
+    
+    func checkIsDarkMode(){
+        
+        if CustomerGlu.listenToSystemDarkMode ?? false {
+            if #available(iOS 12.0, *) {
+                if self.traitCollection.userInterfaceStyle == .dark {
+                    CustomerGlu.darkMode = true
+                    print("system darkmode is true")
+                } else {
+                    CustomerGlu.darkMode = false
+                    print("system darkmode is false")
+                }
+            } else {
+                // Fallback on earlier versions
+            }
         }
     }
 }
