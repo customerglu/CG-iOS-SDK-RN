@@ -969,7 +969,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             let secondpath = deepurl.pathComponents.count > 2 ? deepurl.pathComponents[2] : ""
 
             if((firstpath.count > 0 && (firstpath == "c" || firstpath == "w" || firstpath == "u")) && secondpath.count > 0){
+                CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX-30, y: UIScreen.main.bounds.midY-30)
                 APIManager.getCGDeeplinkData(queryParameters: ["id":secondpath]) { result in
+                    CustomerGlu.getInstance.loaderHide()
                     switch result {
                     case .success(let response):
                         if(response.success == true){
@@ -981,7 +983,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                         // Reg Call then exe
                                         var userData = [String: AnyHashable]()
                                         userData["userId"] = ""
+                                        CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX-30, y: UIScreen.main.bounds.midY-30)
                                         self.registerDevice(userdata: userData) { success in
+                                            CustomerGlu.getInstance.loaderHide()
                                             if success {
                                                 self.excecuteDeepLink(firstpath: firstpath, cgdeeplink: response.data!, completion: completion)
                                             } else {
