@@ -924,14 +924,20 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc private func excecuteDeepLink(firstpath:String, cgdeeplink:CGDeeplinkData){
-        var nudgeConfiguration = CGNudgeConfiguration()
-        if(firstpath == "c"){
-            CustomerGlu.getInstance.loadCampaignById(campaign_id: "", nudgeConfiguration: nudgeConfiguration)
-        }else if(firstpath == "u"){
-            CustomerGlu.getInstance.loadCampaignById(campaign_id: "", nudgeConfiguration: nudgeConfiguration)
-        }else{
-            CustomerGlu.getInstance.openWallet(nudgeConfiguration: nudgeConfiguration)
-        }
+        
+            var nudgeConfiguration = CGNudgeConfiguration()
+        nudgeConfiguration.closeOnDeepLink = cgdeeplink.content!.closeOnDeepLink!
+        nudgeConfiguration.relativeHeight = cgdeeplink.container?.relativeHeight ?? 0.0
+        nudgeConfiguration.absoluteHeight = cgdeeplink.container?.absoluteHeight ?? 0.0
+        nudgeConfiguration.layout = cgdeeplink.container?.type ?? ""
+            if(firstpath == "c"){
+                CustomerGlu.getInstance.loadCampaignById(campaign_id: cgdeeplink.content?.campaignId ?? "", nudgeConfiguration: nudgeConfiguration)
+            }else if(firstpath == "u"){
+                CustomerGlu.getInstance.loadCampaignById(campaign_id: cgdeeplink.content?.url ?? "", nudgeConfiguration: nudgeConfiguration)
+            }else{
+                CustomerGlu.getInstance.openWallet(nudgeConfiguration: nudgeConfiguration)
+            }
+
     }
 //    getCGDeeplinkData
     @objc public func openDeepLink(deepurl:URL!) {

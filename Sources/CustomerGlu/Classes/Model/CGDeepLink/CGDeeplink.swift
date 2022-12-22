@@ -30,10 +30,10 @@ public class CGDeeplinkData: NSObject,Codable {
 @objc(CGDeepContent)
 public class CGDeepContent: NSObject, Codable {
 
-    var campaignId: String?
-    var closeOnDeepLink: Bool?
-    var type: String?
-    var url: String?
+    var campaignId: String? = ""
+    var closeOnDeepLink: Bool? = CustomerGlu.auto_close_webview
+    var type: String? = ""
+    var url: String? = ""
 
 
 }
@@ -41,8 +41,8 @@ public class CGDeepContent: NSObject, Codable {
 @objc(CGDeepContainer)
 public class CGDeepContainer: NSObject, Codable {
 
-    var absoluteHeight: Double?
-    var relativeHeight: Double?
-    var type: String?
+    var absoluteHeight: Double? = 0.0
+    var relativeHeight: Double? = 0.0
+    var type: String? = ""
 
 }
