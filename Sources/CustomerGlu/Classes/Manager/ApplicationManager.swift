@@ -139,6 +139,19 @@ class ApplicationManager {
         return false
     }
     
+    public static func isAnonymousUesr() -> Bool {
+        if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
+            let arr = JWTDecode.shared.decode(jwtToken: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN))
+            let userId = arr[APIParameterKey.userId] as? String
+            let anonymousId = arr[APIParameterKey.anonymousId] as? String
+            
+            if(userId != nil && anonymousId != nil && userId!.count > 0 && anonymousId!.count > 0 && userId == anonymousId){
+                return true
+            }
+        }
+        return false
+    }
+    
     public static func sendAnalyticsEvent(eventNudge: [String: Any], completion: @escaping (Bool, CGAddCartModel?) -> Void) {
         if CustomerGlu.sdk_disable! == true {
             return

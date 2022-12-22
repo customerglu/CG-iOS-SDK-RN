@@ -481,7 +481,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     @objc public func registerDevice(userdata: [String: AnyHashable], completion: @escaping (Bool) -> Void) {
-        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userdata["userId"] == nil {
+        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userdata[APIParameterKey.userId] == nil {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call registerDevice", isException: false, methodName: "CustomerGlu-registerDevice-1", posttoserver: true)
             CustomerGlu.bannersHeight = [String:Any]()
             CustomerGlu.embedsHeight = [String:Any]()
@@ -511,31 +511,31 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
         
         // Manage UserID & AnonymousId
-        let t_userid = userData["userId"] as! String? ?? ""
-        let t_anonymousIdP = userData["anonymousId"] as! String? ?? ""
+        let t_userid = userData[APIParameterKey.userId] as! String? ?? ""
+        let t_anonymousIdP = userData[APIParameterKey.anonymousId] as! String? ?? ""
         let t_anonymousIdS = self.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_ANONYMOUSID) as String? ?? ""
         
         if(t_userid.count <= 0){
             // Pass only anonymousId and removed UserID
             if (t_anonymousIdP.count > 0){
-                userData["anonymousId"] = t_anonymousIdP
+                userData[APIParameterKey.anonymousId] = t_anonymousIdP
                 
                 // Remove old user stored data
                 if(t_anonymousIdS.count > 0 && t_anonymousIdS != t_anonymousIdP){
                     self.clearGluData()
                 }
             }else if(t_anonymousIdS.count > 0){
-                userData["anonymousId"] = t_anonymousIdS
+                userData[APIParameterKey.anonymousId] = t_anonymousIdS
             }else{
-                userData["anonymousId"] = UUID().uuidString
+                userData[APIParameterKey.anonymousId] = UUID().uuidString
             }
-            userData.removeValue(forKey: "userId")
+            userData.removeValue(forKey: APIParameterKey.userId)
         }else if (t_anonymousIdS.count > 0){
             // Pass anonymousId and UserID Both
-            userData["anonymousId"] = t_anonymousIdS
+            userData[APIParameterKey.anonymousId] = t_anonymousIdS
         }else{
             // Pass only UserID and removed anonymousId
-            userData.removeValue(forKey: "anonymousId")
+            userData.removeValue(forKey: APIParameterKey.anonymousId)
         }
         
         APIManager.userRegister(queryParameters: userData as NSDictionary) { result in
@@ -653,10 +653,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         let t_anonymousIdS = self.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_ANONYMOUSID) as String? ?? ""
         if (t_anonymousIdS.count > 0){
             // Pass anonymousId and UserID Both
-            userData["anonymousId"] = t_anonymousIdS
+            userData[APIParameterKey.anonymousId] = t_anonymousIdS
         }else{
             // Pass only UserID and removed anonymousId
-            userData.removeValue(forKey: "anonymousId")
+            userData.removeValue(forKey: APIParameterKey.anonymousId)
         }
         
         APIManager.userRegister(queryParameters: userData as NSDictionary) { result in
@@ -923,6 +923,16 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
+    @objc private func excecuteDeepLink(firstpath:String, cgdeeplink:CGDeeplinkData){
+        var nudgeConfiguration = CGNudgeConfiguration()
+        if(firstpath == "c"){
+            CustomerGlu.getInstance.loadCampaignById(campaign_id: "", nudgeConfiguration: nudgeConfiguration)
+        }else if(firstpath == "u"){
+            CustomerGlu.getInstance.loadCampaignById(campaign_id: "", nudgeConfiguration: nudgeConfiguration)
+        }else{
+            CustomerGlu.getInstance.openWallet(nudgeConfiguration: nudgeConfiguration)
+        }
+    }
 //    getCGDeeplinkData
     @objc public func openDeepLink(deepurl:URL!) {
         
@@ -935,30 +945,48 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
 //            EXCEPTION
         if(deepurl != nil && deepurl.scheme != nil && deepurl.scheme!.count > 0 && (((deepurl.scheme!.lowercased() == "http") || deepurl.scheme!.lowercased() == "https") == true) && deepurl.host != nil && deepurl.host!.count > 0 && (deepurl.host!.lowercased().hasSuffix(".cglu.us") == true)){
 
-            let firstpath = deepurl.pathComponents.count > 1 ? deepurl.pathComponents[1] : ""
+            let firstpath = deepurl.pathComponents.count > 1 ? deepurl.pathComponents[1].lowercased() : ""
             let secondpath = deepurl.pathComponents.count > 2 ? deepurl.pathComponents[2] : ""
 
-            
-            if((firstpath.count > 0 && (firstpath == "c" || firstpath == "w" && firstpath == "u")) && secondpath.count > 0){
+            if((firstpath.count > 0 && (firstpath == "c" || firstpath == "w" || firstpath == "u")) && secondpath.count > 0){
                 APIManager.getCGDeeplinkData(queryParameters: ["id":secondpath]) { result in
                     switch result {
                     case .success(let response):
                         if(response.success == true){
-                            if(firstpath == "c"){
-                                
-                            }else if(firstpath == "w"){
-                                
+                            if (response.data != nil){
+                                if(response.data!.anonymous == true){
+                                    if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil{
+                                        self.excecuteDeepLink(firstpath: firstpath, cgdeeplink: response.data!)
+                                    }else{
+                                        // Reg Call then exe
+                                        var userData = [String: AnyHashable]()
+                                        userData["userId"] = ""
+                                        self.registerDevice(userdata: userData) { success in
+                                            if success {
+                                                self.excecuteDeepLink(firstpath: firstpath, cgdeeplink: response.data!)
+                                            } else {
+                                                CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-5", posttoserver: false)
+                                            }
+                                        }
+                                    }
+                                }else{
+                                    if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil && false == ApplicationManager.isAnonymousUesr(){
+                                        self.excecuteDeepLink(firstpath: firstpath, cgdeeplink: response.data!)
+                                    }else{
+                                        CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-5", posttoserver: false)
+                                    }
+                                }
+
                             }else{
-                                
+                                CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-4", posttoserver: false)
                             }
-                            print("openDeepLink \(deepurl)")
+
                         }else{
                             CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-2", posttoserver: false)
                         }
 
                     case .failure(let error):
                         CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-3", posttoserver: false)
-        //                completion(false)
                     }
             }
 

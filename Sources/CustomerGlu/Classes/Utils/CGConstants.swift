@@ -57,6 +57,7 @@ struct APIParameterKey {
     static let click_action = "click_action"
     static let event_properties = "event_properties"
     static let userId = "userId"
+    static let anonymousId = "anonymousId"
     static let bearer = "Bearer"
     static let apnsDeviceToken = "apnsDeviceToken"
     static let firebaseToken = "firebaseToken"

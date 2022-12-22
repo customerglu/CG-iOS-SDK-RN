@@ -6,8 +6,8 @@
 import Foundation
 import UIKit
 
-
-public class CGDeeplink: Codable {
+@objc(CGDeeplink)
+public class CGDeeplink: NSObject,Codable {
 
 	var data: CGDeeplinkData?
 	var message: String?
@@ -16,7 +16,8 @@ public class CGDeeplink: Codable {
 
 }
 
-public class CGDeeplinkData: Codable {
+@objc(CGDeeplinkData)
+public class CGDeeplinkData: NSObject,Codable {
 
     var anonymous: Bool?
     var client: String?
@@ -26,7 +27,8 @@ public class CGDeeplinkData: Codable {
 
 }
 
-public class CGDeepContent: Codable {
+@objc(CGDeepContent)
+public class CGDeepContent: NSObject, Codable {
 
     var campaignId: String?
     var closeOnDeepLink: Bool?
@@ -35,7 +37,8 @@ public class CGDeepContent: Codable {
 
 }
 
-public class CGDeepContainer: Codable {
+@objc(CGDeepContainer)
+public class CGDeepContainer: NSObject, Codable {
 
     var absoluteHeight: Double?
     var relativeHeight: Double?
