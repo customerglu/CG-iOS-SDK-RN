@@ -936,20 +936,66 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     @objc private func excecuteDeepLink(firstpath:String, cgdeeplink:CGDeeplinkData, completion: @escaping (CGSTATE, String) -> Void){
         
-        var nudgeConfiguration = CGNudgeConfiguration()
+        let nudgeConfiguration = CGNudgeConfiguration()
         nudgeConfiguration.closeOnDeepLink = cgdeeplink.content!.closeOnDeepLink!
         nudgeConfiguration.relativeHeight = cgdeeplink.container?.relativeHeight ?? 0.0
         nudgeConfiguration.absoluteHeight = cgdeeplink.container?.absoluteHeight ?? 0.0
         nudgeConfiguration.layout = cgdeeplink.container?.type ?? ""
-            if(firstpath == "c"){
-                CustomerGlu.getInstance.loadCampaignById(campaign_id: cgdeeplink.content?.campaignId ?? "", nudgeConfiguration: nudgeConfiguration)
-                completion(CGSTATE.SUCCESS,firstpath)
-            }else if(firstpath == "u"){
-                CustomerGlu.getInstance.loadCampaignById(campaign_id: cgdeeplink.content?.url ?? "", nudgeConfiguration: nudgeConfiguration)
-                completion(CGSTATE.SUCCESS,firstpath)
-            }else{
-                CustomerGlu.getInstance.openWallet(nudgeConfiguration: nudgeConfiguration)
-                completion(CGSTATE.SUCCESS,firstpath)
+        
+                CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX-30, y: UIScreen.main.bounds.midY-30)
+                ApplicationManager.loadAllCampaignsApi(type: "", value: "", loadByparams: [:]) { success, campaignsModel in
+                    CustomerGlu.getInstance.loaderHide()
+                    if success {
+                        
+                        let defaultwalleturl = String(campaignsModel?.defaultUrl ?? "")
+                        var cgstate = CGSTATE.EXCEPTION
+                        if(firstpath == "c" || firstpath == "u"){
+                            let local_id = firstpath == "c" ? (cgdeeplink.content?.campaignId ?? "") : (cgdeeplink.content?.url ?? "")
+                            if local_id.count == 0 {
+                                // load wallet defaultwalleturl
+                                nudgeConfiguration.url = defaultwalleturl
+                                cgstate = firstpath == "c" ? CGSTATE.INVALID_CAMPAIGN : CGSTATE.INVALID_URL
+
+                            } else if local_id.contains("http://") || local_id.contains("https://") {
+                                    // Load url local_id
+                                nudgeConfiguration.url = local_id
+                                if (local_id.count > 0 && (URL(string: local_id) != nil)){
+                                    cgstate = CGSTATE.SUCCESS
+                                }else{
+                                    cgstate = CGSTATE.INVALID_URL
+                                }
+                            } else {
+                                let campaigns: [CGCampaigns] = (campaignsModel?.campaigns)!
+                                let filteredArray = campaigns.filter{($0.campaignId.elementsEqual(local_id)) || ($0.banner != nil && $0.banner?.tag != nil && $0.banner?.tag != "" && ($0.banner!.tag!.elementsEqual(local_id)))}
+                                if filteredArray.count > 0 {
+                                    nudgeConfiguration.url = filteredArray[0].url
+                                    if (filteredArray[0].url.count > 0 && (URL(string: filteredArray[0].url) != nil)){
+                                        cgstate = CGSTATE.SUCCESS
+                                    }else{
+                                        cgstate = CGSTATE.INVALID_CAMPAIGN
+                                    }
+
+                                } else {
+                                    // load wallet defaultwalleturl
+                                    nudgeConfiguration.url = defaultwalleturl
+                                    cgstate = CGSTATE.INVALID_CAMPAIGN
+                                }
+                            }
+                        }else{
+                            // load wallet defaultwalleturl
+                            nudgeConfiguration.url = defaultwalleturl
+                            completion(CGSTATE.SUCCESS, "")
+                        }
+                        DispatchQueue.main.async { [self] in // Make sure you're on the main thread here
+                                self.presentToCustomerWebViewController(nudge_url: nudgeConfiguration.url, page_type: nudgeConfiguration.layout, backgroundAlpha: nudgeConfiguration.opacity,auto_close_webview: nudgeConfiguration.closeOnDeepLink)
+                            completion(cgstate, "")
+                            
+                        }
+
+                    } else {
+                        completion(CGSTATE.EXCEPTION, "Fail to call loadAllCampaignsApi / Invalid response")
+                        CustomerGlu.getInstance.printlog(cglog: "Fail to load loadAllCampaignsApi", isException: false, methodName: "CustomerGlu-excecuteDeepLink", posttoserver: true)
+                    }
             }
     }
 //    getCGDeeplinkData
