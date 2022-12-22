@@ -8,6 +8,17 @@ struct EntryPointPopUpModel: Codable {
     public var popups: [PopUpModel]?
 }
 
+@objc(CGSTATE)
+public enum CGSTATE:Int {
+    case     SUCCESS,
+             USER_NOT_SIGNED_IN,
+             INVALID_URL,
+             INVALID_CAMPAIGN,
+             CAMPAIGN_UNAVAILABLE,
+             NETWORK_EXCEPTION,
+             EXCEPTION
+}
+
 struct PopUpModel: Codable {
     public var _id: String?
     public var showcount: CGShowCount?
@@ -923,24 +934,27 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    @objc private func excecuteDeepLink(firstpath:String, cgdeeplink:CGDeeplinkData){
+    @objc private func excecuteDeepLink(firstpath:String, cgdeeplink:CGDeeplinkData, completion: @escaping (CGSTATE, String) -> Void){
         
-            var nudgeConfiguration = CGNudgeConfiguration()
+        var nudgeConfiguration = CGNudgeConfiguration()
         nudgeConfiguration.closeOnDeepLink = cgdeeplink.content!.closeOnDeepLink!
         nudgeConfiguration.relativeHeight = cgdeeplink.container?.relativeHeight ?? 0.0
         nudgeConfiguration.absoluteHeight = cgdeeplink.container?.absoluteHeight ?? 0.0
         nudgeConfiguration.layout = cgdeeplink.container?.type ?? ""
             if(firstpath == "c"){
                 CustomerGlu.getInstance.loadCampaignById(campaign_id: cgdeeplink.content?.campaignId ?? "", nudgeConfiguration: nudgeConfiguration)
+                completion(CGSTATE.SUCCESS,firstpath)
             }else if(firstpath == "u"){
                 CustomerGlu.getInstance.loadCampaignById(campaign_id: cgdeeplink.content?.url ?? "", nudgeConfiguration: nudgeConfiguration)
+                completion(CGSTATE.SUCCESS,firstpath)
             }else{
                 CustomerGlu.getInstance.openWallet(nudgeConfiguration: nudgeConfiguration)
+                completion(CGSTATE.SUCCESS,firstpath)
             }
-
     }
 //    getCGDeeplinkData
-    @objc public func openDeepLink(deepurl:URL!) {
+    //(eventNudge: [String: Any], completion: @escaping (Bool, CGAddCartModel?) -> Void)
+    @objc public func openDeepLink(deepurl:URL!, completion: @escaping (CGSTATE, String) -> Void) {
         
 //            SUCCESS,
 //            USER_NOT_SIGNED_IN,
@@ -962,42 +976,51 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             if (response.data != nil){
                                 if(response.data!.anonymous == true){
                                     if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil{
-                                        self.excecuteDeepLink(firstpath: firstpath, cgdeeplink: response.data!)
+                                        self.excecuteDeepLink(firstpath: firstpath, cgdeeplink: response.data!, completion: completion)
                                     }else{
                                         // Reg Call then exe
                                         var userData = [String: AnyHashable]()
                                         userData["userId"] = ""
                                         self.registerDevice(userdata: userData) { success in
                                             if success {
-                                                self.excecuteDeepLink(firstpath: firstpath, cgdeeplink: response.data!)
+                                                self.excecuteDeepLink(firstpath: firstpath, cgdeeplink: response.data!, completion: completion)
                                             } else {
                                                 CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-5", posttoserver: false)
+                                                completion(CGSTATE.EXCEPTION,"Fail to calll register user")
                                             }
                                         }
                                     }
                                 }else{
                                     if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil && false == ApplicationManager.isAnonymousUesr(){
-                                        self.excecuteDeepLink(firstpath: firstpath, cgdeeplink: response.data!)
+                                        self.excecuteDeepLink(firstpath: firstpath, cgdeeplink: response.data!, completion: completion)
                                     }else{
                                         CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-5", posttoserver: false)
+                                        completion(CGSTATE.USER_NOT_SIGNED_IN,"")
                                     }
                                 }
 
                             }else{
                                 CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-4", posttoserver: false)
+                                completion(CGSTATE.EXCEPTION, "Invalid Response")
                             }
 
                         }else{
                             CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-2", posttoserver: false)
+                            completion(CGSTATE.EXCEPTION, response.message ?? "")
                         }
 
                     case .failure(let error):
                         CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-3", posttoserver: false)
+                        completion(CGSTATE.EXCEPTION, "Fail to call getCGDeeplinkData / Invalid response")
                     }
             }
 
+            }else{
+                completion(CGSTATE.INVALID_URL, "Incorrect URL")
             }
 
+        }else{
+            completion(CGSTATE.EXCEPTION, "Incorrect Invalide URL")
         }
     }
     @objc public func openWallet(nudgeConfiguration: CGNudgeConfiguration) {
