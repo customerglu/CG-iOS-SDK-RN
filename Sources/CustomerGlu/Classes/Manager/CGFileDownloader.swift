@@ -45,6 +45,15 @@ class CGFileDownloader {
     {
         var documentsUrl =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         documentsUrl.appendPathComponent("GluFiles", isDirectory: true)
+        
+        do
+        {
+            try FileManager.default.createDirectory(atPath: documentsUrl.path, withIntermediateDirectories: true, attributes: nil)
+        }
+        catch let error1 as NSError
+        {
+            completion(documentsUrl.path, error1)
+        }
 
         let destinationUrl = documentsUrl.appendingPathComponent(url.lastPathComponent)
 
@@ -69,13 +78,14 @@ class CGFileDownloader {
                         {
                             if let data = data
                             {
-                                if let _ = try? data.write(to: destinationUrl, options: Data.WritingOptions.atomic)
+                                do
                                 {
+                                    try data.write(to: destinationUrl, options: Data.WritingOptions.atomic)
                                     completion(destinationUrl.path, error)
                                 }
-                                else
+                                catch let error2 as NSError
                                 {
-                                    completion(destinationUrl.path, error)
+                                    completion(destinationUrl.path, error2)
                                 }
                             }
                             else
