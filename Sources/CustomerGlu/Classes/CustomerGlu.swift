@@ -435,6 +435,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         userDefaults.removeObject(forKey: CGConstants.CustomerGluCrash)
         userDefaults.removeObject(forKey: CGConstants.CustomerGluPopupDict)
         userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_USERDATA)
+        userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH)
         CustomerGlu.getInstance.cgUserData = CGUser()
         ApplicationManager.appSessionId = UUID().uuidString
     }
@@ -1318,12 +1319,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
         if(locallottieLoaderURL.count > 0 && URL(string: locallottieLoaderURL) != nil){
             CustomerGlu.lottieLoaderURL = locallottieLoaderURL
-
-//            let url = URL(string: "https://assets.customerglu.com/common/130519-pg-spinner-1.json")
             let url = URL(string: locallottieLoaderURL)
-
-            CGFileDownloader.loadFileAsync(url: url!) { (path, error) in
-                print("PDF File downloaded to : \(path!)")
+            CGFileDownloader.loadFileAsync(url: url!) { [self] (path, error) in
+                if (error == nil){
+                    encryptUserDefaultKey(str: path ?? "", userdefaultKey: CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH)
+                }
             }
         }
     }

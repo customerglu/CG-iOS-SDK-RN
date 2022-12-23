@@ -12,6 +12,7 @@ struct CGConstants {
     static let JSON_ERROR = "CUSTOMERGLU: json parsing error:"
     static let CUSTOMERGLU_TOKEN = "CustomerGlu_Token_Encrypt"
     static let CUSTOMERGLU_USERID = "CustomerGlu_user_id_Encrypt"
+    static let CUSTOMERGLU_LOTTIE_FILE_PATH = "CustomerGlu_Lottiepath"
     static let DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ"
     static let Analitics_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
     static let MIDDLE_NOTIFICATIONS = "middle-default"
