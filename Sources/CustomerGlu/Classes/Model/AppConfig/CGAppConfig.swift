@@ -38,6 +38,7 @@ public class CGMobileData: Codable {
     public var listenToSystemDarkLightMode: Bool? = false
     public var lightBackground: String? = ""
     public var darkBackground: String? = ""
+    public var lottieLoaderURL: String? = ""
 }
 
 public class CGIosSafeArea: Codable {

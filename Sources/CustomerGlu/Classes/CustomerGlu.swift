@@ -76,6 +76,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var whiteListedDomains = [CGConstants.default_whitelist_doamin]
     public static var doamincode = 404
     public static var textMsg = "Requested-page-is-not-valid"
+    public static var lottieLoaderURL = ""
     @objc public var cgUserData = CGUser()
     
     private override init() {
@@ -517,6 +518,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             
             if(self.appconfigdata!.whiteListedDomains != nil){
                 CustomerGlu.getInstance.configureWhiteListedDomains(domains: self.appconfigdata!.whiteListedDomains ?? CustomerGlu.whiteListedDomains)
+            }
+            
+            if(self.appconfigdata!.lottieLoaderURL != nil){
+
+                CustomerGlu.getInstance.connfigLottieLoaderURL(locallottieLoaderURL: self.appconfigdata!.lottieLoaderURL ?? "")
             }
         }
     }
@@ -1308,6 +1314,19 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         CustomerGlu.whiteListedDomains.append(CGConstants.default_whitelist_doamin)
     }
     
+    public func connfigLottieLoaderURL(locallottieLoaderURL: String){
+        
+        if(locallottieLoaderURL.count > 0 && URL(string: locallottieLoaderURL) != nil){
+            CustomerGlu.lottieLoaderURL = locallottieLoaderURL
+
+//            let url = URL(string: "https://assets.customerglu.com/common/130519-pg-spinner-1.json")
+            let url = URL(string: locallottieLoaderURL)
+
+            CGFileDownloader.loadFileAsync(url: url!) { (path, error) in
+                print("PDF File downloaded to : \(path!)")
+            }
+        }
+    }
     public func configureDomainCodeMsg(code: Int, message: String){
         CustomerGlu.doamincode = code
         CustomerGlu.textMsg = message
