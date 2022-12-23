@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import UIKit
+import Lottie
 
 let gcmMessageIDKey = "gcm.message_id"
 
@@ -35,6 +36,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     // MARK: - Global Variable
     var spinner = SpinnerView()
+    var progressView = LottieAnimationView()
     var arrFloatingButton = [FloatingButtonController]()
     
     // Singleton Instance
@@ -185,9 +187,23 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         DispatchQueue.main.async { [self] in
             if let controller = topMostController() {
                 controller.view.isUserInteractionEnabled = false
-                spinner = SpinnerView(frame: CGRect(x: x, y: y, width: 60, height: 60))
-                controller.view.addSubview(spinner)
-                controller.view.bringSubviewToFront(spinner)
+                
+                let path = decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH)
+                if (path != nil && path.count > 0 && URL(string: path) != nil){
+                    progressView = LottieAnimationView(filePath: decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH))
+                    progressView.frame = CGRect(x: x-100, y: y-100, width: 200, height: 200)
+                    progressView.contentMode = .scaleAspectFit
+                    progressView.loopMode = .loop
+                    progressView.play()
+                    controller.view.addSubview(progressView)
+                    controller.view.bringSubviewToFront(progressView)
+                }else{
+                        spinner = SpinnerView(frame: CGRect(x: x-30, y: y-30, width: 60, height: 60))
+                        controller.view.addSubview(spinner)
+                        controller.view.bringSubviewToFront(spinner)
+                }
+
+
             }
         }
     }
@@ -211,6 +227,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             if let controller = topMostController() {
                 controller.view.isUserInteractionEnabled = true
                 spinner.removeFromSuperview()
+                progressView.removeFromSuperview()
             }
         }
     }
@@ -978,7 +995,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         nudgeConfiguration.absoluteHeight = cgdeeplink.container?.absoluteHeight ?? 0.0
         nudgeConfiguration.layout = cgdeeplink.container?.type ?? ""
         
-                CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX-30, y: UIScreen.main.bounds.midY-30)
+                CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY)
                 ApplicationManager.loadAllCampaignsApi(type: "", value: "", loadByparams: [:]) { success, campaignsModel in
                     CustomerGlu.getInstance.loaderHide()
                     if success {
@@ -1051,7 +1068,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             let secondpath = deepurl.pathComponents.count > 2 ? deepurl.pathComponents[2] : ""
 
             if((firstpath.count > 0 && (firstpath == "c" || firstpath == "w" || firstpath == "u")) && secondpath.count > 0){
-                CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX-30, y: UIScreen.main.bounds.midY-30)
+                CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY)
                 APIManager.getCGDeeplinkData(queryParameters: ["id":secondpath]) { result in
                     CustomerGlu.getInstance.loaderHide()
                     switch result {
@@ -1065,7 +1082,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                         // Reg Call then exe
                                         var userData = [String: AnyHashable]()
                                         userData["userId"] = ""
-                                        CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX-30, y: UIScreen.main.bounds.midY-30)
+                                        CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY)
                                         self.registerDevice(userdata: userData) { success in
                                             CustomerGlu.getInstance.loaderHide()
                                             if success {

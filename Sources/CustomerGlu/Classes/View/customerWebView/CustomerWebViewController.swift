@@ -139,7 +139,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             setupWebViewCustomFrame(url: urlStr)
         } else if iscampignId {
             
-            CustomerGlu.getInstance.loaderShow(withcoordinate: getframe().midX-30, y: getframe().midY-30)
+            CustomerGlu.getInstance.loaderShow(withcoordinate: getframe().midX, y: getframe().midY)
             
             campaign_id = campaign_id.trimSpace()
             
@@ -269,7 +269,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
 
             self.view.addSubview(webView)
             self.view.addSubview(coverview)
-            CustomerGlu.getInstance.loaderShow(withcoordinate: getframe().midX-30, y: getframe().midY-30)
+            CustomerGlu.getInstance.loaderShow(withcoordinate: getframe().midX, y: getframe().midY)
             defaulttimer = Timer.scheduledTimer(timeInterval: 8, target: self, selector: #selector(timeoutforpageload(sender:)), userInfo: nil, repeats: false)
         } else {
             self.closePage(animated: false,dismissaction: CGDismissAction.UI_BUTTON)
