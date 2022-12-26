@@ -17,6 +17,7 @@ public enum CGSTATE:Int {
              INVALID_CAMPAIGN,
              CAMPAIGN_UNAVAILABLE,
              NETWORK_EXCEPTION,
+             DEEPLINK_URL,
              EXCEPTION
 }
 
@@ -1024,7 +1025,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    @objc private func excecuteDeepLink(firstpath:String, cgdeeplink:CGDeeplinkData, completion: @escaping (CGSTATE, String) -> Void){
+    @objc private func excecuteDeepLink(firstpath:String, cgdeeplink:CGDeeplinkData, completion: @escaping (CGSTATE, String, CGDeeplinkData? ) -> Void){
         
         let nudgeConfiguration = CGNudgeConfiguration()
         nudgeConfiguration.closeOnDeepLink = cgdeeplink.content!.closeOnDeepLink!
@@ -1039,7 +1040,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         
                         let defaultwalleturl = String(campaignsModel?.defaultUrl ?? "")
                         var cgstate = CGSTATE.EXCEPTION
-                        if(firstpath == "c" || firstpath == "u"){
+                        if(firstpath == "u"){
+                            completion(CGSTATE.DEEPLINK_URL, "", cgdeeplink)
+                            return
+                        }
+                        else if(firstpath == "c"){
                             let local_id = firstpath == "c" ? (cgdeeplink.content?.campaignId ?? "") : (cgdeeplink.content?.url ?? "")
                             if local_id.count == 0 {
                                 // load wallet defaultwalleturl
@@ -1074,23 +1079,30 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         }else{
                             // load wallet defaultwalleturl
                             nudgeConfiguration.url = defaultwalleturl
-                            completion(CGSTATE.SUCCESS, "")
+                            cgstate = CGSTATE.SUCCESS
                         }
                         DispatchQueue.main.async { [self] in // Make sure you're on the main thread here
                                 self.presentToCustomerWebViewController(nudge_url: nudgeConfiguration.url, page_type: nudgeConfiguration.layout, backgroundAlpha: nudgeConfiguration.opacity,auto_close_webview: nudgeConfiguration.closeOnDeepLink)
-                            completion(cgstate, "")
+                            
+                            if (CGSTATE.SUCCESS == cgstate){
+                                completion(cgstate, "", cgdeeplink)
+
+                            }else{
+                                completion(cgstate, "", nil)
+
+                            }
                             
                         }
 
                     } else {
-                        completion(CGSTATE.EXCEPTION, "Fail to call loadAllCampaignsApi / Invalid response")
+                        completion(CGSTATE.EXCEPTION, "Fail to call loadAllCampaignsApi / Invalid response", nil)
                         CustomerGlu.getInstance.printlog(cglog: "Fail to load loadAllCampaignsApi", isException: false, methodName: "CustomerGlu-excecuteDeepLink", posttoserver: true)
                     }
             }
     }
 //    getCGDeeplinkData
     //(eventNudge: [String: Any], completion: @escaping (Bool, CGAddCartModel?) -> Void)
-    @objc public func openDeepLink(deepurl:URL!, completion: @escaping (CGSTATE, String) -> Void) {
+    @objc public func openDeepLink(deepurl:URL!, completion: @escaping (CGSTATE, String, CGDeeplinkData?) -> Void) {
         
 //            SUCCESS,
 //            USER_NOT_SIGNED_IN,
@@ -1126,7 +1138,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                                 self.excecuteDeepLink(firstpath: firstpath, cgdeeplink: response.data!, completion: completion)
                                             } else {
                                                 CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-5", posttoserver: false)
-                                                completion(CGSTATE.EXCEPTION,"Fail to calll register user")
+                                                completion(CGSTATE.EXCEPTION,"Fail to calll register user", nil)
                                             }
                                         }
                                     }
@@ -1135,32 +1147,32 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                         self.excecuteDeepLink(firstpath: firstpath, cgdeeplink: response.data!, completion: completion)
                                     }else{
                                         CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-5", posttoserver: false)
-                                        completion(CGSTATE.USER_NOT_SIGNED_IN,"")
+                                        completion(CGSTATE.USER_NOT_SIGNED_IN,"", nil)
                                     }
                                 }
 
                             }else{
                                 CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-4", posttoserver: false)
-                                completion(CGSTATE.EXCEPTION, "Invalid Response")
+                                completion(CGSTATE.EXCEPTION, "Invalid Response", nil)
                             }
 
                         }else{
                             CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-2", posttoserver: false)
-                            completion(CGSTATE.EXCEPTION, response.message ?? "")
+                            completion(CGSTATE.EXCEPTION, response.message ?? "", nil)
                         }
 
                     case .failure(let error):
                         CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-3", posttoserver: false)
-                        completion(CGSTATE.EXCEPTION, "Fail to call getCGDeeplinkData / Invalid response")
+                        completion(CGSTATE.EXCEPTION, "Fail to call getCGDeeplinkData / Invalid response", nil)
                     }
             }
 
             }else{
-                completion(CGSTATE.INVALID_URL, "Incorrect URL")
+                completion(CGSTATE.INVALID_URL, "Incorrect URL", nil)
             }
 
         }else{
-            completion(CGSTATE.EXCEPTION, "Incorrect Invalide URL")
+            completion(CGSTATE.EXCEPTION, "Incorrect Invalide URL", nil)
         }
     }
     @objc public func openWallet(nudgeConfiguration: CGNudgeConfiguration) {
