@@ -509,11 +509,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
             
             if self.appconfigdata!.enableDarkMode != nil {
-                CustomerGlu.darkMode = self.appconfigdata?.enableDarkMode
+                CustomerGlu.getInstance.enableDarkMode(isDarkModeEnabled: (self.appconfigdata!.enableDarkMode ?? CustomerGlu.darkMode)!)
             }
             
             if self.appconfigdata!.listenToSystemDarkLightMode != nil {
-                CustomerGlu.listenToSystemDarkMode = self.appconfigdata?.listenToSystemDarkLightMode
+                CustomerGlu.getInstance.listenToDarkMode(allowToListenDarkMode: (self.appconfigdata!.listenToSystemDarkLightMode ?? CustomerGlu.listenToSystemDarkMode)!)
             }
             
             if(self.appconfigdata!.errorCodeForDomain != nil && self.appconfigdata!.errorMessageForDomain != nil){
