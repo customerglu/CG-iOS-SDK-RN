@@ -217,7 +217,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 let path = decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH)
                 if (path != nil && path.count > 0 && URL(string: path) != nil){
                     progressView = LottieAnimationView(filePath: decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH))
-                    progressView.frame = CGRect(x: x-100, y: y-100, width: 200, height: 200)
+                    
+                    let size = (UIScreen.main.bounds.width <= UIScreen.main.bounds.height) ? UIScreen.main.bounds.width : UIScreen.main.bounds.height
+                    
+                    progressView.frame = CGRect(x: x-(size/2), y: y-(size/2), width: size, height: size)
                     progressView.contentMode = .scaleAspectFit
                     progressView.loopMode = .loop
                     progressView.play()
