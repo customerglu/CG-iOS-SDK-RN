@@ -62,7 +62,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     @objc public static var isEntryPointEnabled = false
     @objc public static var activeViewController = ""
     @objc public static var app_platform = "IOS"
-    @objc public static var defaultBGCollor = UIColor.white//UIColor(red: 255.0, green: 255.0, blue: 0.0, alpha: 0.1)
+    @objc public static var defaultBGCollor = UIColor.white
+    @objc public static var lightBackground = UIColor.white
+    @objc public static var darkBackground = UIColor.black
     @objc public static var sdk_version = APIParameterKey.cgsdkversionvalue
     
     internal var activescreenname = ""
@@ -181,6 +183,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     @objc public func configureLoadingScreenColor(color: UIColor) {
         CustomerGlu.defaultBGCollor = color
+    }
+    @objc public func configureLightBackgroundColor(color: UIColor) {
+        CustomerGlu.lightBackground = color
+    }
+    @objc public func configureDarkBackgroundColor(color: UIColor) {
+        CustomerGlu.darkBackground = color
     }
 
     func loaderShow(withcoordinate x: CGFloat, y: CGFloat) {
@@ -528,6 +536,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             if(self.appconfigdata!.loadScreenColor != nil){
                 CustomerGlu.getInstance.configureLoadingScreenColor(color: UIColor(hex: self.appconfigdata!.loadScreenColor ?? CustomerGlu.defaultBGCollor.hexString) ?? CustomerGlu.defaultBGCollor)
                 
+            }
+            
+            if(self.appconfigdata!.lightBackground != nil){
+                CustomerGlu.getInstance.configureLightBackgroundColor(color: UIColor(hex: self.appconfigdata!.lightBackground ?? CustomerGlu.lightBackground.hexString) ?? CustomerGlu.lightBackground)
+            }
+            
+            if(self.appconfigdata!.darkBackground != nil){
+                CustomerGlu.getInstance.configureDarkBackgroundColor(color: UIColor(hex: self.appconfigdata!.darkBackground ?? CustomerGlu.darkBackground.hexString) ?? CustomerGlu.darkBackground)
             }
             
             if(self.appconfigdata!.loaderColor != nil){

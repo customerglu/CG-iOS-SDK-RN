@@ -36,8 +36,8 @@ public class CGMobileData: Codable {
     public var allowUserRegistration: Bool? = false
     public var enableDarkMode: Bool? = CustomerGlu.darkMode
     public var listenToSystemDarkLightMode: Bool? = CustomerGlu.listenToSystemDarkMode
-    public var lightBackground: String? = ""
-    public var darkBackground: String? = ""
+    public var lightBackground: String? = CustomerGlu.lightBackground.hexString
+    public var darkBackground: String? = CustomerGlu.darkBackground.hexString
     public var lottieLoaderURL: String? = ""
 }
 
