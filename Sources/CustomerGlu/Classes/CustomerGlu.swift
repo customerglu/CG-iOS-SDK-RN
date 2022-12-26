@@ -1062,7 +1062,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
 //            CAMPAIGN_UNAVAILABLE,
 //            NETWORK_EXCEPTION,
 //            EXCEPTION
-        if(deepurl != nil && deepurl.scheme != nil && deepurl.scheme!.count > 0 && (((deepurl.scheme!.lowercased() == "http") || deepurl.scheme!.lowercased() == "https") == true) && deepurl.host != nil && deepurl.host!.count > 0 && (deepurl.host!.lowercased().hasSuffix(".cglu.us") == true)){
+        if(deepurl != nil && deepurl.scheme != nil && deepurl.scheme!.count > 0 && (((deepurl.scheme!.lowercased() == "http") || deepurl.scheme!.lowercased() == "https") == true) && deepurl.host != nil && deepurl.host!.count > 0 && (deepurl.host!.lowercased().contains(".cglu.") == true)){
 
             let firstpath = deepurl.pathComponents.count > 1 ? deepurl.pathComponents[1].lowercased() : ""
             let secondpath = deepurl.pathComponents.count > 2 ? deepurl.pathComponents[2] : ""
