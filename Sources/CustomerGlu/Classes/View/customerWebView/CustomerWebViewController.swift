@@ -102,8 +102,6 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                                                object: nil)
         navigationController?.setNavigationBarHidden(true, animated: false)
         
-        checkIsDarkMode()
-        
         if(self.nudgeConfiguration != nil){
             self.alpha = nudgeConfiguration!.opacity
             self.auto_close_webview = nudgeConfiguration!.closeOnDeepLink
@@ -227,7 +225,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(false)
         if (!(ismiddle || isbottomdefault || isbottomsheet)){
-            self.view.backgroundColor = CustomerGlu.defaultBGCollor
+            self.view.backgroundColor = CustomerGlu.getInstance.checkIsDarkMode() ? CustomerGlu.darkBackground: CustomerGlu.lightBackground
         }
     }
     
@@ -257,8 +255,8 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 eventInfo[APIParameterKey.messagekey] = "Invalid campaignId, opening Wallet"
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CG_INVALID_CAMPAIGN_ID").rawValue), object: nil, userInfo: eventInfo as? [String: Any])
             }
-            webView.backgroundColor = CustomerGlu.defaultBGCollor
-            let darkUrl = url + "&darkMode=" + ((CustomerGlu.darkMode ?? false) ? "true" : "false")
+            webView.backgroundColor = CustomerGlu.getInstance.checkIsDarkMode() ? CustomerGlu.darkBackground: CustomerGlu.lightBackground
+            let darkUrl = url + "&darkMode=" + (CustomerGlu.getInstance.checkIsDarkMode() ? "true" : "false")
             print("This is the URL ------- "+darkUrl)
             webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: darkUrl)!)))
             webView.isHidden = true
@@ -633,23 +631,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     override public func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        checkIsDarkMode()
+//        checkIsDarkMode()
     }
     
-    func checkIsDarkMode(){
-        
-        if CustomerGlu.listenToSystemDarkMode ?? false {
-            if #available(iOS 12.0, *) {
-                if self.traitCollection.userInterfaceStyle == .dark {
-                    CustomerGlu.darkMode = true
-                    print("system darkmode is true")
-                } else {
-                    CustomerGlu.darkMode = false
-                    print("system darkmode is false")
-                }
-            } else {
-                // Fallback on earlier versions
-            }
-        }
-    }
 }

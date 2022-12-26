@@ -43,7 +43,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     @objc public static var getInstance = CustomerGlu()
     public static var sdk_disable: Bool? = false
     public static var sentry_enable: Bool? = true
-    public static var darkMode: Bool? = false
+    public static var enableDarkMode: Bool? = false
     public static var listenToSystemDarkMode: Bool? = false
     @objc public static var fcm_apn = ""
     public static var analyticsEvent: Bool? = false
@@ -159,11 +159,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func enableDarkMode(isDarkModeEnabled: Bool){
-        CustomerGlu.darkMode = isDarkModeEnabled
+        CustomerGlu.enableDarkMode = isDarkModeEnabled
     }
     
     @objc public func isDarkModeEnabled()-> Bool {
-        return CustomerGlu.darkMode ?? false
+        return CustomerGlu.getInstance.checkIsDarkMode()
     }
     
     @objc public func listenToDarkMode(allowToListenDarkMode: Bool){
@@ -191,6 +191,24 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         CustomerGlu.darkBackground = color
     }
 
+    internal func checkIsDarkMode() -> Bool{
+
+        if (true == CustomerGlu.enableDarkMode){
+            return true
+        }else{
+            if(true == CustomerGlu.listenToSystemDarkMode){
+                if #available(iOS 12.0, *) {
+                    if let controller = topMostController() {
+                        if controller.traitCollection.userInterfaceStyle == .dark {
+                            return true
+                        }
+                    }
+                }
+            }
+        }
+        return false
+    }
+    
     func loaderShow(withcoordinate x: CGFloat, y: CGFloat) {
         DispatchQueue.main.async { [self] in
             if let controller = topMostController() {
@@ -517,7 +535,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
             
             if self.appconfigdata!.enableDarkMode != nil {
-                CustomerGlu.getInstance.enableDarkMode(isDarkModeEnabled: (self.appconfigdata!.enableDarkMode ?? CustomerGlu.darkMode)!)
+                CustomerGlu.getInstance.enableDarkMode(isDarkModeEnabled: (self.appconfigdata!.enableDarkMode ?? CustomerGlu.enableDarkMode)!)
             }
             
             if self.appconfigdata!.listenToSystemDarkLightMode != nil {

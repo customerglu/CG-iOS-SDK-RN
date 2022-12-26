@@ -34,7 +34,7 @@ public class CGMobileData: Codable {
     public var enableSentry: Bool? = false
     public var forceUserRegistration: Bool? = false
     public var allowUserRegistration: Bool? = false
-    public var enableDarkMode: Bool? = CustomerGlu.darkMode
+    public var enableDarkMode: Bool? = CustomerGlu.enableDarkMode
     public var listenToSystemDarkLightMode: Bool? = CustomerGlu.listenToSystemDarkMode
     public var lightBackground: String? = CustomerGlu.lightBackground.hexString
     public var darkBackground: String? = CustomerGlu.darkBackground.hexString
