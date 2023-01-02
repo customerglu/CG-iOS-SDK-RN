@@ -25,7 +25,8 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "CustomerGlu",
-            dependencies: ["Sentry","Lottie"],
+            dependencies: [.product(name: "Lottie", package: "lottie-ios"),
+                           .product(name: "Sentry", package: "sentry-cocoa")],
             resources: [
                 .process("Resources")
             ],
