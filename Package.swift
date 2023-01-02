@@ -17,16 +17,8 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
-        .package(
-              name: "Sentry",
-              url: "https://github.com/getsentry/sentry-cocoa.git",
-              "7.31.4" ..< "7.31.4"
-            ),
-        .package(
-              name: "Lottie",
-              url: "https://github.com/airbnb/lottie-ios.git",
-              "4.0.1" ..< "4.0.1"
-            )
+        .package(url: "https://github.com/getsentry/sentry-cocoa.git", from: "7.31.4"),
+        .package(url: "https://github.com/airbnb/lottie-ios.git", from: "4.0.1")
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
