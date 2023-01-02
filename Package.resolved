@@ -1,0 +1,25 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "Lottie",
+        "repositoryURL": "https://github.com/airbnb/lottie-ios",
+        "state": {
+          "branch": null,
+          "revision": "a4622b4d6fdbe76cc5487bc27e84029abaf07217",
+          "version": "4.0.1"
+        }
+      },
+      {
+        "package": "Sentry",
+        "repositoryURL": "https://github.com/getsentry/sentry-cocoa.git",
+        "state": {
+          "branch": null,
+          "revision": "5238cc5f12c2b75027730a54ecf632cf103daf21",
+          "version": "7.31.4"
+        }
+      }
+    ]
+  },
+  "version": 1
+}
