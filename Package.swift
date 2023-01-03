@@ -26,8 +26,8 @@ let package = Package(
         .target(
             name: "CustomerGlu",
             dependencies: [
-                .product(name: "Lottie", package: "lottie-ios"),
-                .product(name: "Sentry", package: "sentry-cocoa")
+                "lottie-ios",
+                "sentry-cocoa"
                 ],
             resources: [
                 .process("Resources")
