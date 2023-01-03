@@ -3,6 +3,7 @@
 
 import PackageDescription
 
+
 let package = Package(
     name: "CustomerGlu",
     platforms: [
@@ -26,9 +27,9 @@ let package = Package(
         .target(
             name: "CustomerGlu",
             dependencies: [
-                "lottie-ios",
-                "sentry-cocoa"
-                ],
+                .product(name: "Lottie", package: "lottie-ios"),
+                .product(name: "Sentry", package: "sentry-cocoa")
+            ],
             resources: [
                 .process("Resources")
             ],
