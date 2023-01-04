@@ -13,7 +13,7 @@ public class CGSentryHelper{
  static let shared = CGSentryHelper()
     
     func setupSentry(){
-       if CustomerGlu.sentry_enable {
+        if CustomerGlu.sentry_enable! {
         SentrySDK.start { options in
                 options.dsn = "https://d856e4a14b6d4c6eae1fc283d6ddbe8e@o4504440824856576.ingest.sentry.io/4504442660454400"
                 // Enabled debug when first installing is always helpful
@@ -31,7 +31,7 @@ public class CGSentryHelper{
     }
     
     func setupUser(userId: String, clientId: String){
-        if CustomerGlu.sentry_enable {
+        if CustomerGlu.sentry_enable! {
             let user = User()
             user.userId = userId
             user.username = clientId
@@ -40,13 +40,13 @@ public class CGSentryHelper{
     }
     
     func logoutSentryUser(){
-        if CustomerGlu.sentry_enable {
+        if CustomerGlu.sentry_enable! {
             SentrySDK.setUser(nil)
         }
     }
     
     func captureExceptionEvent(exceptionLog: String){
-        if CustomerGlu.sentry_enable {
+        if CustomerGlu.sentry_enable! {
             let exception =  NSError(domain: exceptionLog, code: 0, userInfo: nil)
             SentrySDK.capture(error: exception)
         }
