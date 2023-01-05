@@ -12,13 +12,13 @@ public class CGAppConfig: Codable {
 }
 
 public class CGConnfigData: Codable {
-
+    
     public var mobile: CGMobileData?
-//    public var web: CGWeb?
+    //    public var web: CGWeb?
 }
 
 public class CGMobileData: Codable {
-
+    
     public var androidStatusBarColor: String?
     public var disableSdk: Bool? = CustomerGlu.sdk_disable
     public var enableAnalytics: Bool? = CustomerGlu.analyticsEvent
@@ -42,7 +42,7 @@ public class CGMobileData: Codable {
 }
 
 public class CGIosSafeArea: Codable {
-
+    
     public var bottomColor: String? = CustomerGlu.bottomSafeAreaColor.hexString
     public var bottomHeight: Int? = CustomerGlu.bottomSafeAreaHeight
     public var topColor: String? = CustomerGlu.topSafeAreaColor.hexString

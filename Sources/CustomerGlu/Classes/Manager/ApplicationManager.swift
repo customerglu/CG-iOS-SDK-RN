@@ -23,7 +23,7 @@ class ApplicationManager {
             switch result {
             case .success(let response):
                 completion(true, response)
-                    
+                
             case .failure(let error):
                 CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "ApplicationManager-openWalletApi", posttoserver: true)
                 completion(false, nil)
@@ -50,7 +50,7 @@ class ApplicationManager {
             switch result {
             case .success(let response):
                 completion(true, response)
-                    
+                
             case .failure(let error):
                 CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "ApplicationManager-loadAllCampaignsApi", posttoserver: true)
                 completion(false, nil)
@@ -77,7 +77,7 @@ class ApplicationManager {
             switch result {
             case .success(let response):
                 completion(true, response)
-                    
+                
             case .failure(let error):
                 CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "ApplicationManager-sendEventData", posttoserver: true)
                 completion(false, nil)
@@ -121,7 +121,7 @@ class ApplicationManager {
             switch result {
             case .success(let response):
                 completion(true, response)
-                    
+                
             case .failure(let error):
                 CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "ApplicationManager-crashReport", posttoserver: false)
                 completion(false, nil)
@@ -160,7 +160,7 @@ class ApplicationManager {
         if CustomerGlu.sdk_disable! == true {
             return
         }
-     
+        
         var eventInfo = eventNudge
         
         eventInfo[APIParameterKey.analytics_version] = APIParameterKey.analytics_version_value
@@ -176,19 +176,19 @@ class ApplicationManager {
         platform_details[APIParameterKey.sdk_version] = CustomerGlu.sdk_version
         eventInfo[APIParameterKey.platform_details] = platform_details
         
-                
+        
         APIManager.sendAnalyticsEvent(queryParameters: eventInfo as NSDictionary) { result in
             switch result {
             case .success(let response):
                 completion(true, response)
-                    
+                
             case .failure(let error):
                 CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "ApplicationManager-sendAnalyticsEvent", posttoserver: true)
                 completion(false, nil)
             }
         }
     }
-
+    
     
     public static func fetchTimeStamp(dateFormat: String) -> String {
         let date = Date()

@@ -332,7 +332,7 @@ class APIManager {
         //Added task into Queue
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
-
+    
     // MARK: - Private Class Methods
     
     // Recursive Method

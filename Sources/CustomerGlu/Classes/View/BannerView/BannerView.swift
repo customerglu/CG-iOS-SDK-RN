@@ -265,7 +265,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 let name = bannerViews[0].name ?? ""
                 CustomerGlu.getInstance.postAnalyticsEventForEntryPoints(event_name: "ENTRY_POINT_CLICK", entry_point_id: dict._id, entry_point_name: name, entry_point_container: bannerViews[0].mobile.container.type, content_campaign_id: dict.url, open_container:dict.openLayout, action_c_campaign_id: dict.campaignId)
             }
-
+            
         }
     }
     

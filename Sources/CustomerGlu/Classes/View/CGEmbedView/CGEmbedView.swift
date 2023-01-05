@@ -67,16 +67,16 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
             }
             
             if bodyStruct?.eventName == WebViewsKey.updateheight {
-//                if (true == CustomerGlu.analyticsEvent) {
-                    let dict = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!)
-                    if(dict != nil && dict!.count>0 && dict?["data"] != nil){
-                        let dictheight = dict?["data"] as! [String: Any]
-                        if(dictheight.count > 0 && dictheight["height"] != nil){
-                            finalHeight = (dictheight["height"])! as! Double
-                            embedviewHeightchanged(height: finalHeight)
-                        }
+                //                if (true == CustomerGlu.analyticsEvent) {
+                let dict = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!)
+                if(dict != nil && dict!.count>0 && dict?["data"] != nil){
+                    let dictheight = dict?["data"] as! [String: Any]
+                    if(dictheight.count > 0 && dictheight["height"] != nil){
+                        finalHeight = (dictheight["height"])! as! Double
+                        embedviewHeightchanged(height: finalHeight)
                     }
-//                }
+                }
+                //                }
             }
         }
     }
@@ -325,7 +325,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
         //        embedviewHeightchanged(height: 0.0)
         ApplicationManager.loadAllCampaignsApi(type: "", value: "", loadByparams: [:]) { [self] success, campaignsModel in
             if success {
-//                CustomerGlu.getInstance.loaderHide()
+                //                CustomerGlu.getInstance.loaderHide()
                 if arrContent.first?.campaignId.count == 0 {
                     DispatchQueue.main.async { [self] in // Make sure you're on the main thread here
                         self.setEmbedView(height: finalHeight, url: campaignsModel?.defaultUrl ?? "")
@@ -349,7 +349,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                     }
                 }
             } else {
-//                CustomerGlu.getInstance.loaderHide()
+                //                CustomerGlu.getInstance.loaderHide()
                 CustomerGlu.getInstance.printlog(cglog: "Fail to load loadAllCampaignsApi", isException: false, methodName: "CGEmbedView-setEmbedView", posttoserver: true)
             }
         }
@@ -378,27 +378,27 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
         return finalheight
     }
     
-        private func callLoadEmbedAnalytics(){
-    
-            if (false == loadedapicalled){
-                let embedViews = CustomerGlu.entryPointdata.filter {
-                    $0.mobile.container.type == "EMBEDDED" && $0.mobile.container.bannerId == self.embedId ?? ""
-                }
-    
-                if embedViews.count != 0 {
-                    let mobile = embedViews[0].mobile!
-                    arrContent = [CGContent]()
-                    condition = mobile.conditions
-    
-                    if mobile.content.count != 0 {
-                        for content in mobile.content {
-                            arrContent.append(content)
-    
-                            CustomerGlu.getInstance.postAnalyticsEventForEntryPoints(event_name: "ENTRY_POINT_LOAD", entry_point_id: content._id, entry_point_name: embedViews[0].name ?? "", entry_point_container: mobile.container.type, content_campaign_id: content.campaignId, open_container:content.openLayout, action_c_campaign_id: content.campaignId)
-                        }
-                        loadedapicalled = true
+    private func callLoadEmbedAnalytics(){
+        
+        if (false == loadedapicalled){
+            let embedViews = CustomerGlu.entryPointdata.filter {
+                $0.mobile.container.type == "EMBEDDED" && $0.mobile.container.bannerId == self.embedId ?? ""
+            }
+            
+            if embedViews.count != 0 {
+                let mobile = embedViews[0].mobile!
+                arrContent = [CGContent]()
+                condition = mobile.conditions
+                
+                if mobile.content.count != 0 {
+                    for content in mobile.content {
+                        arrContent.append(content)
+                        
+                        CustomerGlu.getInstance.postAnalyticsEventForEntryPoints(event_name: "ENTRY_POINT_LOAD", entry_point_id: content._id, entry_point_name: embedViews[0].name ?? "", entry_point_container: mobile.container.type, content_campaign_id: content.campaignId, open_container:content.openLayout, action_c_campaign_id: content.campaignId)
                     }
+                    loadedapicalled = true
                 }
             }
         }
+    }
 }

@@ -52,7 +52,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         if topPadding <= 20 || bottomPadding < 20 {
             CustomerGlu.topSafeAreaHeight = 20
             CustomerGlu.bottomSafeAreaHeight = 0
-//            CustomerGlu.topSafeAreaColor = UIColor.clear
+            //            CustomerGlu.topSafeAreaColor = UIColor.clear
         }
         
         topHeight.constant = CGFloat(CustomerGlu.topSafeAreaHeight)
@@ -261,7 +261,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             coverview.frame = webView.frame
             coverview.isHidden = !webView.isHidden
             coverview.backgroundColor = webView.backgroundColor
-
+            
             self.view.addSubview(webView)
             self.view.addSubview(coverview)
             CustomerGlu.getInstance.loaderShow(withcoordinate: getframe().midX, y: getframe().midY)
@@ -375,72 +375,72 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }
             
             if bodyStruct?.eventName == WebViewsKey.opencgwebview {
-                    let dict = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!)
-                    if(dict != nil && dict!.count>0 && dict?["data"] != nil){
+                let dict = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!)
+                if(dict != nil && dict!.count>0 && dict?["data"] != nil){
+                    
+                    let datadic = dict?["data"] as? [String : Any]
+                    
+                    var contenttype = "WALLET"
+                    var contenturl = ""
+                    var contentcampaignId = ""
+                    var containertype = CGConstants.FULL_SCREEN_NOTIFICATION
+                    var containerabsoluteHeight = 0.0
+                    var containerrelativeHeight = 0.0
+                    var hidePrevious = false
+                    
+                    if(datadic != nil && datadic!.count>0 && datadic!["content"] != nil){
                         
-                        let datadic = dict?["data"] as? [String : Any]
-                        
-                        var contenttype = "WALLET"
-                        var contenturl = ""
-                        var contentcampaignId = ""
-                        var containertype = CGConstants.FULL_SCREEN_NOTIFICATION
-                        var containerabsoluteHeight = 0.0
-                        var containerrelativeHeight = 0.0
-                        var hidePrevious = false
-                        
-                        if(datadic != nil && datadic!.count>0 && datadic!["content"] != nil){
+                        let contentdic = datadic!["content"] as? [String : Any]
+                        if(contentdic != nil && contentdic!.count > 0){
                             
-                            let contentdic = datadic!["content"] as? [String : Any]
-                            if(contentdic != nil && contentdic!.count > 0){
-                                
-                                 contenttype = contentdic!["type"] as? String ?? "WALLET"
-                                 contenturl = contentdic!["url"] as? String ?? ""
-                                 contentcampaignId = contentdic!["campaignId"] as? String ?? ""
-                            }
-
-                        }
-                        if(datadic != nil && datadic!.count>0 && datadic!["container"] != nil){
-                            
-                            let containerdic = datadic!["container"] as? [String : Any]
-                            
-                             containertype = containerdic!["type"] as? String ?? CGConstants.FULL_SCREEN_NOTIFICATION
-                             containerabsoluteHeight = containerdic!["absoluteHeight"] as? Double ?? 0.0
-                             containerrelativeHeight = containerdic!["relativeHeight"] as? Double ?? 0.0
-                            
-                        }
-                        if(datadic != nil && datadic!.count>0 && datadic!["hidePrevious"] != nil){
-                            
-                            hidePrevious = datadic!["hidePrevious"] as? Bool ?? false
-
-                        }
-                        
-                        opencgwebview_nudgeConfiguration = CGNudgeConfiguration()
-                        opencgwebview_nudgeConfiguration?.absoluteHeight = containerabsoluteHeight
-                        opencgwebview_nudgeConfiguration?.relativeHeight = containerrelativeHeight
-                        opencgwebview_nudgeConfiguration?.layout = containertype
-                        if(contenttype == "CAMPAIGN"){
-                            opencgwebview_nudgeConfiguration?.url = contentcampaignId
-                        }else if(contenttype == "WALLET"){
-                            opencgwebview_nudgeConfiguration?.url = CGConstants.CGOPENWALLET
-                        }else{
-                            opencgwebview_nudgeConfiguration?.url = contenturl
-                        }
-                        
-                        if(true == hidePrevious){
-                            canopencgwebview = true
-                            if notificationHandler || iscampignId {
-                                self.closePage(animated: true,dismissaction: CGDismissAction.CTA_REDIRECT)
-                            }else{
-                                self.navigationController?.popViewController(animated: true)
-                            }
-                        }else{
-                            canopencgwebview = false
-                            openCGWebView()
+                            contenttype = contentdic!["type"] as? String ?? "WALLET"
+                            contenturl = contentdic!["url"] as? String ?? ""
+                            contentcampaignId = contentdic!["campaignId"] as? String ?? ""
                         }
                         
                     }
+                    if(datadic != nil && datadic!.count>0 && datadic!["container"] != nil){
+                        
+                        let containerdic = datadic!["container"] as? [String : Any]
+                        
+                        containertype = containerdic!["type"] as? String ?? CGConstants.FULL_SCREEN_NOTIFICATION
+                        containerabsoluteHeight = containerdic!["absoluteHeight"] as? Double ?? 0.0
+                        containerrelativeHeight = containerdic!["relativeHeight"] as? Double ?? 0.0
+                        
+                    }
+                    if(datadic != nil && datadic!.count>0 && datadic!["hidePrevious"] != nil){
+                        
+                        hidePrevious = datadic!["hidePrevious"] as? Bool ?? false
+                        
+                    }
+                    
+                    opencgwebview_nudgeConfiguration = CGNudgeConfiguration()
+                    opencgwebview_nudgeConfiguration?.absoluteHeight = containerabsoluteHeight
+                    opencgwebview_nudgeConfiguration?.relativeHeight = containerrelativeHeight
+                    opencgwebview_nudgeConfiguration?.layout = containertype
+                    if(contenttype == "CAMPAIGN"){
+                        opencgwebview_nudgeConfiguration?.url = contentcampaignId
+                    }else if(contenttype == "WALLET"){
+                        opencgwebview_nudgeConfiguration?.url = CGConstants.CGOPENWALLET
+                    }else{
+                        opencgwebview_nudgeConfiguration?.url = contenturl
+                    }
+                    
+                    if(true == hidePrevious){
+                        canopencgwebview = true
+                        if notificationHandler || iscampignId {
+                            self.closePage(animated: true,dismissaction: CGDismissAction.CTA_REDIRECT)
+                        }else{
+                            self.navigationController?.popViewController(animated: true)
+                        }
+                    }else{
+                        canopencgwebview = false
+                        openCGWebView()
+                    }
+                    
+                }
             }
-
+            
         }
     }
     private func openCGWebView(){
@@ -451,7 +451,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }else{
                 CustomerGlu.getInstance.loadCampaignById(campaign_id: opencgwebview_nudgeConfiguration?.url ?? "", nudgeConfiguration: opencgwebview_nudgeConfiguration)
             }
-
+            
         }
     }
     private func hideLoaderNShowWebview(){
@@ -552,7 +552,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     func data(from url: URL, completion: @escaping (Data?, URLResponse?, Error?) -> Void) {
         URLSession.shared.dataTask(with: url, completionHandler: completion).resume()
     }
-
+    
     private func postAnalyticsEventForWebView(isopenevent:Bool,dismissaction:String) {
         if (false == CustomerGlu.analyticsEvent) {
             return
@@ -565,7 +565,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             eventInfo[APIParameterKey.event_name] = "WEBVIEW_DISMISS"
             eventInfo[APIParameterKey.dismiss_trigger] = dismissaction
         }
-
+        
         var webview_content = [String: String]()
         webview_content[APIParameterKey.webview_url] = loadedurl
         
@@ -604,7 +604,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         webview_content[APIParameterKey.absolute_height] = absolute_height
         webview_content[APIParameterKey.relative_height] = relative_height
         eventInfo[APIParameterKey.webview_content] = webview_content
-             
+        
         ApplicationManager.sendAnalyticsEvent(eventNudge: eventInfo) { success, _ in
             if success {
                 print(success)
@@ -613,11 +613,11 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }
         }
         
-
+        
         NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_ANALYTICS_EVENT").rawValue), object: nil, userInfo: eventInfo)
-
+        
     }
-
+    
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         if isBeingDismissed {
@@ -627,7 +627,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     override public func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-//        checkIsDarkMode()
+        //        checkIsDarkMode()
     }
     
 }
