@@ -86,8 +86,6 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     @objc func rotated() {
         for subview in self.view.subviews {
             if(subview == webView){
-                
-                let height = getconfiguredheight()
                 webView.frame = getframe()
                 coverview.frame = webView.frame
             }
@@ -183,7 +181,6 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         let x = self.view.frame.midX - 30
         var y = self.view.frame.midY - 30
         
-        let height = getconfiguredheight()
         if ismiddle {
             webView = WKWebView(frame: getframe(), configuration: config) //set your own frame
             webView.layer.cornerRadius = 20
@@ -249,11 +246,11 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         webView.navigationDelegate = self
         if url != "" || !url.isEmpty {
             self.loadedurl = url
-            if ((campaign_id != CGConstants.CGOPENWALLET) && (loadedurl != nil && loadedurl.count > 0 && loadedurl == defaultwalleturl)){
+            if ((campaign_id != CGConstants.CGOPENWALLET) && (loadedurl.count > 0 && loadedurl == defaultwalleturl)){
                 var eventInfo = [String: Any]()
                 eventInfo["campaignId"] = campaign_id
                 eventInfo[APIParameterKey.messagekey] = "Invalid campaignId, opening Wallet"
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CG_INVALID_CAMPAIGN_ID").rawValue), object: nil, userInfo: eventInfo as? [String: Any])
+                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CG_INVALID_CAMPAIGN_ID").rawValue), object: nil, userInfo: eventInfo)
             }
             webView.backgroundColor = CustomerGlu.getInstance.checkIsDarkMode() ? CustomerGlu.darkBackground: CustomerGlu.lightBackground
             let darkUrl = url + "&darkMode=" + (CustomerGlu.getInstance.checkIsDarkMode() ? "true" : "false")
@@ -313,7 +310,6 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             
             let bodyStruct = try? JSONDecoder().decode(CGEventModel.self, from: bodyData)
             
-            print("bodyStruct?.eventName -- \(bodyStruct?.eventName)")
             if bodyStruct?.eventName == WebViewsKey.close {
                 if notificationHandler || iscampignId {
                     self.closePage(animated: true,dismissaction: CGDismissAction.UI_BUTTON)
@@ -618,7 +614,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         }
         
 
-        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_ANALYTICS_EVENT").rawValue), object: nil, userInfo: eventInfo as? [String: Any])
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_ANALYTICS_EVENT").rawValue), object: nil, userInfo: eventInfo)
 
     }
 

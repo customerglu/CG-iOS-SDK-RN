@@ -216,7 +216,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 controller.view.isUserInteractionEnabled = false
                 
                 let path = decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH)
-                if (path != nil && path.count > 0 && URL(string: path) != nil){
+                if (path.count > 0 && URL(string: path) != nil){
                     progressView = LottieAnimationView(filePath: decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH))
                     
                     let size = (UIScreen.main.bounds.width <= UIScreen.main.bounds.height) ? UIScreen.main.bounds.width : UIScreen.main.bounds.height
@@ -416,7 +416,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             return
         }
         
-        if CustomerGlu.getInstance.notificationFromCustomerGlu(remoteMessage: remoteMessage as? [String: AnyHashable] ?? [NotificationsKey.customerglu: "d"]) {
+        if CustomerGlu.getInstance.notificationFromCustomerGlu(remoteMessage: remoteMessage ) {
             let nudge_url = remoteMessage[NotificationsKey.nudge_url]
             if(true == CustomerGlu.isDebugingEnabled){
                 print(nudge_url as Any)
@@ -497,13 +497,13 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     @objc internal func getAppConfig(completion: @escaping (Bool) -> Void) {
         
-        var eventInfo = [String: String]()
+        let eventInfo = [String: String]()
         
                 
         APIManager.appConfig(queryParameters: eventInfo as NSDictionary) { result in
             switch result {
             case .success(let response):
-                if (response != nil && response.data != nil && response.data?.mobile != nil){
+                if (response.data != nil && response.data?.mobile != nil){
                     self.appconfigdata = (response.data?.mobile)!
                     self.updatedAllConfigParam()
                 }
@@ -1162,7 +1162,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             completion(CGSTATE.EXCEPTION, response.message ?? "", nil)
                         }
 
-                    case .failure(let error):
+                    case .failure(_):
                         CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-3", posttoserver: false)
                         completion(CGSTATE.EXCEPTION, "Fail to call getCGDeeplinkData / Invalid response", nil)
                     }
@@ -1637,15 +1637,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     internal func callEventPublishNudge(data: CGData, className: String, actionType: String, event_name:String) {
-        
-        var actionTarget = ""
-        if data.mobile.content[0].campaignId.count == 0 {
-            actionTarget = "WALLET"
-        } else if data.mobile.content[0].campaignId.contains("http://") || data.mobile.content[0].campaignId.contains("https://") {
-            actionTarget = "CUSTOM_URL"
-        } else {
-            actionTarget = "CAMPAIGN"
-        }
         
         if(event_name == "ENTRY_POINT_LOAD" && data.mobile.container.type == "POPUP"){
             postAnalyticsEventForEntryPoints(event_name: event_name, entry_point_id: data.mobile.content[0]._id, entry_point_name: data.name ?? "", entry_point_container: data.mobile.container.type, content_campaign_id: data.mobile.content[0].campaignId, open_container: data.mobile.content[0].openLayout, action_c_campaign_id: data.mobile.content[0].campaignId)

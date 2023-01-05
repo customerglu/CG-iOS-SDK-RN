@@ -257,15 +257,6 @@ public class BannerView: UIView, UIScrollViewDelegate {
             
             CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, nudgeConfiguration: nudgeConfiguration)
             
-            var actionTarget = ""
-            if dict.campaignId.count == 0 {
-                actionTarget = "WALLET"
-            } else if dict.campaignId.contains("http://") || dict.campaignId.contains("https://"){
-                actionTarget = "CUSTOM_URL"
-            } else {
-                actionTarget = "CAMPAIGN"
-            }
-            
             let bannerViews = CustomerGlu.entryPointdata.filter {
                 $0.mobile.container.type == "BANNER" && $0.mobile.container.bannerId == self.bannerId ?? ""
             }
@@ -293,14 +284,6 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 if mobile.content.count != 0 {
                     for content in mobile.content {
                         arrContent.append(content)
-                        var actionTarget = ""
-                        if content.campaignId.count == 0 {
-                            actionTarget = "WALLET"
-                        } else if content.campaignId.contains("http://") || content.campaignId.contains("https://"){
-                            actionTarget = "CUSTOM_URL"
-                        } else {
-                            actionTarget = "CAMPAIGN"
-                        }
                         
                         CustomerGlu.getInstance.postAnalyticsEventForEntryPoints(event_name: "ENTRY_POINT_LOAD", entry_point_id: content._id, entry_point_name: bannerViews[0].name ?? "", entry_point_container: mobile.container.type, content_campaign_id: content.url, open_container:content.openLayout, action_c_campaign_id: content.campaignId)
                     }
