@@ -8,9 +8,21 @@
 import UIKit
 import Foundation
 import WebKit
+import Lottie
 
 //EmbedView
 public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
+    
+    public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+    }
+    
+    public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+    }
+    
+    public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        hideLoaderNShowWebview()
+    }
+    
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         
         if message.name == WebViewsKey.callback {
@@ -78,6 +90,10 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                 }
                 //                }
             }
+            
+            if bodyStruct?.eventName == WebViewsKey.hideloader {
+                hideLoaderNShowWebview()
+            }
         }
     }
     
@@ -94,6 +110,9 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
     let config = WKWebViewConfiguration()
     var documentInteractionController: UIDocumentInteractionController!
     public var closeOnDeepLink = CustomerGlu.auto_close_webview!
+    private var defaulttimer : Timer?
+    var spinner = SpinnerView()
+    var progressView = LottieAnimationView()
     
     @IBInspectable var embedId: String? {
         didSet {
@@ -108,6 +127,9 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
         }
     }
     
+    @objc private  func timeoutforpageload(sender: Timer) {
+        hideLoaderNShowWebview()
+    }
     @objc private func entryPointLoaded(notification: NSNotification) {
         self.reloadEmbedView()
     }
@@ -134,6 +156,18 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
         super.init(coder: aDecoder)
         code = false
         self.xibSetup()
+    }
+    
+    private func hideLoaderNShowWebview(){
+        
+        if(defaulttimer != nil){
+            defaulttimer?.invalidate()
+            defaulttimer = nil
+        }
+        
+        self.loaderHide()
+        webView.isHidden = false
+        //        coverview.isHidden = !webView.isHidden
     }
     
     public override var intrinsicContentSize: CGSize {
@@ -313,8 +347,12 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
         webView = WKWebView(frame: CGRect(x: 0, y: 0, width: screenWidth, height: CGFloat(finalHeight)), configuration: config)
         webView.isUserInteractionEnabled = true
         webView.tag = 0
+        self.loaderShow()
         webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: url)!)))
+        webView.isHidden = true
         self.view.addSubview(webView)
+        
+        defaulttimer = Timer.scheduledTimer(timeInterval: 8, target: self, selector: #selector(timeoutforpageload(sender:)), userInfo: nil, repeats: false)
         
         invalidateIntrinsicContentSize()
         self.layoutIfNeeded()
@@ -399,6 +437,51 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                     loadedapicalled = true
                 }
             }
+        }
+    }
+    
+    private func loaderShow() {
+        DispatchQueue.main.async { [self] in
+            self.view.isUserInteractionEnabled = false
+            
+            var path_key = ""
+            if(true == CustomerGlu.getInstance.checkIsDarkMode()){
+                path_key = CGConstants.CUSTOMERGLU_DARK_EMBEDLOTTIE_FILE_PATH
+            }else{
+                path_key = CGConstants.CUSTOMERGLU_LIGHT_EMBEDLOTTIE_FILE_PATH
+            }
+            
+            
+            path_key = CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH // line should be removed
+            let path = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key)
+            
+            if (path.count > 0 && URL(string: path) != nil){
+                progressView = LottieAnimationView(filePath: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key))
+                
+                let size = (self.view.bounds.width <= self.view.bounds.height) ? self.view.bounds.width : self.view.bounds.height
+                
+                progressView.frame = CGRect(x: self.view.frame.midX-(size/2), y: self.view.frame.midX-(size/2), width: size, height: size)
+                progressView.contentMode = .scaleAspectFit
+                progressView.loopMode = .loop
+                progressView.play()
+                self.view.addSubview(progressView)
+                self.view.bringSubviewToFront(progressView)
+            }else{
+                spinner = SpinnerView(frame: CGRect(x: self.view.frame.midX-30, y: self.view.frame.midY-30, width: 60, height: 60))
+                self.view.addSubview(spinner)
+                self.view.bringSubviewToFront(spinner)
+            }
+        }
+    }
+    
+    
+    
+    
+    private func loaderHide() {
+        DispatchQueue.main.async { [self] in
+            self.view.isUserInteractionEnabled = true
+            spinner.removeFromSuperview()
+            progressView.removeFromSuperview()
         }
     }
 }
