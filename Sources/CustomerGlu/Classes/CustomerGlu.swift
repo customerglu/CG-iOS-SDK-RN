@@ -214,14 +214,36 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         return false
     }
     
-    func loaderShow(withcoordinate x: CGFloat, y: CGFloat) {
+    func loaderShow(withcoordinate x: CGFloat, y: CGFloat, isembedview:Bool = false) {
         DispatchQueue.main.async { [self] in
             if let controller = topMostController() {
                 controller.view.isUserInteractionEnabled = false
                 
-                let path = decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH)
+                var path_key = ""
+                if(isembedview == true){
+                    
+                    if(true == checkIsDarkMode()){
+                        path_key = CGConstants.CUSTOMERGLU_DARK_EMBEDLOTTIE_FILE_PATH
+                    }else{
+                        path_key = CGConstants.CUSTOMERGLU_LIGHT_EMBEDLOTTIE_FILE_PATH
+                    }
+                    
+                }else{
+                    
+                    if(true == checkIsDarkMode()){
+                        path_key = CGConstants.CUSTOMERGLU_DARK_LOTTIE_FILE_PATH
+                    }else{
+                        path_key = CGConstants.CUSTOMERGLU_LIGHT_LOTTIE_FILE_PATH
+                    }
+                    
+                }
+                
+                
+                path_key = CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH // line should be removed
+                let path = decryptUserDefaultKey(userdefaultKey: path_key)
+                
                 if (path.count > 0 && URL(string: path) != nil){
-                    progressView = LottieAnimationView(filePath: decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH))
+                    progressView = LottieAnimationView(filePath: decryptUserDefaultKey(userdefaultKey: path_key))
                     
                     let size = (UIScreen.main.bounds.width <= UIScreen.main.bounds.height) ? UIScreen.main.bounds.width : UIScreen.main.bounds.height
                     
