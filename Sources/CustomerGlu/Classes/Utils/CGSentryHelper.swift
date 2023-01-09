@@ -30,12 +30,18 @@ public class CGSentryHelper{
         }
     }
     
-    func setupUser(userId: String, clientId: String){
+    func setupUser(userId: String, clientId: String, cgappplatform: String = CustomerGlu.app_platform, cgsdkversion:String = CustomerGlu.sdk_version){
         if CustomerGlu.sentry_enable! {
             let user = User()
             user.userId = userId
             user.username = clientId
             SentrySDK.setUser(user)
+            SentrySDK.configureScope { scope in
+                scope.setContext(value: [
+                    "cg-app-platform": cgappplatform,
+                    "cg-sdk-version" : cgsdkversion
+                ], key: "sdkdetails")
+            }
         }
     }
     
