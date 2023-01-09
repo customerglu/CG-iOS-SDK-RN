@@ -39,6 +39,10 @@ public class CGMobileData: Codable {
     public var lightBackground: String? = CustomerGlu.lightBackground.hexString
     public var darkBackground: String? = CustomerGlu.darkBackground.hexString
     public var lottieLoaderURL: String? = ""
+    public var lightLoaderURL: String? = ""
+    public var darkLoaderURL: String? = ""
+    public var lightEmbedLoaderURL: String? = ""
+    public var darkEmbedLoaderURL: String? = ""
 }
 
 public class CGIosSafeArea: Codable {

@@ -82,6 +82,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var doamincode = 404
     public static var textMsg = "Requested-page-is-not-valid"
     public static var lottieLoaderURL = ""
+    public static var lightLoaderURL = ""
+    public static var darkLoaderURL = ""
+    public static var lightEmbedLoaderURL = ""
+    public static var darkEmbedLoaderURL = ""
     @objc public var cgUserData = CGUser()
     
     private override init() {
@@ -483,6 +487,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         userDefaults.removeObject(forKey: CGConstants.CustomerGluPopupDict)
         userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_USERDATA)
         userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH)
+        userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_LIGHT_LOTTIE_FILE_PATH)
+        userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_DARK_LOTTIE_FILE_PATH)
+        userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_LIGHT_EMBEDLOTTIE_FILE_PATH)
+        userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_DARK_EMBEDLOTTIE_FILE_PATH)
         CustomerGlu.getInstance.cgUserData = CGUser()
         ApplicationManager.appSessionId = UUID().uuidString
         CGSentryHelper.shared.logoutSentryUser()
@@ -578,6 +586,26 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             if(self.appconfigdata!.lottieLoaderURL != nil){
                 
                 CustomerGlu.getInstance.connfigLottieLoaderURL(locallottieLoaderURL: self.appconfigdata!.lottieLoaderURL ?? "")
+            }
+            
+            if(self.appconfigdata!.lightLoaderURL != nil){
+                
+                CustomerGlu.getInstance.configureLightLoaderURL(locallottieLoaderURL: self.appconfigdata!.lightLoaderURL ?? "")
+            }
+            
+            if(self.appconfigdata!.darkLoaderURL != nil){
+                
+                CustomerGlu.getInstance.configureDarkLoaderURL(locallottieLoaderURL: self.appconfigdata!.darkLoaderURL ?? "")
+            }
+            
+            if(self.appconfigdata!.lightEmbedLoaderURL != nil){
+                
+                CustomerGlu.getInstance.configureLightEmbedLoaderURL(locallottieLoaderURL: self.appconfigdata!.lightEmbedLoaderURL ?? "")
+            }
+            
+            if(self.appconfigdata!.darkEmbedLoaderURL != nil){
+                
+                CustomerGlu.getInstance.configureDarkEmbedLoaderURL(locallottieLoaderURL: self.appconfigdata!.darkEmbedLoaderURL ?? "")
             }
         }
     }
@@ -1377,12 +1405,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         return URL(string: ("\(CGConstants.default_redirect_url)code=\(String(CustomerGlu.doamincode))&message=\(CustomerGlu.textMsg)"))!
     }
     
-    public func configureWhiteListedDomains(domains: [String]){
+    @objc public func configureWhiteListedDomains(domains: [String]){
         CustomerGlu.whiteListedDomains = domains
         CustomerGlu.whiteListedDomains.append(CGConstants.default_whitelist_doamin)
     }
     
-    public func connfigLottieLoaderURL(locallottieLoaderURL: String){
+    @objc public func connfigLottieLoaderURL(locallottieLoaderURL: String){
         
         if(locallottieLoaderURL.count > 0 && URL(string: locallottieLoaderURL) != nil){
             CustomerGlu.lottieLoaderURL = locallottieLoaderURL
@@ -1394,12 +1422,65 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
         }
     }
-    public func configureDomainCodeMsg(code: Int, message: String){
+    
+    @objc public func configureLightLoaderURL(locallottieLoaderURL: String){
+        
+        if(locallottieLoaderURL.count > 0 && URL(string: locallottieLoaderURL) != nil){
+            CustomerGlu.lightLoaderURL = locallottieLoaderURL
+            let url = URL(string: locallottieLoaderURL)
+            CGFileDownloader.loadFileAsync(url: url!) { [self] (path, error) in
+                if (error == nil){
+                    encryptUserDefaultKey(str: path ?? "", userdefaultKey: CGConstants.CUSTOMERGLU_LIGHT_LOTTIE_FILE_PATH)
+                }
+            }
+        }
+    }
+    
+    @objc public func configureDarkLoaderURL(locallottieLoaderURL: String){
+        
+        if(locallottieLoaderURL.count > 0 && URL(string: locallottieLoaderURL) != nil){
+            CustomerGlu.darkLoaderURL = locallottieLoaderURL
+            let url = URL(string: locallottieLoaderURL)
+            CGFileDownloader.loadFileAsync(url: url!) { [self] (path, error) in
+                if (error == nil){
+                    encryptUserDefaultKey(str: path ?? "", userdefaultKey: CGConstants.CUSTOMERGLU_DARK_LOTTIE_FILE_PATH)
+                }
+            }
+        }
+    }
+    
+    @objc public func configureLightEmbedLoaderURL(locallottieLoaderURL: String){
+        
+        if(locallottieLoaderURL.count > 0 && URL(string: locallottieLoaderURL) != nil){
+            CustomerGlu.lightEmbedLoaderURL = locallottieLoaderURL
+            let url = URL(string: locallottieLoaderURL)
+            CGFileDownloader.loadFileAsync(url: url!) { [self] (path, error) in
+                if (error == nil){
+                    encryptUserDefaultKey(str: path ?? "", userdefaultKey: CGConstants.CUSTOMERGLU_LIGHT_EMBEDLOTTIE_FILE_PATH)
+                }
+            }
+        }
+    }
+    
+    @objc public func configureDarkEmbedLoaderURL(locallottieLoaderURL: String){
+        
+        if(locallottieLoaderURL.count > 0 && URL(string: locallottieLoaderURL) != nil){
+            CustomerGlu.darkEmbedLoaderURL = locallottieLoaderURL
+            let url = URL(string: locallottieLoaderURL)
+            CGFileDownloader.loadFileAsync(url: url!) { [self] (path, error) in
+                if (error == nil){
+                    encryptUserDefaultKey(str: path ?? "", userdefaultKey: CGConstants.CUSTOMERGLU_DARK_EMBEDLOTTIE_FILE_PATH)
+                }
+            }
+        }
+    }
+    
+    @objc public func configureDomainCodeMsg(code: Int, message: String){
         CustomerGlu.doamincode = code
         CustomerGlu.textMsg = message
     }
     
-    public func setCurrentClassName(className: String) {
+    @objc public func setCurrentClassName(className: String) {
         
         if(popuptimer != nil){
             popuptimer?.invalidate()
@@ -1876,7 +1957,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         self.userDefaults.set(EncryptDecrypt.shared.encryptText(str: str), forKey: userdefaultKey)
     }
     
-    public func decryptUserDefaultKey(userdefaultKey: String) -> String {
+    @objc public func decryptUserDefaultKey(userdefaultKey: String) -> String {
         if UserDefaults.standard.object(forKey: userdefaultKey) != nil {
             return EncryptDecrypt.shared.decryptText(str: UserDefaults.standard.string(forKey: userdefaultKey)!)
         }
