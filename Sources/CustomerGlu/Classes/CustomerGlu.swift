@@ -242,6 +242,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 path_key = CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH // line should be removed
                 let path = decryptUserDefaultKey(userdefaultKey: path_key)
                 
+                progressView.removeFromSuperview()
+                spinner.removeFromSuperview()
+                
                 if (path.count > 0 && URL(string: path) != nil){
                     progressView = LottieAnimationView(filePath: decryptUserDefaultKey(userdefaultKey: path_key))
                     

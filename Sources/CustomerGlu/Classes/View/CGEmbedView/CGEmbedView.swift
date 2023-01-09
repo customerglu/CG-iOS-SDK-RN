@@ -455,6 +455,9 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
             path_key = CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH // line should be removed
             let path = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key)
             
+            progressView.removeFromSuperview()
+            spinner.removeFromSuperview()
+            
             if (path.count > 0 && URL(string: path) != nil){
                 progressView = LottieAnimationView(filePath: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key))
                 
