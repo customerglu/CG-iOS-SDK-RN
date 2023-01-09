@@ -8,6 +8,7 @@
 import Foundation
 import UIKit
 import WebKit
+import Lottie
 
 public class CustomerWebViewController: UIViewController, WKNavigationDelegate, WKScriptMessageHandler {
     
@@ -43,6 +44,8 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     public var nudgeConfiguration: CGNudgeConfiguration?
     private var opencgwebview_nudgeConfiguration: CGNudgeConfiguration?
     private var defaulttimer : Timer?
+    var spinner = SpinnerView()
+    var progressView = LottieAnimationView()
     
     public func configureSafeAreaForDevices() {
         let window = UIApplication.shared.keyWindow
@@ -135,13 +138,13 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             setupWebViewCustomFrame(url: urlStr)
         } else if iscampignId {
             
-            CustomerGlu.getInstance.loaderShow(withcoordinate: getframe().midX, y: getframe().midY)
+            self.loaderShow(withcoordinate: getframe().midX, y: getframe().midY)
             
             campaign_id = campaign_id.trimSpace()
             
             ApplicationManager.loadAllCampaignsApi(type: "", value: campaign_id, loadByparams: [:]) { success, campaignsModel in
                 if success {
-                    CustomerGlu.getInstance.loaderHide()
+                    self.loaderHide()
                     self.defaultwalleturl = String(campaignsModel?.defaultUrl ?? "")
                     if self.campaign_id.count == 0 {
                         DispatchQueue.main.async { [self] in // Make sure you're on the main thread here
@@ -165,7 +168,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                         }
                     }
                 } else {
-                    CustomerGlu.getInstance.loaderHide()
+                    self.loaderHide()
                     CustomerGlu.getInstance.printlog(cglog: "Fail to load loadAllCampaignsApi", isException: false, methodName: "CustomerWebViewController-viewDidLoad", posttoserver: true)
                 }
             }
@@ -264,7 +267,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             
             self.view.addSubview(webView)
             self.view.addSubview(coverview)
-            CustomerGlu.getInstance.loaderShow(withcoordinate: getframe().midX, y: getframe().midY)
+            self.loaderShow(withcoordinate: getframe().midX, y: getframe().midY)
             defaulttimer = Timer.scheduledTimer(timeInterval: 8, target: self, selector: #selector(timeoutforpageload(sender:)), userInfo: nil, repeats: false)
         } else {
             self.closePage(animated: false,dismissaction: CGDismissAction.UI_BUTTON)
@@ -461,7 +464,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             defaulttimer = nil
         }
         
-        CustomerGlu.getInstance.loaderHide()
+        self.loaderHide()
         webView.isHidden = false
         coverview.isHidden = !webView.isHidden
     }
@@ -628,6 +631,54 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     
     override public func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         //        checkIsDarkMode()
+    }
+    
+    private func loaderShow(withcoordinate x: CGFloat, y: CGFloat) {
+        DispatchQueue.main.async { [self] in
+            
+            self.view.isUserInteractionEnabled = false
+            
+            var path_key = ""
+            
+            if(true == CustomerGlu.getInstance.checkIsDarkMode()){
+                path_key = CGConstants.CUSTOMERGLU_DARK_LOTTIE_FILE_PATH
+            }else{
+                path_key = CGConstants.CUSTOMERGLU_LIGHT_LOTTIE_FILE_PATH
+            }
+            
+            
+            path_key = CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH // line should be removed
+            let path = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key)
+            
+            if (path.count > 0 && URL(string: path) != nil){
+                progressView = LottieAnimationView(filePath: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key))
+                
+                let size = (UIScreen.main.bounds.width <= UIScreen.main.bounds.height) ? UIScreen.main.bounds.width : UIScreen.main.bounds.height
+                
+                progressView.frame = CGRect(x: x-(size/2), y: y-(size/2), width: size, height: size)
+                progressView.contentMode = .scaleAspectFit
+                progressView.loopMode = .loop
+                progressView.play()
+                self.view.addSubview(progressView)
+                self.view.bringSubviewToFront(progressView)
+            }else{
+                spinner = SpinnerView(frame: CGRect(x: x-30, y: y-30, width: 60, height: 60))
+                self.view.addSubview(spinner)
+                self.view.bringSubviewToFront(spinner)
+            }
+            
+        }
+    }
+    
+    
+    
+    
+    private func loaderHide() {
+        DispatchQueue.main.async { [self] in
+            self.view.isUserInteractionEnabled = true
+            spinner.removeFromSuperview()
+            progressView.removeFromSuperview()
+        }
     }
     
 }
