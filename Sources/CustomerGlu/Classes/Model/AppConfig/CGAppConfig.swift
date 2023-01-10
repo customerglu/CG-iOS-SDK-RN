@@ -52,20 +52,14 @@ public class CGIosSafeArea: Codable {
 
 public class CGLoaderConfig: Codable {
     
-    public var loaderURL: CGLoaderURL? = CGLoaderURL()
-    public var embedLoaderURL: CGEmbedLoaderURL? = CGEmbedLoaderURL()
+    public var loaderURL: CGLoaderURLs? = CGLoaderURLs()
+    public var embedLoaderURL: CGLoaderURLs? = CGLoaderURLs()
 }
 
-public class CGLoaderURL: Codable {
+public class CGLoaderURLs: Codable {
     
     public var light: String? = "https://retool-upload-test-bucket.s3.amazonaws.com/lottie_default_loader_f42ff.json"
     public var dark: String? = "https://retool-upload-test-bucket.s3.amazonaws.com/loader2_85a3d.json"
-}
-
-public class CGEmbedLoaderURL: Codable {
-    
-    public var light: String? = "https://retool-upload-test-bucket.s3.amazonaws.com/_49520.json"
-    public var dark: String? = "https://retool-upload-test-bucket.s3.amazonaws.com/_614f9.json"
 }
 
 //public class CGWeb: Codable {
