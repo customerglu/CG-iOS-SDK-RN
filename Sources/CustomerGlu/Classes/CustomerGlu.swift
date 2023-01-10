@@ -239,7 +239,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 }
                 
                 
-                path_key = CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH // line should be removed
+                //                path_key = CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH // line should be removed
                 let path = decryptUserDefaultKey(userdefaultKey: path_key)
                 
                 progressView.removeFromSuperview()

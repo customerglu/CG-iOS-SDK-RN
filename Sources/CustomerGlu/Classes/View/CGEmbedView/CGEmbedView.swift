@@ -452,7 +452,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
             }
             
             
-            path_key = CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH // line should be removed
+            //            path_key = CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH // line should be removed
             let path = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key)
             
             progressView.removeFromSuperview()
