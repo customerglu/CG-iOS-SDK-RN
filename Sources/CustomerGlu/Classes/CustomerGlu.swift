@@ -538,6 +538,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             case .success(let response):
                 if (response.data != nil && response.data?.mobile != nil){
                     self.appconfigdata = (response.data?.mobile)!
+                    self.appconfigdata?.loaderConfig = CGLoaderConfig()
                     self.updatedAllConfigParam()
                 }
                 completion(true)
@@ -613,24 +614,24 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 CustomerGlu.getInstance.connfigLottieLoaderURL(locallottieLoaderURL: self.appconfigdata!.lottieLoaderURL ?? "")
             }
             
-            if(self.appconfigdata!.lightLoaderURL != nil){
+            if(self.appconfigdata!.loaderConfig?.loaderURL?.light != nil){
                 
-                CustomerGlu.getInstance.configureLightLoaderURL(locallottieLoaderURL: self.appconfigdata!.lightLoaderURL ?? "")
+                CustomerGlu.getInstance.configureLightLoaderURL(locallottieLoaderURL: self.appconfigdata!.loaderConfig?.loaderURL?.light ?? "")
             }
             
-            if(self.appconfigdata!.darkLoaderURL != nil){
+            if(self.appconfigdata!.loaderConfig?.loaderURL?.dark != nil){
                 
-                CustomerGlu.getInstance.configureDarkLoaderURL(locallottieLoaderURL: self.appconfigdata!.darkLoaderURL ?? "")
+                CustomerGlu.getInstance.configureDarkLoaderURL(locallottieLoaderURL: self.appconfigdata!.loaderConfig?.loaderURL?.dark ?? "")
             }
             
-            if(self.appconfigdata!.lightEmbedLoaderURL != nil){
+            if(self.appconfigdata!.loaderConfig?.embedLoaderURL?.light != nil){
                 
-                CustomerGlu.getInstance.configureLightEmbedLoaderURL(locallottieLoaderURL: self.appconfigdata!.lightEmbedLoaderURL ?? "")
+                CustomerGlu.getInstance.configureLightEmbedLoaderURL(locallottieLoaderURL: self.appconfigdata!.loaderConfig?.embedLoaderURL?.light ?? "")
             }
             
-            if(self.appconfigdata!.darkEmbedLoaderURL != nil){
+            if(self.appconfigdata!.loaderConfig?.embedLoaderURL?.dark != nil){
                 
-                CustomerGlu.getInstance.configureDarkEmbedLoaderURL(locallottieLoaderURL: self.appconfigdata!.darkEmbedLoaderURL ?? "")
+                CustomerGlu.getInstance.configureDarkEmbedLoaderURL(locallottieLoaderURL: self.appconfigdata!.loaderConfig?.embedLoaderURL?.dark ?? "")
             }
         }
     }

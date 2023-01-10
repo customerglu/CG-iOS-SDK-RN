@@ -39,10 +39,7 @@ public class CGMobileData: Codable {
     public var lightBackground: String? = CustomerGlu.lightBackground.hexString
     public var darkBackground: String? = CustomerGlu.darkBackground.hexString
     public var lottieLoaderURL: String? = ""
-    public var lightLoaderURL: String? = ""
-    public var darkLoaderURL: String? = ""
-    public var lightEmbedLoaderURL: String? = ""
-    public var darkEmbedLoaderURL: String? = ""
+    public var loaderConfig: CGLoaderConfig? = CGLoaderConfig()
 }
 
 public class CGIosSafeArea: Codable {
@@ -53,8 +50,27 @@ public class CGIosSafeArea: Codable {
     public var topHeight: Int? = CustomerGlu.topSafeAreaHeight
 }
 
+public class CGLoaderConfig: Codable {
+    
+    public var loaderURL: CGLoaderURL? = CGLoaderURL()
+    public var embedLoaderURL: CGEmbedLoaderURL? = CGEmbedLoaderURL()
+}
+
+public class CGLoaderURL: Codable {
+    
+    public var light: String? = ""
+    public var dark: String? = ""
+}
+
+public class CGEmbedLoaderURL: Codable {
+    
+    public var light: String? = ""
+    public var dark: String? = ""
+}
+
 //public class CGWeb: Codable {
 //}
+
 
 
 
