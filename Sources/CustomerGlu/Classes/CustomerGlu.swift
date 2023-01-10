@@ -538,7 +538,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             case .success(let response):
                 if (response.data != nil && response.data?.mobile != nil){
                     self.appconfigdata = (response.data?.mobile)!
-                    self.appconfigdata?.loaderConfig = CGLoaderConfig()
                     self.updatedAllConfigParam()
                 }
                 completion(true)
