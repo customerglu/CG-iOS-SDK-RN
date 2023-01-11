@@ -52,7 +52,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     @objc public var apnToken = ""
     @objc public var fcmToken = ""
     @objc public static var defaultBannerUrl = ""
-    @objc public static var arrColor = [UIColor.black]
+    @objc public static var arrColor = [UIColor(red: (101/255), green: (220/255), blue: (171/255), alpha: 1.0)]
     public static var auto_close_webview: Bool? = false
     @objc public static var topSafeAreaHeight = 44
     @objc public static var bottomSafeAreaHeight = 34
