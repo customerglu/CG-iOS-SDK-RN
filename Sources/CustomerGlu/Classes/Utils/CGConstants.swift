@@ -12,7 +12,6 @@ struct CGConstants {
     static let JSON_ERROR = "CUSTOMERGLU: json parsing error:"
     static let CUSTOMERGLU_TOKEN = "CustomerGlu_Token_Encrypt"
     static let CUSTOMERGLU_USERID = "CustomerGlu_user_id_Encrypt"
-    static let CUSTOMERGLU_LOTTIE_FILE_PATH = "CustomerGlu_Lottiepath"
     static let CUSTOMERGLU_LIGHT_LOTTIE_FILE_PATH = "CustomerGlu_Light_Lottiepath"
     static let CUSTOMERGLU_DARK_LOTTIE_FILE_PATH = "CustomerGlu_Dark_Lottiepath"
     static let CUSTOMERGLU_LIGHT_EMBEDLOTTIE_FILE_PATH = "CustomerGlu_Light_Embed_Lottiepath"

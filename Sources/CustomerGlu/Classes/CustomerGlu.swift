@@ -81,7 +81,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var whiteListedDomains = [CGConstants.default_whitelist_doamin]
     public static var doamincode = 404
     public static var textMsg = "Requested-page-is-not-valid"
-    public static var lottieLoaderURL = ""
     public static var lightLoaderURL = ""
     public static var darkLoaderURL = ""
     public static var lightEmbedLoaderURL = ""
@@ -511,7 +510,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         userDefaults.removeObject(forKey: CGConstants.CustomerGluCrash)
         userDefaults.removeObject(forKey: CGConstants.CustomerGluPopupDict)
         userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_USERDATA)
-        userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH)
         userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_LIGHT_LOTTIE_FILE_PATH)
         userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_DARK_LOTTIE_FILE_PATH)
         userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_LIGHT_EMBEDLOTTIE_FILE_PATH)
@@ -608,10 +606,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 CustomerGlu.getInstance.configureWhiteListedDomains(domains: self.appconfigdata!.whiteListedDomains ?? CustomerGlu.whiteListedDomains)
             }
             
-            if(self.appconfigdata!.lottieLoaderURL != nil){
-                
-                CustomerGlu.getInstance.connfigLottieLoaderURL(locallottieLoaderURL: self.appconfigdata!.lottieLoaderURL ?? "")
-            }
             
             if(self.appconfigdata!.loaderConfig?.loaderURL?.light != nil){
                 
@@ -1435,18 +1429,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         CustomerGlu.whiteListedDomains.append(CGConstants.default_whitelist_doamin)
     }
     
-    @objc public func connfigLottieLoaderURL(locallottieLoaderURL: String){
-        
-        if(locallottieLoaderURL.count > 0 && URL(string: locallottieLoaderURL) != nil){
-            CustomerGlu.lottieLoaderURL = locallottieLoaderURL
-            let url = URL(string: locallottieLoaderURL)
-            CGFileDownloader.loadFileAsync(url: url!) { [self] (path, error) in
-                if (error == nil){
-                    encryptUserDefaultKey(str: path ?? "", userdefaultKey: CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH)
-                }
-            }
-        }
-    }
     
     @objc public func configureLightLoaderURL(locallottieLoaderURL: String){
         

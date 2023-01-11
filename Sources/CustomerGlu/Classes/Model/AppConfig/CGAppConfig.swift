@@ -54,7 +54,6 @@ public class CGMobileData: Codable {
     public var listenToSystemDarkLightMode: Bool? = CustomerGlu.listenToSystemDarkMode
     public var lightBackground: String? = CustomerGlu.lightBackground.hexString
     public var darkBackground: String? = CustomerGlu.darkBackground.hexString
-    public var lottieLoaderURL: String? = ""
     public var loaderConfig: CGLoaderConfig? = CGLoaderConfig()
     
     required public init(from decoder: Decoder) throws {
@@ -77,9 +76,7 @@ public class CGMobileData: Codable {
         self.listenToSystemDarkLightMode = try container.decodeIfPresent(Bool.self, forKey: .listenToSystemDarkLightMode) ?? CustomerGlu.listenToSystemDarkMode
         self.lightBackground = try container.decodeIfPresent(String.self, forKey: .lightBackground) ?? CustomerGlu.lightBackground.hexString
         self.darkBackground = try container.decodeIfPresent(String.self, forKey: .darkBackground) ?? CustomerGlu.darkBackground.hexString
-        self.lottieLoaderURL = try container.decodeIfPresent(String.self, forKey: .lottieLoaderURL) ?? ""
         self.loaderConfig = try container.decodeIfPresent(CGLoaderConfig.self, forKey: .loaderConfig) ?? CGLoaderConfig()
-
     }
     
     required public init() {
