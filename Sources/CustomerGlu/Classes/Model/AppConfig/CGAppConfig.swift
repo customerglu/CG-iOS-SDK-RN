@@ -122,13 +122,13 @@ public class CGLoaderConfig: Codable {
 
 public class CGLoaderURLs: Codable {
     
-    public var light: String? = "https://retool-upload-test-bucket.s3.amazonaws.com/lottie_default_loader_f42ff.json"
-    public var dark: String? = "https://retool-upload-test-bucket.s3.amazonaws.com/loader2_85a3d.json"
+    public var light: String? = ""
+    public var dark: String? = ""
     
     required public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.light = try container.decodeIfPresent(String.self, forKey: .light) ?? "https://retool-upload-test-bucket.s3.amazonaws.com/lottie_default_loader_f42ff.json"
-        self.dark = try container.decodeIfPresent(String.self, forKey: .dark) ?? "https://retool-upload-test-bucket.s3.amazonaws.com/lottie_default_loader_f42ff.json"
+        self.light = try container.decodeIfPresent(String.self, forKey: .light) ?? ""
+        self.dark = try container.decodeIfPresent(String.self, forKey: .dark) ?? ""
     }
     
     required public init() {
