@@ -257,7 +257,6 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }
             webView.backgroundColor = CustomerGlu.getInstance.checkIsDarkMode() ? CustomerGlu.darkBackground: CustomerGlu.lightBackground
             let darkUrl = url + "&darkMode=" + (CustomerGlu.getInstance.checkIsDarkMode() ? "true" : "false")
-            print("This is the URL ------- "+darkUrl)
             webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: darkUrl)!)))
             webView.isHidden = true
             
@@ -324,7 +323,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             if bodyStruct?.eventName == WebViewsKey.open_deeplink {
                 let deeplink = try? JSONDecoder().decode(CGDeepLinkModel.self, from: bodyData)
                 if  let deep_link = deeplink?.data?.deepLink {
-                    print("link", deep_link)
+                    CustomerGlu.getInstance.printlog(cglog: String(deep_link), isException: false, methodName: "WebViewVC-WebViewsKey.open_deeplink", posttoserver: false)
                     postdata = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!) ?? [String:Any]()
                     self.canpost = true
                     if self.auto_close_webview == true {
@@ -610,7 +609,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         
         ApplicationManager.sendAnalyticsEvent(eventNudge: eventInfo) { success, _ in
             if success {
-                print(success)
+                CustomerGlu.getInstance.printlog(cglog: String(success), isException: false, methodName: "WebView-postAnalyticsEventForWebView", posttoserver: false)
             } else {
                 CustomerGlu.getInstance.printlog(cglog: "Fail to call sendAnalyticsEvent", isException: false, methodName: "WebView-postAnalyticsEventForWebView", posttoserver: true)
             }

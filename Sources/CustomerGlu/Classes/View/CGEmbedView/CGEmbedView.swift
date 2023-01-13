@@ -38,7 +38,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
             if bodyStruct?.eventName == WebViewsKey.open_deeplink {
                 let deeplink = try? JSONDecoder().decode(CGDeepLinkModel.self, from: bodyData)
                 if  let deep_link = deeplink?.data?.deepLink {
-                    print("link", deep_link)
+                    CustomerGlu.getInstance.printlog(cglog: String(deep_link), isException: false, methodName: "Embed-WebViewsKey.open_deeplink", posttoserver: false)
                     let postdata = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!) ?? [String:Any]()
                     if self.closeOnDeepLink == true{
                         embedviewHeightchanged(height: 0.0)

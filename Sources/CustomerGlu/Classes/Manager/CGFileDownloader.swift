@@ -17,19 +17,19 @@ class CGFileDownloader {
         
         if FileManager().fileExists(atPath: destinationUrl.path)
         {
-            print("File already exists [\(destinationUrl.path)]")
+            CustomerGlu.getInstance.printlog(cglog: String("File already exists [\(destinationUrl.path)]"), isException: false, methodName: "loadFileSync", posttoserver: false)
             completion(destinationUrl.path, nil)
         }
         else if let dataFromURL = NSData(contentsOf: url)
         {
             if dataFromURL.write(to: destinationUrl, atomically: true)
             {
-                print("file saved [\(destinationUrl.path)]")
+                CustomerGlu.getInstance.printlog(cglog: String("file saved [\(destinationUrl.path)]"), isException: false, methodName: "loadFileSync", posttoserver: false)
                 completion(destinationUrl.path, nil)
             }
             else
             {
-                print("error saving file")
+                CustomerGlu.getInstance.printlog(cglog: String("error saving file"), isException: false, methodName: "loadFileSync", posttoserver: false)
                 let error = NSError(domain:"Error saving file", code:1001, userInfo:nil)
                 completion(destinationUrl.path, error)
             }
@@ -59,7 +59,7 @@ class CGFileDownloader {
         
         if FileManager().fileExists(atPath: destinationUrl.path)
         {
-            print("File already exists [\(destinationUrl.path)]")
+            CustomerGlu.getInstance.printlog(cglog: String("File already exists [\(destinationUrl.path)]"), isException: false, methodName: "loadFileAsync", posttoserver: false)
             completion(destinationUrl.path, nil)
         }
         else

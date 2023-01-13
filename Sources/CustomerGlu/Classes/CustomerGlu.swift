@@ -1845,7 +1845,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             eventInfo[APIParameterKey.entry_point_data] = entry_point_data
             ApplicationManager.sendAnalyticsEvent(eventNudge: eventInfo) { success, _ in
                 if success {
-                    print(success)
+                    CustomerGlu.getInstance.printlog(cglog: String(success), isException: false, methodName: "postAnalyticsEventForEntryPoints", posttoserver: false)
                 } else {
                     CustomerGlu.getInstance.printlog(cglog: "Fail to call sendAnalyticsEvent ", isException: false, methodName: "postAnalyticsEventForBanner", posttoserver: true)
                 }
@@ -1895,7 +1895,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
         ApplicationManager.sendAnalyticsEvent(eventNudge: eventInfo) { success, _ in
             if success {
-                print(success)
+                CustomerGlu.getInstance.printlog(cglog: String(success), isException: false, methodName: "postAnalyticsEventForNotification", posttoserver: false)
             } else {
                 CustomerGlu.getInstance.printlog(cglog: "Fail to call sendAnalyticsEvent ", isException: false, methodName: "postAnalyticsEventForNotification", posttoserver: true)
             }
