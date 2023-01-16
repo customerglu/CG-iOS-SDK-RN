@@ -53,7 +53,7 @@ extension UIImage {
         
         // Validate data
         guard let imageData = try? Data(contentsOf: bundleURL) else {
-
+            
             CustomerGlu.getInstance.printlog(cglog: "SwiftGif: Cannot turn image named \"\(url)\" into NSData", isException: false, methodName: "public class func gif", posttoserver: false)
             return nil
         }
@@ -64,10 +64,10 @@ extension UIImage {
     public class func gif(name: String) -> UIImage? {
         // Check for existance of gif
         guard let bundleURL = Bundle.main
-                .url(forResource: name, withExtension: "gif") else {
+            .url(forResource: name, withExtension: "gif") else {
             CustomerGlu.getInstance.printlog(cglog: "SwiftGif: This image named \"\(name)\" does not exist", isException: false, methodName: "public class func gif", posttoserver: false)
-                    return nil
-                }
+            return nil
+        }
         
         // Validate data
         guard let imageData = try? Data(contentsOf: bundleURL) else {
@@ -82,7 +82,7 @@ extension UIImage {
     public class func gif(asset: String) -> UIImage? {
         // Create source from assets catalog
         guard let dataAsset = NSDataAsset(name: asset) else {
-
+            
             CustomerGlu.getInstance.printlog(cglog: "SwiftGif: Cannot turn image named \"\(asset)\" into NSDataAsset", isException: false, methodName: "public class func gif", posttoserver: false)
             return nil
         }

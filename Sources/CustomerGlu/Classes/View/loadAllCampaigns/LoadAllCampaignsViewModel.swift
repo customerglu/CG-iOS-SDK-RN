@@ -8,7 +8,7 @@
 import Foundation
 
 class LoadAllCampaignsViewModel {
-
+    
     public func updateProfile(completion: @escaping (Bool) -> Void) {
         let userData = [String: AnyHashable]()
         CustomerGlu.getInstance.updateProfile(userdata: userData) { success in

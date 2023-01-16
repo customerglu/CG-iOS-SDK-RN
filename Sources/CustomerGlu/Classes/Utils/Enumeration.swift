@@ -15,7 +15,7 @@ extension Bundle {
 #endif
 
 protocol StoryboardIdentifiable where Self: UIViewController {
-   static func getInstance(storyBoardType: StoryboardType) -> UIViewController
+    static func getInstance(storyBoardType: StoryboardType) -> UIViewController
 }
 
 enum StoryboardType: String {

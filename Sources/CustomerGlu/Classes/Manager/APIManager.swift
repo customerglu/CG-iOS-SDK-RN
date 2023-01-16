@@ -55,6 +55,7 @@ private struct MethodNameandPath {
 // Parameter Key's for all API's
 private struct BaseUrls {
     static let baseurl = ApplicationManager.baseUrl
+    static let devbaseurl = ApplicationManager.devbaseUrl
     static let streamurl = ApplicationManager.streamUrl
     static let analyticsUrl = ApplicationManager.analyticsUrl
 }
@@ -332,7 +333,7 @@ class APIManager {
         //Added task into Queue
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
-
+    
     // MARK: - Private Class Methods
     
     // Recursive Method
