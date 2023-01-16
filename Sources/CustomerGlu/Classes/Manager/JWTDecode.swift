@@ -35,8 +35,8 @@ class JWTDecode {
     func decodeJWTPart(_ value: String) -> [String: Any]? {
         guard let bodyData = base64UrlDecode(value),
               let json = try? JSONSerialization.jsonObject(with: bodyData, options: []), let payload = json as? [String: Any] else {
-                  return nil
-              }
+            return nil
+        }
         
         return payload
     }

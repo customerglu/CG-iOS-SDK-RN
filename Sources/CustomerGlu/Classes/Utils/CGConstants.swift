@@ -12,7 +12,10 @@ struct CGConstants {
     static let JSON_ERROR = "CUSTOMERGLU: json parsing error:"
     static let CUSTOMERGLU_TOKEN = "CustomerGlu_Token_Encrypt"
     static let CUSTOMERGLU_USERID = "CustomerGlu_user_id_Encrypt"
-    static let CUSTOMERGLU_LOTTIE_FILE_PATH = "CustomerGlu_Lottiepath"
+    static let CUSTOMERGLU_LIGHT_LOTTIE_FILE_PATH = "CustomerGlu_Light_Lottiepath"
+    static let CUSTOMERGLU_DARK_LOTTIE_FILE_PATH = "CustomerGlu_Dark_Lottiepath"
+    static let CUSTOMERGLU_LIGHT_EMBEDLOTTIE_FILE_PATH = "CustomerGlu_Light_Embed_Lottiepath"
+    static let CUSTOMERGLU_DARK_EMBEDLOTTIE_FILE_PATH = "CustomerGlu_Dark_Embed_Lottiepath"
     static let DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ"
     static let Analitics_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
     static let MIDDLE_NOTIFICATIONS = "middle-default"
@@ -26,7 +29,7 @@ struct CGConstants {
     static let CustomerGluPopupDict = "CustomerGluPopupDict_Encrypt"
     static let CUSTOMERGLU_ANONYMOUSID = "CustomerGluAnonymousId_Encrypt"
     static let CUSTOMERGLU_USERDATA = "CustomerGluUserData_Encrypt"
-
+    
     
     static let CUSTOMERGLU_TOKEN_OLD = "CustomerGlu_Token"
     static let CUSTOMERGLU_USERID_OLD = "CustomerGlu_user_id"
@@ -89,7 +92,7 @@ struct APIParameterKey {
     static let appSessionId = "appSessionId"
     static let userAgent = "userAgent"
     static let eventName = "eventName"
-    static let cgsdkversionvalue = "2.2.1"
+    static let cgsdkversionvalue = "2.2.2"
     static let analytics_version_value = "4.0.0"
     static let analytics_version = "analytics_version"
     static let dismiss_trigger = "dismiss_trigger"
@@ -116,18 +119,6 @@ struct APIParameterKey {
     static let action_type = "action_type"
     static let open_container = "open_container"
     static let open_content = "open_content"
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
 }
 
 // Default NotificationsKey
