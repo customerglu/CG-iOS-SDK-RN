@@ -22,6 +22,16 @@ class ApplicationManager {
         if CustomerGlu.sdk_disable! == true {
             return
         }
+        var eventData: [String: Any] = [:]
+        String token = "";
+        if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
+            token = UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN)
+            eventData["token"] = token
+        }else{
+            eventData["token"] = token
+
+        }
+        CGEventsDiagnosticsHelper.instance.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_LOAD_CAMPAIGN_START, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
         APIManager.getWalletRewards(queryParameters: [:]) { result in
             switch result {
             case .success(let response):
@@ -32,6 +42,7 @@ class ApplicationManager {
                 completion(false, nil)
             }
         }
+        CGEventsDiagnosticsHelper.instance.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_LOAD_CAMPAIGN_END, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
     }
     
     public static func loadAllCampaignsApi(type: String, value: String, loadByparams: NSDictionary, completion: @escaping (Bool, CGCampaignsModel?) -> Void) {

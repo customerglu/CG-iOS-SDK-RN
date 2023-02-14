@@ -18,8 +18,9 @@ public class CGSentryHelper{
                 options.dsn = CGConstants.CGSENTRYDSN
                 options.beforeSend = { event in
                     if event.level == SentryLevel.fatal {
-                        // Add Fatal crash call.
-                    }
+                        var eventData: [String: Any] = [:]
+                        eventData["stack_trace"] = event
+                        CGEventsDiagnosticsHelper.instance.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_TYPE_CRASH, eventType:CGDiagnosticConstants.CG_TYPE_CRASH, eventMeta:eventData)                    }
                     return event
                 }
             }

@@ -12,8 +12,8 @@ class CGEventsDiagnosticsHelper {
     
     
     func sendDiagnosticsReport(eventName: String, eventType: String, eventMeta:[String:Any]){
-        if CustomerGlu.isDebugingEnabled {
-            
+        if !CustomerGlu.sdk_disable {
+           
             ApplicationManager.sendEventsDiagnostics(eventLogType: eventType, eventName: eventName, eventMeta: eventMeta, completion: { [self] success, diagnosticsEventResponse in
                 if success {
                     
