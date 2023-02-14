@@ -522,6 +522,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     // MARK: - API Calls Methods
     
     @objc public func initializeSdk() {
+        //  ExampleEvents
+        var eventData: [String: Any] = [:]
+        
+        // Needs to be deleted. Just for reference.
+        eventData["data"] = "value"
+        
+        CGEventsDiagnosticsHelper.instance.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_INIT_START, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData )
+       
         self.getAppConfig { result in
             
         }

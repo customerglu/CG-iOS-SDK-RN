@@ -49,6 +49,7 @@ private struct MethodNameandPath {
     static let send_analytics_event = MethodandPath(method: "POST", path: "v4/sdk")
     static let appconfig = MethodandPath(method: "GET", path: "client/v1/sdk/config")
     static let cgdeeplink = MethodandPath(method: "GET", path: "api/v1/wormhole/sdk/url")
+    static let cgMetricDiagnostics = MethodandPath(method: "POST", path:"sdk/v4")
     
 }
 
@@ -57,6 +58,7 @@ private struct BaseUrls {
     static let baseurl = ApplicationManager.baseUrl
     static let devbaseurl = ApplicationManager.devbaseUrl
     static let streamurl = ApplicationManager.streamUrl
+    static let diagnosticUrl = ApplicationManager.diagnosticUrl
     static let analyticsUrl = ApplicationManager.analyticsUrl
 }
 
@@ -293,6 +295,26 @@ class APIManager {
         }
         
         //Added task into Queue
+        ApplicationManager.operationQueue.addOperation(blockOperation)
+    }
+    
+    
+    // TODO Response Model needs to be changed.
+    /**
+        Event and Diagnostics Send.
+     **/
+    static func sendEventsDiagnostics(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, Error>) -> Void) {
+        
+        let blockOperation = BlockOperation()
+        
+        blockOperation.addExecutionBlock {
+            performRequest(baseurl: BaseUrls.diagnosticUrl, methodandpath: MethodNameandPath.cgMetricDiagnostics, parametersDict: queryParameters, completion: completion)
+        }
+        
+        if ApplicationManager.operationQueue.operations.count > 0 {
+            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
+        }
+        
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
