@@ -15,12 +15,12 @@ public class CGSentryHelper{
     func setupSentry(){
         if CustomerGlu.sentry_enable! {
             SentrySDK.start { options in
-                options.dsn = CGConstants.CGSENTRYDSN
+                options.dsn = CustomerGlu.sentryDSN
                 options.beforeSend = { event in
                     if event.level == SentryLevel.fatal {
                         var eventData: [String: Any] = [:]
                         eventData["stack_trace"] = event
-                        CGEventsDiagnosticsHelper.instance.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_TYPE_CRASH, eventType:CGDiagnosticConstants.CG_TYPE_CRASH, eventMeta:eventData)                    }
+                        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_TYPE_CRASH, eventType:CGDiagnosticConstants.CG_TYPE_CRASH, eventMeta:eventData)                    }
                     return event
                 }
             }

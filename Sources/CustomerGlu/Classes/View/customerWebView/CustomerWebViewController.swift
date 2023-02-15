@@ -60,8 +60,15 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         
         topHeight.constant = CGFloat(CustomerGlu.topSafeAreaHeight)
         bottomHeight.constant = CGFloat(CustomerGlu.bottomSafeAreaHeight)
-        topSafeArea.backgroundColor = CustomerGlu.topSafeAreaColor
-        bottomSafeArea.backgroundColor = CustomerGlu.bottomSafeAreaColor
+        
+        if CustomerGlu.getInstance.isDarkModeEnabled(){
+            topSafeArea.backgroundColor = CustomerGlu.topSafeAreaColorDark
+            bottomSafeArea.backgroundColor = CustomerGlu.bottomSafeAreaColorDark
+        }else {
+            topSafeArea.backgroundColor = CustomerGlu.topSafeAreaColorLight
+            bottomSafeArea.backgroundColor = CustomerGlu.bottomSafeAreaColorLight
+        }
+        
     }
     public override var shouldAutorotate: Bool{
         return false;

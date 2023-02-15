@@ -38,6 +38,8 @@ public class BannerView: UIView, UIScrollViewDelegate {
         self.reloadBannerView()
     }
     
+    
+    
     var commonBannerId: String {
         get {
             return self.bannerId ?? ""
@@ -171,7 +173,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 imageView = UIImageView(frame: CGRect(x: xOrigin, y: 0, width: screenWidth, height: CGFloat(finalHeight)))
                 imageView.isUserInteractionEnabled = true
                 imageView.tag = i
-                let urlStr = dict.url
+                let urlStr = (dict.darkUrl == nil || dict.lightUrl == nil) ? dict.url : (CustomerGlu.getInstance.isDarkModeEnabled() ? dict.darkUrl : dict.lightUrl)
                 imageView.downloadImage(urlString: urlStr!)
                 imageView.contentMode = .scaleToFill
                 self.imgScrollView.addSubview(imageView)
@@ -219,6 +221,10 @@ public class BannerView: UIView, UIScrollViewDelegate {
         
         invalidateIntrinsicContentSize()
         self.layoutIfNeeded()
+    }
+    
+    public override func layoutSubviews() {
+        reloadBannerView()
     }
     
     @objc func moveToNextImage() {

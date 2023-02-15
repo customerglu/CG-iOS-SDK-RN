@@ -55,10 +55,16 @@ public class CGMobileData: Codable {
     public var lightBackground: String? = CustomerGlu.lightBackground.hexString
     public var darkBackground: String? = CustomerGlu.darkBackground.hexString
     public var loaderConfig: CGLoaderConfig? = CGLoaderConfig()
+    public var androidStatusBarLightColor: String?
+    public var androidStatusBarDarkColor: String?
+    public var isDiagnosticsEnabled: Bool = false
+    public var isMetricsEnabled: Bool = true
+    public var isCrashLoggingEnabled: Bool = true
+    public var sentryDsn: CGSentryDSN?
     
     required public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-
+        
         self.disableSdk = try container.decodeIfPresent(Bool.self, forKey: .disableSdk) ?? CustomerGlu.sdk_disable
         self.enableAnalytics = try container.decodeIfPresent(Bool.self, forKey: .enableAnalytics) ?? CustomerGlu.analyticsEvent
         self.enableEntryPoints = try container.decodeIfPresent(Bool.self, forKey: .enableEntryPoints) ?? CustomerGlu.isEntryPointEnabled
@@ -77,6 +83,12 @@ public class CGMobileData: Codable {
         self.lightBackground = try container.decodeIfPresent(String.self, forKey: .lightBackground) ?? CustomerGlu.lightBackground.hexString
         self.darkBackground = try container.decodeIfPresent(String.self, forKey: .darkBackground) ?? CustomerGlu.darkBackground.hexString
         self.loaderConfig = try container.decodeIfPresent(CGLoaderConfig.self, forKey: .loaderConfig) ?? CGLoaderConfig()
+        self.androidStatusBarDarkColor = try container.decodeIfPresent(String.self, forKey: .androidStatusBarDarkColor) ?? ""
+        self.androidStatusBarLightColor = try container.decodeIfPresent(String.self, forKey: .androidStatusBarLightColor) ?? ""
+        self.isDiagnosticsEnabled = try container.decodeIfPresent(Bool.self, forKey: .isDiagnosticsEnabled) ?? false
+        self.isMetricsEnabled = try container.decodeIfPresent(Bool.self, forKey: .isMetricsEnabled) ?? true
+        self.isCrashLoggingEnabled = try container.decodeIfPresent(Bool.self, forKey: .isCrashLoggingEnabled) ?? true
+        self.sentryDsn = try container.decodeIfPresent(CGSentryDSN.self, forKey: .sentryDsn) ?? CGSentryDSN()
     }
     
     required public init() {
@@ -89,6 +101,11 @@ public class CGIosSafeArea: Codable {
     public var bottomHeight: Int? = CustomerGlu.bottomSafeAreaHeight
     public var topColor: String? = CustomerGlu.topSafeAreaColor.hexString
     public var topHeight: Int? = CustomerGlu.topSafeAreaHeight
+    public var darkTopColor: String? = CustomerGlu.topSafeAreaColor.hexString
+    public var lightTopColor: String? = CustomerGlu.topSafeAreaColor.hexString
+    public var lightBottomColor: String? = CustomerGlu.bottomSafeAreaColor.hexString
+    public var darkBottomColor: String? = CustomerGlu.bottomSafeAreaColor
+        .hexString
     
     required public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -96,6 +113,10 @@ public class CGIosSafeArea: Codable {
         self.bottomHeight = try container.decodeIfPresent(Int.self, forKey: .bottomHeight) ?? CustomerGlu.bottomSafeAreaHeight
         self.topColor = try container.decodeIfPresent(String.self, forKey: .topColor) ?? CustomerGlu.topSafeAreaColor.hexString
         self.topHeight = try container.decodeIfPresent(Int.self, forKey: .topHeight) ?? CustomerGlu.topSafeAreaHeight
+        self.darkTopColor = try container.decodeIfPresent(String.self, forKey: .darkTopColor) ?? ""
+        self.lightTopColor = try container.decodeIfPresent(String.self, forKey: .lightTopColor) ?? ""
+        self.lightBottomColor = try container.decodeIfPresent(String.self, forKey: .lightBottomColor) ?? ""
+        self.darkBottomColor = try container.decodeIfPresent(String.self, forKey: .darkBottomColor) ?? ""
     }
     
     required public init() {
@@ -130,6 +151,27 @@ public class CGLoaderURLs: Codable {
     
     required public init() {
     }
+}
+
+public class CGSentryDSN: Codable {
+    
+    public var Android: String? = ""
+    public var iOS: String? = ""
+    public var ReactNative: String? = ""
+    public var Flutter: String? = ""
+    
+    required public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.Android = try container.decodeIfPresent(String.self, forKey: .Android) ?? ""
+        self.iOS = try container.decodeIfPresent(String.self, forKey: .iOS) ?? ""
+        self.Flutter = try container.decodeIfPresent(String.self, forKey: .Flutter) ?? ""
+        self.ReactNative = try container.decodeIfPresent(String.self, forKey: .ReactNative) ?? ""
+    }
+    
+    required public init(){
+        
+    }
+    
 }
 
 //public class CGWeb: Codable {

@@ -12,6 +12,8 @@ public struct CGContent: Codable{
     var openLayout : String!
     var type : String!
     var url : String!
+    var darkUrl: String!
+    var lightUrl: String!
     
     var relativeHeight : Double? = 0.0
     var absoluteHeight : Double? = 0.0
@@ -36,6 +38,14 @@ public struct CGContent: Codable{
         if(dictionary["closeOnDeepLink"] != nil){
             closeOnDeepLink = dictionary["closeOnDeepLink"] as? Bool
         }
+        if dictionary["darkUrl"] != nil {
+            darkUrl = dictionary["darkUrl"] as? String
+        }
+        
+        if dictionary["lightUrl"] != nil {
+            lightUrl = dictionary["lightUrl"] as? String
+        }
+
         
     }
     
@@ -69,6 +79,12 @@ public struct CGContent: Codable{
         }
         if closeOnDeepLink != nil{
             dictionary["closeOnDeepLink"] = closeOnDeepLink
+        }
+        if lightUrl != nil {
+            dictionary["lightUrl"] = lightUrl
+        }
+        if darkUrl != nil {
+            dictionary["darkUrl"] = darkUrl
         }
         return dictionary
     }

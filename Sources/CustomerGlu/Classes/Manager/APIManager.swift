@@ -42,7 +42,7 @@ internal class MethodandPath: Codable {
 private struct MethodNameandPath {
     static let userRegister = MethodandPath(method: "POST", path: "user/v1/user/sdk?token=true")
     static let getWalletRewards = MethodandPath(method: "GET", path: "reward/v1.1/user")
-    static let addToCart = MethodandPath(method: "POST", path: "v3/server")
+    static let addToCart = MethodandPath(method: "POST", path: "server/v4")
     static let crashReport = MethodandPath(method: "PUT", path: "api/v1/report")
     static let entryPointdata = MethodandPath(method: "GET", path: "entrypoints/v1/list?consumer=MOBILE")
     static let entrypoints_config = MethodandPath(method: "POST", path: "entrypoints/v1/config")

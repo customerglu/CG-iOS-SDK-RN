@@ -23,15 +23,15 @@ class ApplicationManager {
             return
         }
         var eventData: [String: Any] = [:]
-        String token = "";
+        var token: String? = "";
         if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
-            token = UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN)
+            token = UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) as! String ?? ""
             eventData["token"] = token
         }else{
             eventData["token"] = token
 
         }
-        CGEventsDiagnosticsHelper.instance.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_LOAD_CAMPAIGN_START, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_LOAD_CAMPAIGN_START, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
         APIManager.getWalletRewards(queryParameters: [:]) { result in
             switch result {
             case .success(let response):
@@ -42,7 +42,7 @@ class ApplicationManager {
                 completion(false, nil)
             }
         }
-        CGEventsDiagnosticsHelper.instance.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_LOAD_CAMPAIGN_END, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_LOAD_CAMPAIGN_END, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
     }
     
     public static func loadAllCampaignsApi(type: String, value: String, loadByparams: NSDictionary, completion: @escaping (Bool, CGCampaignsModel?) -> Void) {
@@ -133,9 +133,8 @@ class ApplicationManager {
         let systemName = UIDevice.current.systemName
         let systemVersion = UIDevice.current.systemVersion
         let osName = UIDevice.current.systemName
-        let udid = UIDevice.current.identifierForVendor?.uuidString
+        let udid = UUID().uuidString
         let timestamp = Date.currentTimeStamp
-        let timezone = TimeZone.current.abbreviation()!
         let eventId = UUID().uuidString
         
         
@@ -148,7 +147,8 @@ class ApplicationManager {
         params["session_time"] = timestamp
         params["timestamp"] = timestamp
         params["type"] = "SYSTEM"
-        params["user_id"] = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_USERID) ?? ""
+        params["user_id"] = UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_USERID)  ?? ""
+        
         
         var platformDetails: [String: Any] = [:]
         platformDetails["manufacturer"] = "Apple"
