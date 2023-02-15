@@ -21,6 +21,10 @@ class FloatingButtonController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardDidShow(note:)), name: UIResponder.keyboardDidShowNotification, object: nil)
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        updateFloatingButtonImage()
+    }
+    
     private var window = FloatingButtonWindow()
     
     override func loadView() {
@@ -63,7 +67,7 @@ class FloatingButtonController: UIViewController {
             imageview.frame = CGRect(x: midX - (finalWidth / 2), y: midY - (finalHeight / 2), width: finalWidth, height: finalHeight)
         }
         
-        imageview.downloadImage(urlString: (floatInfo?.mobile.content[0].url)!)
+     
         imageview.contentMode = .scaleToFill
         imageview.clipsToBounds = true
         imageview.backgroundColor = UIColor.clear
@@ -94,6 +98,7 @@ class FloatingButtonController: UIViewController {
         dismisview.isHidden = true
         view.addSubview(dismisview)
         
+        updateFloatingButtonImage()
         let lable = UILabel(frame: CGRect(x: 0.0, y: ((dismisview.frame.size.height) / 2), width: dismisview.frame.size.width, height: 20.0))
         lable.text = "Drag here to dismiss"
         lable.textColor = UIColor.white
@@ -127,6 +132,7 @@ class FloatingButtonController: UIViewController {
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        updateFloatingButtonImage()
     }
     
     public func dismissFloatingButton(is_remove: Bool){
@@ -143,6 +149,12 @@ class FloatingButtonController: UIViewController {
                 window.dismiss()
             }
         }
+    }
+    
+    func updateFloatingButtonImage(){
+        let urlStr = (floatInfo?.mobile.content[0].darkUrl == nil || floatInfo?.mobile.content[0].lightUrl == nil) ? floatInfo?.mobile.content[0].url : (CustomerGlu.getInstance.isDarkModeEnabled() ? floatInfo?.mobile.content[0].darkUrl : floatInfo?.mobile.content[0].lightUrl)
+         
+         imageview.downloadImage(urlString: (urlStr)!)
     }
     
     @objc func draggedView(_ sender: UIPanGestureRecognizer) {

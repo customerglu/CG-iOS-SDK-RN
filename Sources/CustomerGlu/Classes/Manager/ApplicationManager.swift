@@ -6,12 +6,14 @@
 //
 
 import Foundation
+import UIKit
 
 class ApplicationManager {
     public static var baseUrl = "api.customerglu.com/"
     public static var devbaseUrl = "dev-api.customerglu.com/"
     public static var streamUrl = "stream.customerglu.com/"
     public static var analyticsUrl = "analytics.customerglu.com/"
+    public static var diagnosticUrl = "diagnostics.customerglu.com/"
     public static var accessToken: String?
     public static var operationQueue = OperationQueue()
     public static var appSessionId = UUID().uuidString
@@ -20,6 +22,16 @@ class ApplicationManager {
         if CustomerGlu.sdk_disable! == true {
             return
         }
+        var eventData: [String: Any] = [:]
+        var token: String? = "";
+        if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
+            token = UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) as! String ?? ""
+            eventData["token"] = token
+        }else{
+            eventData["token"] = token
+
+        }
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_LOAD_CAMPAIGN_START, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
         APIManager.getWalletRewards(queryParameters: [:]) { result in
             switch result {
             case .success(let response):
@@ -30,6 +42,7 @@ class ApplicationManager {
                 completion(false, nil)
             }
         }
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_LOAD_CAMPAIGN_END, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
     }
     
     public static func loadAllCampaignsApi(type: String, value: String, loadByparams: NSDictionary, completion: @escaping (Bool, CGCampaignsModel?) -> Void) {
@@ -111,6 +124,48 @@ class ApplicationManager {
                 CustomerGlu.getInstance.printlog(cglog: "crashReport API fail", isException: false, methodName: "ApplicationManager-callCrashReport", posttoserver: false)
             }
         }
+    }
+    
+    public static func sendEventsDiagnostics(eventLogType: String,eventName: String,eventMeta:[String:Any],completion: @escaping(Bool, CGAddCartModel?) -> Void){
+        var params: [String: Any] = [:]
+        
+        let deviceModel = UIDevice.current.model
+        let systemName = UIDevice.current.systemName
+        let systemVersion = UIDevice.current.systemVersion
+        let osName = UIDevice.current.systemName
+        let udid = UUID().uuidString
+        let timestamp = Date.currentTimeStamp
+        let eventId = UUID().uuidString
+        
+        
+        // Other fields in the Analytics
+        params["analytics_version"] = "4.0.0"
+        params["event_id"] = eventId
+        params["event_name"] = eventName
+        params["log_type"] = eventLogType
+        params["sdk_version"] = CustomerGlu.sdk_version
+        params["session_time"] = timestamp
+        params["timestamp"] = timestamp
+        params["type"] = "SYSTEM"
+        params["user_id"] = UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_USERID)  ?? ""
+        
+        
+        var platformDetails: [String: Any] = [:]
+        platformDetails["manufacturer"] = "Apple"
+        platformDetails["model"] = deviceModel
+        platformDetails["os"] = "iOS"
+        platformDetails["os_version"] = systemVersion
+        params["platformDetails"] = platformDetails
+        
+        APIManager.sendEventsDiagnostics(queryParameters:params as NSDictionary, completion:{ result in
+            switch(result) {
+            case .success(let response):
+                completion(true, response)
+            case .failure(let error):
+                CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "ApplicationManager-crashReport", posttoserver: false)
+                completion(false, nil)
+            }
+        })
     }
     
     private static func crashReport(parameters: NSDictionary, completion: @escaping (Bool, CGAddCartModel?) -> Void) {

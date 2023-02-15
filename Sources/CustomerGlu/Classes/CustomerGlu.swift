@@ -43,6 +43,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     // Singleton Instance
     @objc public static var getInstance = CustomerGlu()
     public static var sdk_disable: Bool? = false
+    public static var sentryDSN: String = CGConstants.CGSENTRYDSN
+    public static var isDiagnosticsEnabled: Bool? = false
+    public static var isMetricsEnabled: Bool? = true
+    public static var isCrashLogsEnabled: Bool? = true
     public static var sentry_enable: Bool? = false
     public static var enableDarkMode: Bool? = false
     public static var listenToSystemDarkMode: Bool? = false
@@ -58,6 +62,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     @objc public static var bottomSafeAreaHeight = 34
     @objc public static var topSafeAreaColor = UIColor.white
     @objc public static var bottomSafeAreaColor = UIColor.white
+    @objc public static var topSafeAreaColorLight = UIColor.white
+    @objc public static var topSafeAreaColorDark = UIColor.black
+    @objc public static var bottomSafeAreaColorDark = UIColor.black
+    @objc public static var bottomSafeAreaColorLight = UIColor.white
     public static var entryPointdata: [CGData] = []
     @objc public static var isDebugingEnabled = false
     @objc public static var isEntryPointEnabled = false
@@ -159,10 +167,16 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func disableGluSdk(disable: Bool) {
+        var eventData: [String: Any] = [:]
+        eventData["disableGluSdk"] = disable
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_DISABLE_SDK_CALLED, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData )
         CustomerGlu.sdk_disable = disable
     }
     
     @objc public func enableDarkMode(isDarkModeEnabled: Bool){
+        var eventData: [String: Any] = [:]
+        eventData["enableDarkMode"] = isDarkModeEnabled
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_SET_DARK_MODE_CALLED, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData )
         CustomerGlu.enableDarkMode = isDarkModeEnabled
     }
     
@@ -171,6 +185,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func listenToDarkMode(allowToListenDarkMode: Bool){
+        var eventData: [String: Any] = [:]
+        eventData["listenToDarkMode"] = listenToDarkMode
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_LISTEN_SYSTEM_DARK_MODE_CALLED, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData )
         CustomerGlu.listenToSystemDarkMode = allowToListenDarkMode
     }
     
@@ -183,6 +200,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func configureLoaderColour(color: [UIColor]) {
+        var eventData: [String: Any] = [:]
+        eventData["loaderColor"] = color
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_LOADER_COLOR_CALLED, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData )
         CustomerGlu.arrColor = color
     }
     @objc public func configureLoadingScreenColor(color: UIColor) {
@@ -277,6 +297,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func enableAnalyticsEvent(event: Bool) {
+        var eventData: [String: Any] = [:]
+        eventData["enableAnalyticsEvent"] = event
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_ENABLE_ANALYTICS_CALLED, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData )
         CustomerGlu.analyticsEvent = event
     }
     
@@ -332,6 +355,18 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 }
             }
         }
+    }
+    
+    @objc public func setCrashLoggingEnabled(isCrashLoggingEnabled: Bool){
+        CustomerGlu.isCrashLogsEnabled = isCrashLoggingEnabled
+    }
+    
+    @objc public func setMetricsLoggingEnabled(isMetricsLoggingEnabled: Bool){
+        CustomerGlu.isMetricsEnabled = isMetricsLoggingEnabled
+    }
+    
+    @objc public func setDiagnosticsEnabled(isDiagnosticsEnabled: Bool){
+        CustomerGlu.isDiagnosticsEnabled = isDiagnosticsEnabled
     }
     
     @objc public func cgapplication(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], backgroundAlpha: Double = 0.5,auto_close_webview : Bool = CustomerGlu.auto_close_webview!, fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
@@ -497,6 +532,24 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func clearGluData() {
+        var eventData: [String: Any] = [:]
+        
+        // Needs to be deleted. Just for reference.
+        let writekey = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String ?? ""
+        if !(writekey.isEmpty){
+            eventData["writeKeyPresent"] = "true"
+
+        }else {
+            eventData["writeKeyPresent"] = "false"
+        }
+        if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
+
+        eventData["userRegistered"] = "true"
+        }else{
+            eventData["userRegistered"] = "false"
+
+        }
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_CLEAR_GLU_DATA_CALLED, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData )
         dismissFloatingButtons(is_remove: true)
         self.arrFloatingButton.removeAll()
         popupDict.removeAll()
@@ -522,6 +575,29 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     // MARK: - API Calls Methods
     
     @objc public func initializeSdk() {
+        //  ExampleEvents
+        var eventData: [String: Any] = [:]
+        
+        // Needs to be deleted. Just for reference.
+        let writekey = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String ?? ""
+        if !(writekey.isEmpty)
+        {
+            eventData["writeKeyPresent"] = "true"
+
+        }else {
+        eventData["writeKeyPresent"] = "fasle"
+        }
+        if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
+
+        eventData["userRegistered"] = "true"
+        }else{
+            eventData["userRegistered"] = "false"
+
+        }
+
+        
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_INIT_START, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData )
+       
         self.getAppConfig { result in
             
         }
@@ -551,12 +627,29 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     func updatedAllConfigParam() -> Void{
         if(self.appconfigdata != nil)
         {
+            
             if(self.appconfigdata!.disableSdk != nil){
                 CustomerGlu.getInstance.disableGluSdk(disable: (self.appconfigdata!.disableSdk ?? CustomerGlu.sdk_disable)!)
             }
             
+            if self.appconfigdata!.isCrashLoggingEnabled != nil {
+                CustomerGlu.getInstance.setCrashLoggingEnabled(isCrashLoggingEnabled: (self.appconfigdata?.isCrashLoggingEnabled ?? CustomerGlu.isCrashLogsEnabled)!)
+            }
+            
+            if self.appconfigdata?.isDiagnosticsEnabled != nil {
+                CustomerGlu.getInstance.setDiagnosticsEnabled(isDiagnosticsEnabled: (self.appconfigdata?.isDiagnosticsEnabled ?? CustomerGlu.isDiagnosticsEnabled)!)
+            }
+            
+            if self.appconfigdata?.isMetricsEnabled != nil {
+                CustomerGlu.getInstance.setMetricsLoggingEnabled(isMetricsLoggingEnabled: (self.appconfigdata?.isMetricsEnabled ?? CustomerGlu.isMetricsEnabled)!)
+            }
+            
             if(self.appconfigdata!.enableAnalytics != nil){
                 CustomerGlu.getInstance.enableAnalyticsEvent(event: (self.appconfigdata!.enableAnalytics ?? CustomerGlu.analyticsEvent)!)
+            }
+            
+            if let appconfigdata = self.appconfigdata, let sentrySecretData = appconfigdata.sentryDsn, let iOSSentryKey = sentrySecretData.iOS {
+                CustomerGlu.sentryDSN = iOSSentryKey
             }
             
             if self.appconfigdata!.enableSentry != nil  {
@@ -582,7 +675,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             
             if(self.appconfigdata!.iosSafeArea != nil){
                 
-                CustomerGlu.getInstance.configureSafeArea(topHeight: Int(self.appconfigdata!.iosSafeArea?.topHeight ?? CustomerGlu.topSafeAreaHeight) , bottomHeight: Int(self.appconfigdata!.iosSafeArea?.bottomHeight ?? CustomerGlu.bottomSafeAreaHeight) , topSafeAreaColor: UIColor(hex: self.appconfigdata!.iosSafeArea?.topColor ?? CustomerGlu.topSafeAreaColor.hexString) ?? CustomerGlu.topSafeAreaColor, bottomSafeAreaColor: UIColor(hex: self.appconfigdata!.iosSafeArea?.bottomColor ?? CustomerGlu.bottomSafeAreaColor.hexString) ?? CustomerGlu.bottomSafeAreaColor)
+                CustomerGlu.getInstance.configureSafeArea(topHeight: Int(self.appconfigdata!.iosSafeArea?.topHeight ?? CustomerGlu.topSafeAreaHeight), bottomHeight: Int(self.appconfigdata!.iosSafeArea?.bottomHeight ?? CustomerGlu.bottomSafeAreaHeight), topSafeAreaLightColor: UIColor(hex: self.appconfigdata!.iosSafeArea?.lightTopColor ?? CustomerGlu.topSafeAreaColor.hexString) ?? CustomerGlu.topSafeAreaColor, bottomSafeAreaLightColor: UIColor(hex: self.appconfigdata!.iosSafeArea?.lightBottomColor ?? CustomerGlu.bottomSafeAreaColor.hexString) ?? CustomerGlu.bottomSafeAreaColor, topSafeAreaDarkColor:  UIColor(hex: self.appconfigdata!.iosSafeArea?.darkTopColor ?? CustomerGlu.topSafeAreaColor.hexString) ?? CustomerGlu.topSafeAreaColor, bottomSafeAreaDarkColor: UIColor(hex: self.appconfigdata!.iosSafeArea?.darkBottomColor ?? CustomerGlu.bottomSafeAreaColor.hexString) ?? CustomerGlu.bottomSafeAreaColor)
+                
+                
             }
             
             if(self.appconfigdata!.loadScreenColor != nil){
@@ -636,6 +731,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             completion(false)
             return
         }
+        var eventData: [String: Any] = [:]
+        eventData["registerObject"] = userdata
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_USER_REGISTRATION_START, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData )
         var userData = userdata
         if let uuid = UIDevice.current.identifierForVendor?.uuidString {
             if(true == CustomerGlu.isDebugingEnabled){
@@ -758,6 +856,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 completion(false)
             }
         }
+        eventData = [:]
+        eventData["registerObject"] = userdata
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_USER_REGISTRATION_END, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
     }
     
     @objc public func updateProfile(userdata: [String: AnyHashable], completion: @escaping (Bool) -> Void) {
@@ -881,6 +982,16 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             CustomerGlu.embedsHeight = [String:Any]()
             return
         }
+        var eventData: [String: Any] = [:]
+        var token: String? = "";
+        if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
+            token = UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) as? String ?? ""
+            eventData["token"] = token
+        }else{
+            eventData["token"] = token
+
+        }
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_GET_ENTRY_POINT_START, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
         CustomerGlu.bannersHeight = nil
         CustomerGlu.embedsHeight = nil
         APIManager.getEntryPointdata(queryParameters: [:]) { [self] result in
@@ -907,6 +1018,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-getEntryPointData", posttoserver: true)
             }
         }
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_GET_ENTRY_POINT_START, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
     }
     
     private func entryPointInfoAddDelete(entryPoint: [CGData]) {
@@ -1058,7 +1170,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     @objc public func openNudge(nudgeId: String, nudgeConfiguration: CGNudgeConfiguration? = nil, layout: String = "full-default", bg_opacity: Double = 0.5, closeOnDeeplink : Bool = CustomerGlu.auto_close_webview!) {
         
-        
+        var eventData: [String: Any] = [:]
+        eventData["nudgeId"] = nudgeId
+        eventData["nudgeConfiguration"] = nudgeConfiguration
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_OPEN_NUDGE_CALLED, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
         if ApplicationManager.doValidateToken() == true {
             openNudgeWithValidToken(nudgeId: nudgeId, layout: layout, bg_opacity: bg_opacity, closeOnDeeplink: closeOnDeeplink,nudgeConfiguration: nudgeConfiguration)
         } else {
@@ -1224,11 +1339,17 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     @objc public func openWallet(nudgeConfiguration: CGNudgeConfiguration) {
+        var eventData: [String: Any] = [:]
+        eventData["nudgeConfiguration"] = nudgeConfiguration
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_OPEN_WALLET_CALLED, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
         CustomerGlu.getInstance.loadCampaignById(campaign_id: CGConstants.CGOPENWALLET, nudgeConfiguration:nudgeConfiguration)
         
     }
     
     @objc public func openWallet(auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
+        var eventData: [String: Any] = [:]
+        eventData["auto_close_webview"] = auto_close_webview
+        CGEventsDiagnosticsHelper.shared .sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_OPEN_WALLET_CALLED, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
         CustomerGlu.getInstance.loadCampaignById(campaign_id: CGConstants.CGOPENWALLET, auto_close_webview: auto_close_webview)
     }
     
@@ -1256,7 +1377,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call loadCampaignById", isException: false, methodName: "CustomerGlu-loadCampaignById", posttoserver: true)
             return
         }
-        
+        var eventData: [String: Any] = [:]
+        eventData["nudgeConfiguration"] = nudgeConfiguration
+        eventData["campaign_id"] = campaign_id
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_LOAD_CAMPAIGN_BY_ID_CALLED, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
         DispatchQueue.main.async {
             let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
             guard let topController = UIViewController.topViewController() else {
@@ -1369,7 +1493,16 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call sendEventData", isException: false, methodName: "CustomerGlu-sendEventData-1", posttoserver: true)
             return
         }
-        
+        var eventData: [String: Any] = [:]
+        var token: String? = "";
+        if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
+            token = UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) as! String
+            eventData["token"] = token
+        }else{
+            eventData["token"] = token
+
+        }
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_SEND_EVENT_START, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
         ApplicationManager.sendEventData(eventName: eventName, eventProperties: eventProperties) { success, addCartModel in
             if success {
                 if(true == CustomerGlu.isDebugingEnabled){
@@ -1379,13 +1512,40 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 CustomerGlu.getInstance.printlog(cglog: "Fail to call sendEventData", isException: false, methodName: "CustomerGlu-sendEventData-2", posttoserver: true)
             }
         }
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_SEND_EVENT_END, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
     }
     
+    @available(*, deprecated,message:"Use configureSafeArea with Light and Dark mode support")
     @objc public func configureSafeArea(topHeight: Int, bottomHeight: Int, topSafeAreaColor: UIColor, bottomSafeAreaColor: UIColor) {
+        var eventData: [String: Any] = [:]
+        eventData["topHeight"] = topHeight
+        eventData["bottomHeight"] = bottomHeight
+        eventData["topSafeAreaColor"] = topSafeAreaColor
+        eventData["bottomSafeAreaColor"] = bottomSafeAreaColor
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_CONFIGURE_SAFE_AREA_CALLED, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
         CustomerGlu.topSafeAreaHeight = topHeight
         CustomerGlu.bottomSafeAreaHeight = bottomHeight
         CustomerGlu.topSafeAreaColor = topSafeAreaColor
         CustomerGlu.bottomSafeAreaColor = bottomSafeAreaColor
+    }
+    
+    @objc public func configureSafeArea(topHeight: Int, bottomHeight: Int, topSafeAreaLightColor: UIColor, bottomSafeAreaLightColor: UIColor, topSafeAreaDarkColor: UIColor, bottomSafeAreaDarkColor: UIColor) {
+        var eventData: [String: Any] = [:]
+        eventData["topHeight"] = topHeight
+        eventData["bottomHeight"] = bottomHeight
+        eventData["topSafeAreaLightColor"] = topSafeAreaLightColor
+        eventData["bottomSafeAreaLightColor"] = bottomSafeAreaLightColor
+        eventData["topSafeAreaDarkColor"] = topSafeAreaDarkColor
+        eventData["bottomSafeAreaDarkColor"] = bottomSafeAreaDarkColor
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_CONFIGURE_SAFE_AREA_CALLED, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
+        CustomerGlu.topSafeAreaHeight = topHeight
+        CustomerGlu.bottomSafeAreaHeight = bottomHeight
+        
+        CustomerGlu.topSafeAreaColorLight = topSafeAreaLightColor
+        CustomerGlu.bottomSafeAreaColorLight = bottomSafeAreaLightColor
+        
+        CustomerGlu.topSafeAreaColorDark = topSafeAreaDarkColor
+        CustomerGlu.bottomSafeAreaColorDark = bottomSafeAreaDarkColor
     }
     
     private func addFloatingButton(btnInfo: CGData) {
