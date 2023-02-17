@@ -62,6 +62,18 @@ private struct BaseUrls {
     static let analyticsUrl = ApplicationManager.analyticsUrl
 }
 
+// MARK: - CGRequestData
+private struct CGRequestData {
+    var baseurl: String
+    var methodandpath: MethodandPath
+    var parametersDict: NSDictionary
+    var dispatchGroup:DispatchGroup = DispatchGroup()
+}
+
+private struct CGAPIConstant {
+    static let maxRetries: Int = 3
+}
+
 // Class contain Helper Methods Used in Overall Application Related to API Calls
 class APIManager {
     
@@ -72,6 +84,10 @@ class APIManager {
     
     // Singleton Instance
     static let shared = APIManager()
+    
+    private static func registrationPerformRequest(requestData: CGRequestData, completion: @escaping (Result<CGRegistrationModel, Error>) -> Void) {
+        performRequest(baseurl: requestData.baseurl, methodandpath: requestData.methodandpath, parametersDict: requestData.parametersDict, completion: completion)
+    }
     
     private static func performRequest<T: Decodable>(baseurl: String, methodandpath: MethodandPath, parametersDict: NSDictionary?,dispatchGroup:DispatchGroup = DispatchGroup() ,completion: @escaping (Result<T, Error>) -> Void) {
         
@@ -147,11 +163,11 @@ class APIManager {
                 JSON?.printJson()
                 let cleanedJSON = cleanJSON(json: JSON!, isReturn: true)
                 dictToObject(dict: cleanedJSON, type: T.self, completion: completion)
-            } catch let error as NSError {
+            } catch let error {
                 if(true == CustomerGlu.isDebugingEnabled){
                     print(error)
                 }
-                
+                completion(.failure(error))
             }
         }
         task.resume()
@@ -169,7 +185,24 @@ class APIManager {
         // Added Task into Queue
         blockOperation.addExecutionBlock {
             // Call Login API with API Router
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.userRegister, parametersDict: queryParameters, completion: completion)
+            var retriesCount = CGAPIConstant.maxRetries
+            let block: (Result<CGRegistrationModel, Error>) -> Void = { result in
+                switch result {
+                case .success(let response):
+                    completion(.success(response))
+                case .failure(let error):
+                    retriesCount = retriesCount - 1
+                    if retriesCount > 1 {
+                        APIManager.userRegister(queryParameters: queryParameters, completion: completion)
+                    } else {
+                        completion(.failure(error))
+                    }
+                }
+            }
+                        
+            registrationPerformRequest(requestData: CGRequestData(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.userRegister, parametersDict: queryParameters), completion: block)
+            
+//            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.userRegister, parametersDict: queryParameters, completion: completion)
         }
         
         // Add dependency to finish previus task before starting new one
@@ -408,7 +441,6 @@ class APIManager {
             // Decode data to model object
             let jsonDecoder = JSONDecoder()
             let object = try jsonDecoder.decode(type, from: jsonData)
-            
             // response with model object
             completion(.success(object))
         } catch let error { // response with error
