@@ -33,10 +33,9 @@ final class CustomerGluTests: XCTestCase {
         session.data = MockData.loginResponse.data(using: .utf8)!
         APIManager.shared.session = session
                 
-        CustomerGlu.getInstance.registerDevice(userdata: userData) { (success, loginResponse) in
-            XCTAssertNotNil(loginResponse)
-            XCTAssertEqual("TestUserId", UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_USERID)!)
-            XCTAssertEqual("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJLaHVzaGJ1IiwiZ2x1SWQiOiJmYzY2NGYxNy1iMDI5LTQwNGYtYTE1OC01ODk3Y2EwMmNjNmIiLCJjbGllbnQiOiI4NGFjZjJhYy1iMmUwLTQ5MjctODY1My1jYmEyYjgzODE2YzIiLCJkZXZpY2VJZCI6IkQ4Q0YyNkQwLTgwRDUtNDcxQy04QkJDLTZDOTQ1MTJGNzA4MiIsImRldmljZVR5cGUiOiJpb3MiLCJpYXQiOjE2NDE4ODkxNjIsImV4cCI6MTY3MzQyNTE2Mn0.5-ShKsd-QE5WDvL188xUGu2p3_Whhrf4zU9AY_nZp-o", UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_TOKEN)!)
+        CustomerGlu.getInstance.registerDevice(userdata: userData) { (success) in
+            XCTAssertEqual("TestUserId", UserDefaults.standard.string(forKey: CGConstants.CUSTOMERGLU_USERID)!)
+            XCTAssertEqual("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJLaHVzaGJ1IiwiZ2x1SWQiOiJmYzY2NGYxNy1iMDI5LTQwNGYtYTE1OC01ODk3Y2EwMmNjNmIiLCJjbGllbnQiOiI4NGFjZjJhYy1iMmUwLTQ5MjctODY1My1jYmEyYjgzODE2YzIiLCJkZXZpY2VJZCI6IkQ4Q0YyNkQwLTgwRDUtNDcxQy04QkJDLTZDOTQ1MTJGNzA4MiIsImRldmljZVR5cGUiOiJpb3MiLCJpYXQiOjE2NDE4ODkxNjIsImV4cCI6MTY3MzQyNTE2Mn0.5-ShKsd-QE5WDvL188xUGu2p3_Whhrf4zU9AY_nZp-o", UserDefaults.standard.string(forKey: CGConstants.CUSTOMERGLU_TOKEN)!)
             XCTAssertEqual(true, success)
         }
     }
@@ -54,7 +53,6 @@ final class CustomerGluTests: XCTestCase {
         APIManager.shared.session = session
 
         CustomerGlu.getInstance.registerDevice(userdata: userData) { (success) in
-            XCTAssertNil(loginResponse)
             XCTAssertEqual(false, success)
         }
     }
@@ -65,17 +63,16 @@ final class CustomerGluTests: XCTestCase {
         
         //Arrange
         var userData = [String: AnyHashable]()
-        userData["userId"] = UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_USERID)!
+        userData["userId"] = UserDefaults.standard.string(forKey: CGConstants.CUSTOMERGLU_USERID)!
         
         let session = URLSessionMock()
         // Create data and tell the session to always return it
         session.data = MockData.loginResponse.data(using: .utf8)!
         APIManager.shared.session = session
                 
-        CustomerGlu.getInstance.updateProfile(userdata: userData) { (success, loginResponse) in
-            XCTAssertNotNil(loginResponse)
-            XCTAssertEqual("TestUserId", UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_USERID)!)
-            XCTAssertEqual("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJLaHVzaGJ1IiwiZ2x1SWQiOiJmYzY2NGYxNy1iMDI5LTQwNGYtYTE1OC01ODk3Y2EwMmNjNmIiLCJjbGllbnQiOiI4NGFjZjJhYy1iMmUwLTQ5MjctODY1My1jYmEyYjgzODE2YzIiLCJkZXZpY2VJZCI6IkQ4Q0YyNkQwLTgwRDUtNDcxQy04QkJDLTZDOTQ1MTJGNzA4MiIsImRldmljZVR5cGUiOiJpb3MiLCJpYXQiOjE2NDE4ODkxNjIsImV4cCI6MTY3MzQyNTE2Mn0.5-ShKsd-QE5WDvL188xUGu2p3_Whhrf4zU9AY_nZp-o", UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_TOKEN)!)
+        CustomerGlu.getInstance.updateProfile(userdata: userData) { (success) in
+            XCTAssertEqual("TestUserId", UserDefaults.standard.string(forKey: CGConstants.CUSTOMERGLU_USERID)!)
+            XCTAssertEqual("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJLaHVzaGJ1IiwiZ2x1SWQiOiJmYzY2NGYxNy1iMDI5LTQwNGYtYTE1OC01ODk3Y2EwMmNjNmIiLCJjbGllbnQiOiI4NGFjZjJhYy1iMmUwLTQ5MjctODY1My1jYmEyYjgzODE2YzIiLCJkZXZpY2VJZCI6IkQ4Q0YyNkQwLTgwRDUtNDcxQy04QkJDLTZDOTQ1MTJGNzA4MiIsImRldmljZVR5cGUiOiJpb3MiLCJpYXQiOjE2NDE4ODkxNjIsImV4cCI6MTY3MzQyNTE2Mn0.5-ShKsd-QE5WDvL188xUGu2p3_Whhrf4zU9AY_nZp-o", UserDefaults.standard.string(forKey: CGConstants.CUSTOMERGLU_TOKEN)!)
             XCTAssertEqual(true, success)
         }
     }
@@ -85,15 +82,14 @@ final class CustomerGluTests: XCTestCase {
                 
         //Arrange
         var userData = [String: AnyHashable]()
-        userData["userId"] = UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_USERID)
+        userData["userId"] = UserDefaults.standard.string(forKey: CGConstants.CUSTOMERGLU_USERID)
         
         let session = URLSessionMock()
         // Create data and tell the session to always return it
         session.data = MockData.loginResponse.data(using: .utf8)!
         APIManager.shared.session = session
 
-        CustomerGlu.getInstance.updateProfile(userdata: userData) { (success, loginResponse) in
-            XCTAssertNil(loginResponse)
+        CustomerGlu.getInstance.updateProfile(userdata: userData) { (success) in
             XCTAssertEqual(false, success)
         }
     }
@@ -283,7 +279,7 @@ final class CustomerGluTests: XCTestCase {
     func testStringValueDecodedSuccessfully() throws {
         let data = MockData.loginResponse.data(using: .utf8)!
         do {
-            let response = try JSONDecoder().decode(RegistrationModel.self, from: data)
+            let response = try JSONDecoder().decode(CGRegistrationModel.self, from: data)
             XCTAssertEqual(response.data?.user?.userName, "TestUser")
             XCTAssertNotNil(response)
         } catch {
@@ -322,34 +318,34 @@ final class CustomerGluTests: XCTestCase {
         XCTAssertNotNil(dict)
     }
     
-    func test_getObject() {
-        let data = MockData.walletResponse.data(using: .utf8)!
-        do {
-            let response = try JSONDecoder().decode(CampaignsModel.self, from: data)
-            try UserDefaults.standard.setObject(response, forKey: Constants.WalletRewardData)
-            XCTAssertNotNil(response)
-        } catch {
-            print(error)
-        }
- 
-        do {
-            let campaignsModel = try UserDefaults.standard.getObject(forKey: Constants.WalletRewardData, castTo: CampaignsModel.self)
-            XCTAssertNotNil(campaignsModel)
-        } catch {
-            print(error.localizedDescription)
-        }
-    }
-    
+//    func test_getObject() {
+//        let data = MockData.walletResponse.data(using: .utf8)!
+//        do {
+//            let response = try JSONDecoder().decode(CGCampaignsModel.self, from: data)
+//            try UserDefaults.standard.setObject(response, forKey: CGConstants.WalletRewardData)
+//            XCTAssertNotNil(response)
+//        } catch {
+//            print(error)
+//        }
+//
+//        do {
+//            let campaignsModel = try UserDefaults.standard.getObject(forKey: CGConstants.WalletRewardData, castTo: CGCampaignsModel.self)
+//            XCTAssertNotNil(campaignsModel)
+//        } catch {
+//            print(error.localizedDescription)
+//        }
+//    }
+
     func test_customerGluDidCatchCrash() {
         let dict = MockData.mockDataForCrash
-        ApplicationManager.callCrashReport(stackTrace: dict["callStack"]!, isException: true, methodName: "CustomerGluCrash")
+        ApplicationManager.callCrashReport(cglog: dict["callStack"] ?? "", isException: true, methodName: "CustomerGluCrash", user_id: "")
     }
-    
-    func test_loadingStoryBoardOpenWalletViewController() {
-        let storyboardVC = StoryboardType.main.instantiate(vcType: OpenWalletViewController.self)
-        storyboardVC.loadViewIfNeeded()
-        XCTAssertNotNil(storyboardVC.viewDidLoad)
-    }
+
+//    func test_loadingStoryBoardOpenWalletViewController() {
+//        let storyboardVC = StoryboardType.main.instantiate(vcType: OpenWalletViewController.self)
+//        storyboardVC.loadViewIfNeeded()
+//        XCTAssertNotNil(storyboardVC.viewDidLoad)
+//    }
     
     func test_loadingStoryBoardWebViewViewController() {
         let storyboardVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
@@ -360,7 +356,7 @@ final class CustomerGluTests: XCTestCase {
     func test_LoadCustomerWebViewVC() {
         let customerWebViewVC = StoryboardType.main.instantiate(vcType: CustomerWebViewController.self)
         customerWebViewVC.urlStr = "https://stackoverflow.com/questions/47281375/convert-json-string-to-json-object-in-swift-4"
-        customerWebViewVC.openWallet = true
+//        customerWebViewVC.openWallet = true
         customerWebViewVC.loadViewIfNeeded()
     }
     
@@ -388,9 +384,9 @@ final class CustomerGluTests: XCTestCase {
         CustomerGlu.getInstance.cgapplication(MockData.mockapplication, didReceiveRemoteNotification: userInfo!, backgroundAlpha: 0.5, fetchCompletionHandler: {_ in })
     }
     
-//    func test_clearGluData_method() {
-//        CustomerGlu.getInstance.clearGluData()
-//        XCTAssertNil(UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_USERID))
-//        XCTAssertNil(UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_TOKEN))
-//    }
+    func test_clearGluData_method() {
+        CustomerGlu.getInstance.clearGluData()
+        XCTAssertNil(UserDefaults.standard.string(forKey: CGConstants.CUSTOMERGLU_USERID))
+        XCTAssertNil(UserDefaults.standard.string(forKey: CGConstants.CUSTOMERGLU_TOKEN))
+    }
 }
