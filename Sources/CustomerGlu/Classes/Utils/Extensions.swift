@@ -228,3 +228,22 @@ extension UIColor {
         return [r, g, b, a].map { String(format: "%02lX", Int($0 * 255)) }.reduce("#", +)
     }
 }
+
+// Below link will confirm to CellIdentifierProtocol for all cells in app
+extension UITableViewCell: CellIdentifierProtocol {}
+
+// MARK: - CellIdentifierProtocol
+protocol CellIdentifierProtocol {
+    static var reuseIdentifier: String { get }
+    static var nib: String { get }
+}
+
+extension CellIdentifierProtocol where Self: UIView {
+    static var reuseIdentifier: String {
+        return String(describing: Self.self)
+    }
+    
+    static var nib: String {
+        return String(describing: Self.self)
+    }
+}
