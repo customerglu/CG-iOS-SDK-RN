@@ -33,7 +33,7 @@ final class CustomerGluTests: XCTestCase {
         session.data = MockData.loginResponse.data(using: .utf8)!
         APIManager.shared.session = session
                 
-        CustomerGlu.getInstance.registerDevice(userdata: userData, loadcampaigns: true) { (success, loginResponse) in
+        CustomerGlu.getInstance.registerDevice(userdata: userData) { (success, loginResponse) in
             XCTAssertNotNil(loginResponse)
             XCTAssertEqual("TestUserId", UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_USERID)!)
             XCTAssertEqual("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJLaHVzaGJ1IiwiZ2x1SWQiOiJmYzY2NGYxNy1iMDI5LTQwNGYtYTE1OC01ODk3Y2EwMmNjNmIiLCJjbGllbnQiOiI4NGFjZjJhYy1iMmUwLTQ5MjctODY1My1jYmEyYjgzODE2YzIiLCJkZXZpY2VJZCI6IkQ4Q0YyNkQwLTgwRDUtNDcxQy04QkJDLTZDOTQ1MTJGNzA4MiIsImRldmljZVR5cGUiOiJpb3MiLCJpYXQiOjE2NDE4ODkxNjIsImV4cCI6MTY3MzQyNTE2Mn0.5-ShKsd-QE5WDvL188xUGu2p3_Whhrf4zU9AY_nZp-o", UserDefaults.standard.string(forKey: Constants.CUSTOMERGLU_TOKEN)!)
@@ -53,7 +53,7 @@ final class CustomerGluTests: XCTestCase {
         session.data = MockData.loginResponse.data(using: .utf8)!
         APIManager.shared.session = session
 
-        CustomerGlu.getInstance.registerDevice(userdata: userData, loadcampaigns: true) { (success, loginResponse) in
+        CustomerGlu.getInstance.registerDevice(userdata: userData) { (success) in
             XCTAssertNil(loginResponse)
             XCTAssertEqual(false, success)
         }

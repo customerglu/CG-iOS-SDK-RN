@@ -9,7 +9,7 @@ import Foundation
 
 @objc(CGRegistrationModel)
 public class CGRegistrationModel: NSObject, Codable {
-          public var success: Bool?
+    public var success: Bool?
     @objc public var data: CGMyData?
 }
 

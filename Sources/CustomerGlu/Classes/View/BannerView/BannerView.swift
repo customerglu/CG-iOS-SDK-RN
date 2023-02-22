@@ -38,6 +38,8 @@ public class BannerView: UIView, UIScrollViewDelegate {
         self.reloadBannerView()
     }
     
+    
+    
     var commonBannerId: String {
         get {
             return self.bannerId ?? ""
@@ -171,7 +173,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 imageView = UIImageView(frame: CGRect(x: xOrigin, y: 0, width: screenWidth, height: CGFloat(finalHeight)))
                 imageView.isUserInteractionEnabled = true
                 imageView.tag = i
-                let urlStr = dict.url
+                let urlStr = (dict.darkUrl == nil || dict.lightUrl == nil) ? dict.url : (CustomerGlu.getInstance.isDarkModeEnabled() ? dict.darkUrl : dict.lightUrl)
                 imageView.downloadImage(urlString: urlStr!)
                 imageView.contentMode = .scaleToFill
                 self.imgScrollView.addSubview(imageView)
@@ -221,6 +223,10 @@ public class BannerView: UIView, UIScrollViewDelegate {
         self.layoutIfNeeded()
     }
     
+    public override func layoutSubviews() {
+        reloadBannerView()
+    }
+    
     @objc func moveToNextImage() {
         let imgsCount: CGFloat = CGFloat(arrContent.count)
         let pageWidth: CGFloat = self.imgScrollView.frame.width
@@ -257,46 +263,15 @@ public class BannerView: UIView, UIScrollViewDelegate {
             
             CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, nudgeConfiguration: nudgeConfiguration)
             
-            var actionTarget = ""
-            if dict.campaignId.count == 0 {
-                actionTarget = "WALLET"
-            } else if dict.campaignId.contains("http://") || dict.campaignId.contains("https://"){
-                actionTarget = "CUSTOM_URL"
-            } else {
-                actionTarget = "CAMPAIGN"
+            let bannerViews = CustomerGlu.entryPointdata.filter {
+                $0.mobile.container.type == "BANNER" && $0.mobile.container.bannerId == self.bannerId ?? ""
             }
             
-            eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: dict._id, actionType: "OPEN", actionTarget: actionTarget, pageType: dict.openLayout, campaignId: dict.campaignId)
-        }
-    }
-    
-    private func eventPublishNudge(pageName: String, nudgeId: String, actionType: String, actionTarget: String, pageType: String, campaignId: String) {
-        var eventInfo = [String: AnyHashable]()
-        eventInfo[APIParameterKey.nudgeType] = "BANNER"
-        
-        eventInfo[APIParameterKey.pageName] = pageName
-        eventInfo[APIParameterKey.nudgeId] = nudgeId
-        eventInfo[APIParameterKey.actionTarget] = actionTarget
-        eventInfo[APIParameterKey.actionType] = actionType
-        eventInfo[APIParameterKey.pageType] = pageType
-        
-        eventInfo[APIParameterKey.campaignId] = "CAMPAIGNID_NOTPRESENT"
-        if actionTarget == "CAMPAIGN" {
-            if campaignId.count > 0 {
-                if !(campaignId.contains("http://") || campaignId.contains("https://")) {
-                    eventInfo[APIParameterKey.campaignId] = campaignId
-                }
+            if bannerViews.count != 0 {
+                let name = bannerViews[0].name ?? ""
+                CustomerGlu.getInstance.postAnalyticsEventForEntryPoints(event_name: "ENTRY_POINT_CLICK", entry_point_id: dict._id, entry_point_name: name, entry_point_container: bannerViews[0].mobile.container.type, content_campaign_id: dict.url, open_container:dict.openLayout, action_c_campaign_id: dict.campaignId)
             }
-        }
-        
-        eventInfo[APIParameterKey.optionalPayload] = [String: String]() as [String: String]
-        
-        ApplicationManager.publishNudge(eventNudge: eventInfo) { success, _ in
-            if success {
-                
-            } else {
-                CustomerGlu.getInstance.printlog(cglog: "Fail to call eventPublishNudge", isException: false, methodName: "BannerView-eventPublishNudge", posttoserver: true)
-            }
+            
         }
     }
     
@@ -315,16 +290,8 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 if mobile.content.count != 0 {
                     for content in mobile.content {
                         arrContent.append(content)
-                        var actionTarget = ""
-                        if content.campaignId.count == 0 {
-                            actionTarget = "WALLET"
-                        } else if content.campaignId.contains("http://") || content.campaignId.contains("https://"){
-                            actionTarget = "CUSTOM_URL"
-                        } else {
-                            actionTarget = "CAMPAIGN"
-                        }
                         
-                        eventPublishNudge(pageName: CustomerGlu.getInstance.activescreenname, nudgeId: content._id, actionType: "LOADED", actionTarget: actionTarget, pageType: content.openLayout, campaignId: content.campaignId)
+                        CustomerGlu.getInstance.postAnalyticsEventForEntryPoints(event_name: "ENTRY_POINT_LOAD", entry_point_id: content._id, entry_point_name: bannerViews[0].name ?? "", entry_point_container: mobile.container.type, content_campaign_id: content.url, open_container:content.openLayout, action_c_campaign_id: content.campaignId)
                     }
                     loadedapicalled = true
                 }

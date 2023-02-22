@@ -9,7 +9,7 @@ import Foundation
 import UIKit
 
 public class LoadAllCampaignsViewController: UIViewController {
-        
+    
     public static let storyboardVC = StoryboardType.main.instantiate(vcType: LoadAllCampaignsViewController.self)
     public var auto_close_webview = CustomerGlu.auto_close_webview
     
@@ -17,7 +17,7 @@ public class LoadAllCampaignsViewController: UIViewController {
     @IBOutlet weak var bottomSafeArea: UIView!
     @IBOutlet weak var topHeight: NSLayoutConstraint!
     @IBOutlet weak var bottomHeight: NSLayoutConstraint!
-
+    
     @IBOutlet weak var tblRewardList: UITableView!
     var campaigns: [CGCampaigns] = []
     var bannerDefaultUrl = CustomerGlu.defaultBannerUrl
@@ -41,16 +41,22 @@ public class LoadAllCampaignsViewController: UIViewController {
         
         topHeight.constant = CGFloat(CustomerGlu.topSafeAreaHeight)
         bottomHeight.constant = CGFloat(CustomerGlu.bottomSafeAreaHeight)
-        topSafeArea.backgroundColor = CustomerGlu.topSafeAreaColor
-        bottomSafeArea.backgroundColor = CustomerGlu.bottomSafeAreaColor
+        
+        if CustomerGlu.getInstance.isDarkModeEnabled(){
+            topSafeArea.backgroundColor = CustomerGlu.topSafeAreaColorDark
+            bottomSafeArea.backgroundColor = CustomerGlu.bottomSafeAreaColorDark
+        }else {
+            topSafeArea.backgroundColor = CustomerGlu.topSafeAreaColorLight
+            bottomSafeArea.backgroundColor = CustomerGlu.bottomSafeAreaColorLight
+        }
     }
     
     public override func viewDidLoad() {
         super.viewDidLoad()
         navigationController?.setNavigationBarHidden(true, animated: false)
-
+        
         self.configureSafeAreaForDevices()
-                
+        
         if ApplicationManager.doValidateToken() == true {
             getCampaign()
         } else {
@@ -73,8 +79,8 @@ public class LoadAllCampaignsViewController: UIViewController {
         }
     }
     func getCampaign() {
-        CustomerGlu.getInstance.loaderShow(withcoordinate: self.view.frame.midX - 30, y: self.view.frame.midY - 30)
-                
+        CustomerGlu.getInstance.loaderShow(withcoordinate: self.view.frame.midX, y: self.view.frame.midY)
+        
         ApplicationManager.loadAllCampaignsApi(type: loadCampignType, value: loadCampignValue, loadByparams: loadByparams) { success, campaignsModel in
             if success {
                 CustomerGlu.getInstance.loaderHide()
@@ -109,16 +115,16 @@ extension LoadAllCampaignsViewController: UITableViewDataSource, UITableViewDele
             tblRewardList.register(UINib(nibName: TableViewID.BannerCell, bundle: .module), forCellReuseIdentifier: identifier)
             cell = tblRewardList.dequeueReusableCell(withIdentifier: identifier) as? BannerCell
         }
-
+        
         if campaigns.count != 0 {
             // Populate cell Data
             configureCell(cell: cell, indexPath: indexPath)
         }
-
+        
         cell.clipsToBounds = true
         cell.layer.cornerRadius = 12
         cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-
+        
         return cell
     }
     

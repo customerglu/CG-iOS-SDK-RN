@@ -103,9 +103,9 @@ public class CustomerGluCrash: NSObject {
         self.delegates = self.delegates.filter {
             // filter null weak delegate
             return $0.delegate != nil
-            }.filter {
-                // filter the delegate from parameter
-                return $0.delegate?.hash != delegate.hash
+        }.filter {
+            // filter the delegate from parameter
+            return $0.delegate?.hash != delegate.hash
         }
         
         if self.delegates.count == 0 {
@@ -151,11 +151,11 @@ public class CustomerGluCrash: NSObject {
         if app_old_exceptionHandler != nil {
             app_old_exceptionHandler!(exteption)
         }
-
+        
         guard CustomerGluCrash.isOpen == true else {
             return
         }
-
+        
         let callStack = exteption.callStackSymbols.joined(separator: "\r")
         let reason = exteption.reason ?? ""
         let name = exteption.name
@@ -169,7 +169,7 @@ public class CustomerGluCrash: NSObject {
                                reason: reason,
                                appinfo: jsonString!,
                                callStack: callStack)
-
+        
         for delegate in CustomerGluCrash.delegates {
             delegate.delegate?.customerGluDidCatchCrash(with: model)
         }
@@ -215,7 +215,7 @@ public class CustomerGluCrash: NSObject {
         let udid = UIDevice.current.identifierForVendor?.uuidString
         let timestamp = Date.currentTimeStamp
         let timezone = TimeZone.current.abbreviation()!
-
+        
         let dict = ["app_name": displayName, "device_name": deviceModel, "os_version": "\(systemName) \(systemVersion)", "app_version": "\(shortVersion)(\(version))", "platform": osName, "device_id": udid!, "timestamp": timestamp, "timezone": timezone] as [String: Any]
         return dict
     }
