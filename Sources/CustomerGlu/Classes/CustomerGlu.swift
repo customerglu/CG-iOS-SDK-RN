@@ -2130,4 +2130,17 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
         return ""
     }
+    
+    @objc public func openClientTesting() {
+        DispatchQueue.main.async {
+            let clientTestingVC = StoryboardType.main.instantiate(vcType: CGClientTestingViewController.self)
+            guard let topController = UIViewController.topViewController() else {
+                return
+            }
+            let navController = UINavigationController(rootViewController: clientTestingVC)
+            navController.modalPresentationStyle = .overCurrentContext
+            self.hideFloatingButtons()
+            topController.present(navController, animated: true, completion: nil)
+        }
+    }
 }

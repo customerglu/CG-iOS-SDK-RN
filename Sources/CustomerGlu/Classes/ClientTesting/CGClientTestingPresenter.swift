@@ -8,7 +8,7 @@
 import UIKit
 
 // MARK: - CGClientTestingRowItem
-enum CGClientTestingRowItem: String {
+public enum CGClientTestingRowItem: String {
     case sdkInitialised = "SDK Initialised"
     case userRegistered = "User Registered"
     case callbackHanding = "Callback Handing"
@@ -22,7 +22,7 @@ enum CGClientTestingRowItem: String {
 }
 
 // MARK: - CGClientTestingPresenter
-class CGClientTestingPresenter: NSObject {
+public class CGClientTestingPresenter: NSObject {
 
     var eventsSectionsArray: [CGClientTestingRowItem] = [.sdkInitialised, .userRegistered, .callbackHanding, .nudgeHandling, .onelinkHandling, .sendingEventsWorking, .entryPointSetup]
     var actionsSectionArray: [CGClientTestingRowItem] = [.sendNudge, .sendEvent, .triggerCallback]
