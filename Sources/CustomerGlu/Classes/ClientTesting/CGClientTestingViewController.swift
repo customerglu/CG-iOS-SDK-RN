@@ -11,7 +11,7 @@ import UIKit
 public class CGClientTestingViewController: UIViewController {
 
     // Variables
-    var presenter: CGClientTestingViewModel = CGClientTestingViewModel()
+    var viewModel: CGClientTestingViewModel = CGClientTestingViewModel()
     public static let storyboardVC = StoryboardType.main.instantiate(vcType: LoadAllCampaignsViewController.self)
 
     // UI Elements
@@ -68,11 +68,11 @@ public class CGClientTestingViewController: UIViewController {
 extension CGClientTestingViewController: UITableViewDataSource, UITableViewDelegate {
     
     public func numberOfSections(in tableView: UITableView) -> Int {
-        return presenter.numberOfSections()
+        return viewModel.numberOfSections()
     }
     
     public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return presenter.numberOfCells(forSection: section)
+        return viewModel.numberOfCells(forSection: section)
     }
     
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -107,7 +107,7 @@ extension CGClientTestingViewController: UITableViewDataSource, UITableViewDeleg
         cell.accessoryType = .none
         
         // Setup Cell
-        let rowItem = presenter.getRowItemForEventsSection(withIndexPath: indexPath)
+        let rowItem = viewModel.getRowItemForEventsSection(withIndexPath: indexPath)
         cell.setupCell(forRowItem: rowItem)
         
         return cell
@@ -132,7 +132,7 @@ extension CGClientTestingViewController: UITableViewDataSource, UITableViewDeleg
         cell.accessoryType = .none
         
         // Setup Cell
-        let rowItem = presenter.getRowItemForActionsSection(withIndexPath: indexPath)
+        let rowItem = viewModel.getRowItemForActionsSection(withIndexPath: indexPath)
         cell.setupCell(forRowItem: rowItem)
         
         return cell
