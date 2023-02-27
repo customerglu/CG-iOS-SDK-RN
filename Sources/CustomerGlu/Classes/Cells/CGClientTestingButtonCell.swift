@@ -23,7 +23,7 @@ public class CGClientTestingButtonCell: UITableViewCell {
         // Setup Theme
         setupTheme()
         
-        actionButton.setTitle(rowItem.rawValue, for: .normal)
-        actionButton.setTitle(rowItem.rawValue, for: .selected)
+        actionButton.setTitle(rowItem.getTitle(), for: .normal)
+        actionButton.setTitle(rowItem.getTitle(), for: .selected)
     }
 }

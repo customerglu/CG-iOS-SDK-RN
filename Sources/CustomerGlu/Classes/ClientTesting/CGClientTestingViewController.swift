@@ -12,7 +12,7 @@ public class CGClientTestingViewController: UIViewController {
 
     // Variables
     var viewModel: CGClientTestingViewModel = CGClientTestingViewModel()
-    public static let storyboardVC = StoryboardType.main.instantiate(vcType: LoadAllCampaignsViewController.self)
+    public static let storyboardVC = StoryboardType.main.instantiate(vcType: CGClientTestingViewController.self)
 
     // UI Elements
     @IBOutlet weak var tableView: UITableView!
@@ -27,7 +27,11 @@ public class CGClientTestingViewController: UIViewController {
 
         navigationController?.setNavigationBarHidden(true, animated: false)
         
-        self.configureSafeAreaForDevices()
+        // Configure Safe Area for Dark Mode
+        configureSafeAreaForDevices()
+        
+        // Execute the client testing steps
+        viewModel.executeClientTestingSteps()
     }
     
     public func configureSafeAreaForDevices() {
@@ -108,7 +112,7 @@ extension CGClientTestingViewController: UITableViewDataSource, UITableViewDeleg
         
         // Setup Cell
         let rowItem = viewModel.getRowItemForEventsSection(withIndexPath: indexPath)
-        cell.setupCell(forRowItem: rowItem)
+        cell.setupCell(forRowItem: rowItem, delegate: self)
         
         return cell
     }
@@ -136,5 +140,12 @@ extension CGClientTestingViewController: UITableViewDataSource, UITableViewDeleg
         cell.setupCell(forRowItem: rowItem)
         
         return cell
+    }
+}
+
+// MARK: - CGClientTestingSDKSetupEventsCellDelegate
+extension CGClientTestingViewController: CGClientTestingSDKSetupEventsCellDelegate {
+    func didTapOnAction(forEvent event: CGClientTestingRowItem) {
+        print("Check Doc")
     }
 }

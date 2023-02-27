@@ -2131,7 +2131,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         return ""
     }
     
-    @objc public func openClientTesting() {
+    @objc public func testIntegration() {
         DispatchQueue.main.async {
             let clientTestingVC = StoryboardType.main.instantiate(vcType: CGClientTestingViewController.self)
             guard let topController = UIViewController.topViewController() else {
