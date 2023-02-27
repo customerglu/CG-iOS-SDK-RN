@@ -11,7 +11,7 @@ import UIKit
 public class CGClientTestingViewController: UIViewController {
 
     // Variables
-    var presenter: CGClientTestingPresenter = CGClientTestingPresenter()
+    var presenter: CGClientTestingViewModel = CGClientTestingViewModel()
     public static let storyboardVC = StoryboardType.main.instantiate(vcType: LoadAllCampaignsViewController.self)
 
     // UI Elements

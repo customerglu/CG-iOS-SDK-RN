@@ -1,5 +1,5 @@
 //
-//  CGClientTestingPresenter.swift
+//  CGClientTestingViewModel.swift
 //  
 //
 //  Created by Ankit Jain on 22/02/23.
@@ -21,8 +21,8 @@ public enum CGClientTestingRowItem: String {
     case triggerCallback = "Trigger Callback"
 }
 
-// MARK: - CGClientTestingPresenter
-public class CGClientTestingPresenter: NSObject {
+// MARK: - CGClientTestingViewModel
+public class CGClientTestingViewModel: NSObject {
 
     var eventsSectionsArray: [CGClientTestingRowItem] = [.sdkInitialised, .userRegistered, .callbackHanding, .nudgeHandling, .onelinkHandling, .sendingEventsWorking, .entryPointSetup]
     var actionsSectionArray: [CGClientTestingRowItem] = [.sendNudge, .sendEvent, .triggerCallback]
