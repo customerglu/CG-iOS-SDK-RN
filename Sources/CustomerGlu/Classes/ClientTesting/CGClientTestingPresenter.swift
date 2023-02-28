@@ -80,7 +80,7 @@ public enum CGClientTestingRowItem {
 
 // MARK: - CGClientTestingProtocol
 public protocol CGClientTestingProtocol: NSObjectProtocol {
-    func updateTable(atIndexPath indexPath: IndexPath)
+    func updateTable(atIndexPath indexPath: IndexPath, forEvent event: CGClientTestingRowItem)
 }
 
 // MARK: - CGClientTestingViewModel
@@ -120,9 +120,9 @@ public class CGClientTestingViewModel: NSObject {
         return firstIndex
     }
     
-    private func updateTableDelegate(atIndexPath indexPath: IndexPath) {
+    private func updateTableDelegate(atIndexPath indexPath: IndexPath, forEvent event: CGClientTestingRowItem) {
         if let delegate = delegate {
-            delegate.updateTable(atIndexPath: indexPath)
+            delegate.updateTable(atIndexPath: indexPath, forEvent: event)
         }
     }
     
@@ -134,13 +134,13 @@ public class CGClientTestingViewModel: NSObject {
         
         if CustomerGlu.getInstance.appconfigdata != nil {
             eventsSectionsArray[index] = .sdkInitialised(status: .success)
-            updateTableDelegate(atIndexPath: indexPath)
+            updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
             
             // Execute next event
             executeUserRegistered()
         } else {
             eventsSectionsArray[index] = .sdkInitialised(status: .failure)
-            updateTableDelegate(atIndexPath: indexPath)
+            updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
         }
     }
     
@@ -150,13 +150,13 @@ public class CGClientTestingViewModel: NSObject {
         
         if CustomerGlu.getInstance.cgUserData.userId != nil {
             eventsSectionsArray[index] = .userRegistered(status: .success)
-            updateTableDelegate(atIndexPath: indexPath)
-            
+            updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
+
             // Execute next event
             executecallbackHanding()
         } else {
             eventsSectionsArray[index] = .userRegistered(status: .failure)
-            updateTableDelegate(atIndexPath: indexPath)
+            updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
         }
     }
     
@@ -173,16 +173,17 @@ public class CGClientTestingViewModel: NSObject {
                 DispatchQueue.main.async {
                     if (success == .DEEPLINK_URL || success == .SUCCESS) && deeplinkdata != nil {
                         self?.eventsSectionsArray[index] = .callbackHanding(status: .success)
-                        self?.updateTableDelegate(atIndexPath: indexPath)
+                        self?.updateTableDelegate(atIndexPath: indexPath, forEvent: .callbackHanding(status: .success))
+
                     } else {
                         self?.eventsSectionsArray[index] = .callbackHanding(status: .failure)
-                        self?.updateTableDelegate(atIndexPath: indexPath)
+                        self?.updateTableDelegate(atIndexPath: indexPath, forEvent: .callbackHanding(status: .failure))
                     }
                 }
             }
         } else {
             eventsSectionsArray[index] = .callbackHanding(status: .failure)
-            updateTableDelegate(atIndexPath: indexPath)
+            updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
         }
     }
     
@@ -191,7 +192,7 @@ public class CGClientTestingViewModel: NSObject {
         let indexPath = IndexPath(row: index, section: 0)
 
         eventsSectionsArray[index] = .nudgeHandling(status: .pending)
-        updateTableDelegate(atIndexPath: indexPath)
+        updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
     }
     
     private func executeOnelinkHandling() {
@@ -199,7 +200,7 @@ public class CGClientTestingViewModel: NSObject {
         let indexPath = IndexPath(row: index, section: 0)
 
         eventsSectionsArray[index] = .onelinkHandling(status: .pending)
-        updateTableDelegate(atIndexPath: indexPath)
+        updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
     }
     
     private func executeSendingEventsWorking() {
@@ -207,7 +208,7 @@ public class CGClientTestingViewModel: NSObject {
         let indexPath = IndexPath(row: index, section: 0)
 
         eventsSectionsArray[index] = .sendingEventsWorking(status: .pending)
-        updateTableDelegate(atIndexPath: indexPath)
+        updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
     }
     
     private func executeEntryPointSetup() {
@@ -215,6 +216,6 @@ public class CGClientTestingViewModel: NSObject {
         let indexPath = IndexPath(row: index, section: 0)
 
         eventsSectionsArray[index] = .entryPointSetup(status: .failure)
-        updateTableDelegate(atIndexPath: indexPath)
+        updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
     }
 }

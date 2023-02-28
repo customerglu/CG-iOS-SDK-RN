@@ -67,6 +67,17 @@ public class CGClientTestingViewController: UIViewController {
             CustomerGlu.getInstance.showFloatingButtons()
         }
     }
+    
+    func showDeeplinkAlert() {
+        let customAlert = CGCustomAlert()
+        customAlert.alertTitle = "CustomerGlu"
+        customAlert.alertMessage = "Do you see a nudge?"
+        customAlert.alertTag = 1001
+        customAlert.okButtonTitle = "Yes"
+        customAlert.cancelButtonTitle = "No"
+        customAlert.delegate = self
+        customAlert.showOnViewController(self)
+    }
 }
 
 // MARK: - UITableViewDataSource, UITableViewDelegate
@@ -153,8 +164,23 @@ extension CGClientTestingViewController: CGClientTestingSDKSetupEventsCellDelega
 
 // MARK: - CGClientTestingProtocol
 extension CGClientTestingViewController: CGClientTestingProtocol {
-    public func updateTable(atIndexPath indexPath: IndexPath) {
+    public func updateTable(atIndexPath indexPath: IndexPath, forEvent event: CGClientTestingRowItem) {
         // Whenever any event completes execution, update the table UI
         tableView.reloadRows(at: [indexPath], with: .automatic)
+        
+        if event.getTitle().caseInsensitiveCompare("Callback Handing") == .orderedSame {
+            showDeeplinkAlert()
+        }
+    }
+}
+
+// MARK: - CGCustomAlertDelegate
+extension CGClientTestingViewController: CGCustomAlertDelegate {
+    func okButtonPressed(_ alert: CGCustomAlert, alertTag: Int) {
+        
+    }
+    
+    func cancelButtonPressed(_ alert: CGCustomAlert, alertTag: Int) {
+        
     }
 }
