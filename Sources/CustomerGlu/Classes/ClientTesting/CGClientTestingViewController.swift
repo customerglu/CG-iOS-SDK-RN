@@ -26,12 +26,13 @@ public class CGClientTestingViewController: UIViewController {
         super.viewDidLoad()
 
         navigationController?.setNavigationBarHidden(true, animated: false)
+        viewModel.delegate = self
         
         // Configure Safe Area for Dark Mode
         configureSafeAreaForDevices()
         
-        // Execute the client testing steps
-        viewModel.executeClientTestingSteps()
+        // Execute the client testing
+        viewModel.executeClientTesting()
     }
     
     public func configureSafeAreaForDevices() {
@@ -147,5 +148,13 @@ extension CGClientTestingViewController: UITableViewDataSource, UITableViewDeleg
 extension CGClientTestingViewController: CGClientTestingSDKSetupEventsCellDelegate {
     func didTapOnAction(forEvent event: CGClientTestingRowItem) {
         print("Check Doc")
+    }
+}
+
+// MARK: - CGClientTestingProtocol
+extension CGClientTestingViewController: CGClientTestingProtocol {
+    public func updateTable(atIndexPath indexPath: IndexPath) {
+        // Whenever any event completes execution, update the table UI
+        tableView.reloadRows(at: [indexPath], with: .automatic)
     }
 }
