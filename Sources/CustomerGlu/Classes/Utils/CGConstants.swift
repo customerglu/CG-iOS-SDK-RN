@@ -149,6 +149,8 @@ struct APIParameterKey {
     static let pageType = "pageType"
     static let campaignId = "campaignId"
     static let activityIdList = "activityIdList"
+    static let embedIds = "embedIds"
+    static let bannerIds = "bannerIds"
     static let eventId = "eventId"
     static let optionalPayload = "optionalPayload"
     static let appSessionId = "appSessionId"
