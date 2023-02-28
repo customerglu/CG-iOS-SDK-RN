@@ -87,6 +87,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     private var configScreens = [String]()
     private var popuptimer : Timer?
     public static var whiteListedDomains = [CGConstants.default_whitelist_doamin]
+    public static var testUsers = [String]()
+    public static var activityIdList = [String]()
+    public static var bannerIds = [String]()
+    public static var embedIds = [String]()
     public static var doamincode = 404
     public static var textMsg = "Requested-page-is-not-valid"
     public static var lightLoaderURL = ""
@@ -602,6 +606,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             
         }
     }
+    
     @objc internal func getAppConfig(completion: @escaping (Bool) -> Void) {
         
         let eventInfo = [String: String]()
@@ -721,8 +726,22 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 
                 CustomerGlu.getInstance.configureDarkEmbedLoaderURL(locallottieLoaderURL: self.appconfigdata!.loaderConfig?.embedLoaderURL?.dark ?? "")
             }
+            
+            if(self.appconfigdata!.activityIdList != nil && self.appconfigdata!.activityIdList?.ios != nil){
+                CustomerGlu.getInstance.configScreens = self.appconfigdata!.activityIdList?.ios ?? []
+            }
+            if(self.appconfigdata!.testUserIds != nil ){
+                CustomerGlu.testUsers = self.appconfigdata!.testUserIds ?? []
+            }
+            if(self.appconfigdata!.bannerIds != nil && self.appconfigdata!.bannerIds?.ios != nil){
+                CustomerGlu.bannerIds = self.appconfigdata!.bannerIds?.ios ?? []
+            }
+            if(self.appconfigdata!.embedIds != nil && self.appconfigdata!.embedIds?.ios != nil){
+                CustomerGlu.embedIds = self.appconfigdata!.embedIds?.ios ?? []
+            }
         }
     }
+    
     @objc public func registerDevice(userdata: [String: AnyHashable], completion: @escaping (Bool) -> Void) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userdata[APIParameterKey.userId] == nil {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call registerDevice", isException: false, methodName: "CustomerGlu-registerDevice-1", posttoserver: true)
@@ -1655,26 +1674,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
         
         if CustomerGlu.isEntryPointEnabled {
-            if CustomerGlu.isDebugingEnabled {
-                // API Call Collect ViewController Name & Post
-                
-                if !configScreens.contains(className) {
-                    configScreens.append(className)
-                    
-                    var eventInfo = [String: AnyHashable]()
-                    eventInfo[APIParameterKey.activityIdList] = configScreens
-                    
-                    APIManager.entrypoints_config(queryParameters: eventInfo as NSDictionary) { result in
-                        switch result {
-                        case .success(let response):
-                            if(true == CustomerGlu.isDebugingEnabled){
-                                print(response)
-                            }
-                        case .failure(let error):
-                            CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-setCurrentClassName", posttoserver: true)
-                        }
-                    }
-                }
+            if !configScreens.contains(className) {
+                configScreens.append(className)
+                sendEntryPointsIdLists()
+
             }
             
             CustomerGlu.getInstance.activescreenname = className
@@ -1700,6 +1703,29 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
             
             showPopup(className: className)
+        }
+    }
+    public func sendEntryPointsIdLists()
+    {
+        let user_id = decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_USERID)
+        
+        if CustomerGlu.testUsers.contains(user_id) {
+            // API Call Collect ViewController Name & Post
+            var eventInfo = [String: AnyHashable]()
+            eventInfo[APIParameterKey.activityIdList] = configScreens
+            eventInfo[APIParameterKey.bannerIds] = CustomerGlu.bannerIds
+            eventInfo[APIParameterKey.embedIds] = CustomerGlu.embedIds
+
+            APIManager.entrypoints_config(queryParameters: eventInfo as NSDictionary) { result in
+                switch result {
+                case .success(let response):
+                    if(true == CustomerGlu.isDebugingEnabled){
+                        print(response)
+                    }
+                case .failure(let error):
+                    CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-setCurrentClassName", posttoserver: true)
+                }
+            }
         }
     }
     

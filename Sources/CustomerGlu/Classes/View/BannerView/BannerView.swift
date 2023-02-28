@@ -152,7 +152,11 @@ public class BannerView: UIView, UIScrollViewDelegate {
         let screenWidth = self.frame.size.width
         let screenHeight = UIScreen.main.bounds.height
         finalHeight = (Int(screenHeight) * height)/100
-        
+        if !CustomerGlu.bannerIds.contains(self.bannerId ?? "")
+        {
+            CustomerGlu.bannerIds.append(self.bannerId ?? "")
+            CustomerGlu.getInstance.sendEntryPointsIdLists()
+        }
         let postInfo: [String: Any] = [self.bannerId ?? "" : finalHeight]
         NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CGBANNER_FINAL_HEIGHT").rawValue), object: nil, userInfo: postInfo)
         
