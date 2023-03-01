@@ -308,6 +308,30 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         hideLoaderNShowWebview()
     }
     
+    public func handleDeeplinkEvent(withEventName eventName: String, bodyData: Data, message: WKScriptMessage) {
+        if eventName == WebViewsKey.open_deeplink {
+            let deeplink = try? JSONDecoder().decode(CGDeepLinkModel.self, from: bodyData)
+            if  let deep_link = deeplink?.data?.deepLink {
+                CustomerGlu.getInstance.printlog(cglog: String(deep_link), isException: false, methodName: "WebViewVC-WebViewsKey.open_deeplink", posttoserver: false)
+                postdata = OtherUtils.shared.convertToDictionary(text: (message.body as? String) ?? "") ?? [String:Any]()
+                self.canpost = true
+                if self.auto_close_webview == true {
+                    // Posted a notification in viewDidDisappear method
+                    if notificationHandler || iscampignId {
+                        self.closePage(animated: true,dismissaction: CGDismissAction.CTA_REDIRECT)
+                    } else {
+                        self.navigationController?.popViewController(animated: true)
+                    }
+                }else{
+                    // Post notification
+                    self.canpost = false
+                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_DEEPLINK_EVENT").rawValue), object: nil, userInfo: self.postdata)
+                    self.postdata = [String:Any]()
+                }
+            }
+        }
+    }
+    
     // receive message from wkwebview
     public func userContentController(
         _ userContentController: WKUserContentController, didReceive message: WKScriptMessage
@@ -327,27 +351,8 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 }
             }
             
-            if bodyStruct?.eventName == WebViewsKey.open_deeplink {
-                let deeplink = try? JSONDecoder().decode(CGDeepLinkModel.self, from: bodyData)
-                if  let deep_link = deeplink?.data?.deepLink {
-                    CustomerGlu.getInstance.printlog(cglog: String(deep_link), isException: false, methodName: "WebViewVC-WebViewsKey.open_deeplink", posttoserver: false)
-                    postdata = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!) ?? [String:Any]()
-                    self.canpost = true
-                    if self.auto_close_webview == true {
-                        // Posted a notification in viewDidDisappear method
-                        if notificationHandler || iscampignId {
-                            self.closePage(animated: true,dismissaction: CGDismissAction.CTA_REDIRECT)
-                        } else {
-                            self.navigationController?.popViewController(animated: true)
-                        }
-                    }else{
-                        // Post notification
-                        self.canpost = false
-                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_DEEPLINK_EVENT").rawValue), object: nil, userInfo: self.postdata)
-                        self.postdata = [String:Any]()
-                    }
-                }
-            }
+            // Moved it to below function so it is accessiable in Client testing flow
+            handleDeeplinkEvent(withEventName: bodyStruct?.eventName ?? "", bodyData: bodyData, message: message)
             
             if bodyStruct?.eventName == WebViewsKey.share {
                 let share = try? JSONDecoder().decode(CGEventShareModel.self, from: bodyData)

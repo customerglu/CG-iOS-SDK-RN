@@ -6,12 +6,14 @@
 //
 
 import UIKit
+import WebKit
 
 // MARK: - CGClientTestingStatus
 public enum CGClientTestingStatus: Int {
     case pending
     case success
     case failure
+    case retry
 }
 
 // MARK: - CGClientTestingRowItem
@@ -81,6 +83,7 @@ public enum CGClientTestingRowItem {
 // MARK: - CGClientTestingProtocol
 public protocol CGClientTestingProtocol: NSObjectProtocol {
     func updateTable(atIndexPath indexPath: IndexPath, forEvent event: CGClientTestingRowItem)
+    func showCallBackAlert()
 }
 
 // MARK: - CGClientTestingViewModel
@@ -113,11 +116,17 @@ public class CGClientTestingViewModel: NSObject {
         actionsSectionArray[indexPath.row]
     }
     
-    private func getIndexOfItem(_ item: CGClientTestingRowItem) -> Int? {
+    func getIndexOfItem(_ item: CGClientTestingRowItem) -> (index: Int?, indexPath: IndexPath?) {
         let firstIndex = eventsSectionsArray.firstIndex { event in
             event.getTitle() == item.getTitle()
         }
-        return firstIndex
+        
+        var indexPath: IndexPath?
+        if let index = firstIndex {
+            indexPath = IndexPath(row: index, section: 0)
+        }
+        
+        return (firstIndex, indexPath)
     }
     
     private func updateTableDelegate(atIndexPath indexPath: IndexPath, forEvent event: CGClientTestingRowItem) {
@@ -126,12 +135,18 @@ public class CGClientTestingViewModel: NSObject {
         }
     }
     
+    @objc private func showCallBackAlert() {
+        if let delegate = delegate {
+            delegate.showCallBackAlert()
+        }
+    }
+        
     // MARK: - Event Execution Methods
     func executeClientTesting() {
         // Execute SDKInitialised
-        guard let index = getIndexOfItem(.sdkInitialised(status: .pending)) else { return }
-        let indexPath = IndexPath(row: index, section: 0)
-        
+        let itemInfo = getIndexOfItem(.sdkInitialised(status: .pending))
+        guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+
         if CustomerGlu.getInstance.appconfigdata != nil {
             eventsSectionsArray[index] = .sdkInitialised(status: .success)
             updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
@@ -145,14 +160,14 @@ public class CGClientTestingViewModel: NSObject {
     }
     
     private func executeUserRegistered() {
-        guard let index = getIndexOfItem(.userRegistered(status: .pending)) else { return }
-        let indexPath = IndexPath(row: index, section: 0)
+        let itemInfo = getIndexOfItem(.userRegistered(status: .pending))
+        guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
         
         if CustomerGlu.getInstance.cgUserData.userId != nil {
             eventsSectionsArray[index] = .userRegistered(status: .success)
             updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
 
-            // Execute next event
+            // Execute all event
             executecallbackHanding()
         } else {
             eventsSectionsArray[index] = .userRegistered(status: .failure)
@@ -161,9 +176,53 @@ public class CGClientTestingViewModel: NSObject {
     }
     
     private func executecallbackHanding() {
-        guard let index = getIndexOfItem(.callbackHanding(status: .pending)) else { return }
-        let indexPath = IndexPath(row: index, section: 0)
+        let itemInfo = getIndexOfItem(.callbackHanding(status: .pending))
+        guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+                        
+        let webController = CustomerWebViewController()
+        let message: WKScriptMessage = WKScriptMessage()
+
+        //TODO: Ankit Jain - Below is hard coded body data
+        let eventLinkData = CGEventLinkData(deepLink: "/shop")
+        let model = CGDeepLinkModel(eventName: "OPEN_DEEPLINK", data: eventLinkData)
         
+        do {
+            let jsonData = try JSONEncoder().encode(model)
+
+            webController.handleDeeplinkEvent(withEventName: WebViewsKey.open_deeplink, bodyData: jsonData, message: message)
+
+            // just show alert - Yes show green tick - No show cross UI
+            // Add retry button next to call back, nudge and onelink
+            // Retry only for NETWORK_EXCEPTION
+            
+            eventsSectionsArray[index] = .callbackHanding(status: .pending)
+            updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
+
+            // Wait 5 seconds and than perform this action
+            perform(#selector(showCallBackAlert), with: nil, afterDelay: 5.0)
+            
+            // Parallel execute next steps
+            executeNudgeHandling()
+        } catch {
+            // nothing
+        }
+    }
+    
+    private func executeNudgeHandling() {
+        let itemInfo = getIndexOfItem(.nudgeHandling(status: .pending))
+        guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+
+        eventsSectionsArray[index] = .nudgeHandling(status: .retry)
+        updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
+        
+        // Parallel execute next steps
+        executeOnelinkHandling()
+    }
+    
+    @objc private func executeOnelinkHandling() {
+        let itemInfo = getIndexOfItem(.onelinkHandling(status: .pending))
+        guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+
         //TODO: Ankit Jain - Hard code callbackConfigurationUrl
         CustomerGlu.getInstance.appconfigdata?.callbackConfigurationUrl = "https://app1.cglu.us/u/2Jotac3J4kM55bsMX4gfV2KJnPD"
         
@@ -172,48 +231,37 @@ public class CGClientTestingViewModel: NSObject {
                 success, string, deeplinkdata in
                 DispatchQueue.main.async {
                     if (success == .DEEPLINK_URL || success == .SUCCESS) && deeplinkdata != nil {
-                        self?.eventsSectionsArray[index] = .callbackHanding(status: .success)
-                        self?.updateTableDelegate(atIndexPath: indexPath, forEvent: .callbackHanding(status: .success))
-
+                        self?.eventsSectionsArray[index] = .onelinkHandling(status: .success)
+                        self?.updateTableDelegate(atIndexPath: indexPath, forEvent: .onelinkHandling(status: .success))
                     } else {
-                        self?.eventsSectionsArray[index] = .callbackHanding(status: .failure)
-                        self?.updateTableDelegate(atIndexPath: indexPath, forEvent: .callbackHanding(status: .failure))
+                        self?.eventsSectionsArray[index] = .onelinkHandling(status: .failure)
+                        self?.updateTableDelegate(atIndexPath: indexPath, forEvent: .onelinkHandling(status: .failure))
                     }
                 }
             }
         } else {
-            eventsSectionsArray[index] = .callbackHanding(status: .failure)
+            eventsSectionsArray[index] = .onelinkHandling(status: .failure)
             updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
         }
-    }
-    
-    private func executeNudgeHandling() {
-        guard let index = getIndexOfItem(.nudgeHandling(status: .pending)) else { return }
-        let indexPath = IndexPath(row: index, section: 0)
-
-        eventsSectionsArray[index] = .nudgeHandling(status: .pending)
-        updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
-    }
-    
-    private func executeOnelinkHandling() {
-        guard let index = getIndexOfItem(.onelinkHandling(status: .pending)) else { return }
-        let indexPath = IndexPath(row: index, section: 0)
-
-        eventsSectionsArray[index] = .onelinkHandling(status: .pending)
-        updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
+        
+        // Parallel execute next steps
+        executeSendingEventsWorking()
     }
     
     private func executeSendingEventsWorking() {
-        guard let index = getIndexOfItem(.sendingEventsWorking(status: .pending)) else { return }
-        let indexPath = IndexPath(row: index, section: 0)
+        let itemInfo = getIndexOfItem(.sendingEventsWorking(status: .pending))
+        guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
 
         eventsSectionsArray[index] = .sendingEventsWorking(status: .pending)
         updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
+        
+        // Parallel execute next steps
+        executeEntryPointSetup()
     }
     
     private func executeEntryPointSetup() {
-        guard let index = getIndexOfItem(.entryPointSetup(status: .pending)) else { return }
-        let indexPath = IndexPath(row: index, section: 0)
+        let itemInfo = getIndexOfItem(.entryPointSetup(status: .pending))
+        guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
 
         eventsSectionsArray[index] = .entryPointSetup(status: .failure)
         updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])

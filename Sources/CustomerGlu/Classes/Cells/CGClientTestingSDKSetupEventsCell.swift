@@ -10,6 +10,7 @@ import UIKit
 // MARK: - CGClientTestingSDKSetupEventsCellDelegate
 protocol CGClientTestingSDKSetupEventsCellDelegate: NSObjectProtocol {
     func didTapOnAction(forEvent event: CGClientTestingRowItem)
+    func didTapRetry(forEvent event: CGClientTestingRowItem)
 }
 
 // MARK: - CGClientTestingSDKSetupEventsCell
@@ -22,6 +23,7 @@ public class CGClientTestingSDKSetupEventsCell: UITableViewCell {
     
     private weak var delegate: CGClientTestingSDKSetupEventsCellDelegate?
     private var eventItem: CGClientTestingRowItem?
+    private var isRetry: Bool = false
     
     private func setupTheme() {
         titleLabel.font = .systemFont(ofSize: 12)
@@ -31,6 +33,7 @@ public class CGClientTestingSDKSetupEventsCell: UITableViewCell {
     func setupCell(forRowItem rowItem: CGClientTestingRowItem, delegate: CGClientTestingSDKSetupEventsCellDelegate?) {
         // Setup Theme
         setupTheme()
+        self.isRetry = false
         self.delegate = delegate
         eventItem = rowItem
         titleLabel.font = .systemFont(ofSize: 12)
@@ -44,7 +47,8 @@ public class CGClientTestingSDKSetupEventsCell: UITableViewCell {
             tickImageView.image = greenTickImage
             
             titleLabel.textColor = .green
-
+            actionButton.isHidden = true
+            
         case .failure:
             tickImageView.isHidden = false
             indicatorView.isHidden = true
@@ -53,12 +57,31 @@ public class CGClientTestingSDKSetupEventsCell: UITableViewCell {
             tickImageView.image = redCrossImage
             
             titleLabel.textColor = .red
+            actionButton.isHidden = true
+            
         case .pending:
             tickImageView.isHidden = true
             indicatorView.isHidden = false
             indicatorView.startAnimating()
             
             titleLabel.textColor = .blue
+            actionButton.isHidden = true
+            
+        case .retry:
+            self.isRetry = true
+            
+            tickImageView.isHidden = false
+            indicatorView.isHidden = true
+            indicatorView.stopAnimating()
+            let redCrossImage = UIImage(named: "redCross", in: .module, compatibleWith: nil)
+            tickImageView.image = redCrossImage
+            
+            titleLabel.textColor = .red
+            
+            actionButton.setTitle("Retry", for: .normal)
+            actionButton.setTitle("Retry", for: .selected)
+            actionButton.titleLabel?.font = .systemFont(ofSize: 8, weight: .medium)
+            actionButton.isHidden = false
         }
         
         // Setting up the button
@@ -69,15 +92,21 @@ public class CGClientTestingSDKSetupEventsCell: UITableViewCell {
             actionButton.titleLabel?.font = .systemFont(ofSize: 8, weight: .medium)
             actionButton.isHidden = false
         default:
-            actionButton.isHidden = true
+            if !isRetry {
+                actionButton.isHidden = true
+            }
         }
         
         titleLabel.text = rowItem.getTitle()
     }
     
     @IBAction func didTapOnAction() {
-        if let delegate = delegate, let eventItem = eventItem {
-            delegate.didTapOnAction(forEvent: eventItem)
+        if let delegate = delegate {
+            if isRetry, let eventItem = eventItem {
+                delegate.didTapRetry(forEvent: eventItem)
+            } else if let eventItem = eventItem {
+                delegate.didTapOnAction(forEvent: eventItem)
+            }
         }
     }
 }

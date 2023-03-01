@@ -160,6 +160,10 @@ extension CGClientTestingViewController: CGClientTestingSDKSetupEventsCellDelega
     func didTapOnAction(forEvent event: CGClientTestingRowItem) {
         print("Check Doc")
     }
+    
+    func didTapRetry(forEvent event: CGClientTestingRowItem) {
+        print("Retry")
+    }
 }
 
 // MARK: - CGClientTestingProtocol
@@ -167,20 +171,28 @@ extension CGClientTestingViewController: CGClientTestingProtocol {
     public func updateTable(atIndexPath indexPath: IndexPath, forEvent event: CGClientTestingRowItem) {
         // Whenever any event completes execution, update the table UI
         tableView.reloadRows(at: [indexPath], with: .automatic)
-        
-        if event.getTitle().caseInsensitiveCompare("Callback Handing") == .orderedSame {
-            showDeeplinkAlert()
-        }
+    }
+    
+    public func showCallBackAlert() {
+        showDeeplinkAlert()
     }
 }
 
 // MARK: - CGCustomAlertDelegate
 extension CGClientTestingViewController: CGCustomAlertDelegate {
     func okButtonPressed(_ alert: CGCustomAlert, alertTag: Int) {
-        
+        let itemInfo = viewModel.getIndexOfItem(.callbackHanding(status: .pending))
+        guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+
+        viewModel.eventsSectionsArray[index] = .callbackHanding(status: .success)
+        self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
     }
     
     func cancelButtonPressed(_ alert: CGCustomAlert, alertTag: Int) {
-        
+        let itemInfo = viewModel.getIndexOfItem(.callbackHanding(status: .pending))
+        guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+
+        viewModel.eventsSectionsArray[index] = .callbackHanding(status: .failure)
+        self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
     }
 }
