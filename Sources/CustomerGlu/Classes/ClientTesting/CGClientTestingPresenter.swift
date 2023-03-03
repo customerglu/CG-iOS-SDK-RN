@@ -23,7 +23,7 @@ public enum CGClientTestingRowItem {
     case callbackHanding(status: CGClientTestingStatus)
     case nudgeHandling(status: CGClientTestingStatus)
     case onelinkHandling(status: CGClientTestingStatus)
-    case sendingEventsWorking(status: CGClientTestingStatus)
+    //case sendingEventsWorking(status: CGClientTestingStatus)
     case entryPointSetup(status: CGClientTestingStatus)
     case sendNudge
     case sendEvent
@@ -41,8 +41,8 @@ public enum CGClientTestingRowItem {
             return "Nudge Handling"
         case .onelinkHandling:
             return "Onelink Handling"
-        case .sendingEventsWorking:
-            return "Sending Events Working"
+//        case .sendingEventsWorking:
+//            return "Sending Events Working"
         case .entryPointSetup:
             return "Entry Point Setup"
         case .sendNudge:
@@ -66,8 +66,8 @@ public enum CGClientTestingRowItem {
             return status
         case .onelinkHandling(let status):
             return status
-        case .sendingEventsWorking(let status):
-            return status
+//        case .sendingEventsWorking(let status):
+//            return status
         case .entryPointSetup(let status):
             return status
         case .sendNudge:
@@ -90,7 +90,7 @@ public protocol CGClientTestingProtocol: NSObjectProtocol {
 public class CGClientTestingViewModel: NSObject {
     
     weak var delegate: CGClientTestingProtocol?
-    var eventsSectionsArray: [CGClientTestingRowItem] = [.sdkInitialised(status: .pending), .userRegistered(status: .pending), .callbackHanding(status: .pending), .nudgeHandling(status: .pending), .onelinkHandling(status: .pending), .sendingEventsWorking(status: .pending), .entryPointSetup(status: .pending)]
+    var eventsSectionsArray: [CGClientTestingRowItem] = [.sdkInitialised(status: .pending), .userRegistered(status: .pending), .callbackHanding(status: .pending), .nudgeHandling(status: .pending), .onelinkHandling(status: .pending), .entryPointSetup(status: .pending)]
     var actionsSectionArray: [CGClientTestingRowItem] = [.sendNudge]
     
     func numberOfSections() -> Int {
@@ -198,25 +198,38 @@ public class CGClientTestingViewModel: NSObject {
             eventsSectionsArray[index] = .callbackHanding(status: .pending)
             updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
 
-            // Wait 5 seconds and than perform this action
+            // Wait 5 seconds and than perform this action & Next step NudgeHandling will happen on alert response Yes or No
             perform(#selector(showCallBackAlert), with: nil, afterDelay: 5.0)
-            
-            // Parallel execute next steps
-            executeNudgeHandling()
         } catch {
             // nothing
         }
     }
     
-    private func executeNudgeHandling() {
+    func executeNudgeHandling() {
         let itemInfo = getIndexOfItem(.nudgeHandling(status: .pending))
         guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
 
-        eventsSectionsArray[index] = .nudgeHandling(status: .retry)
-        updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
+        var queryParameters: [String: Any] = [:]
+        queryParameters[APIParameterKey.userId] = "glutest-4321"
+        queryParameters["flag"] = "staging"
+        queryParameters["client"] = "84acf2ac-b2e0-4927-8653-cba2b83816c2"
         
-        // Parallel execute next steps
-        executeOnelinkHandling()
+        APIManager.nudgeIntegration(queryParameters: queryParameters as NSDictionary) {[weak self] result in
+            switch result {
+            case .success(_):
+                let event: CGClientTestingRowItem = .nudgeHandling(status: .success)
+                self?.eventsSectionsArray[index] = event
+                self?.updateTableDelegate(atIndexPath: indexPath, forEvent: event)
+                
+            case .failure(_):
+                let event: CGClientTestingRowItem = .nudgeHandling(status: .retry)
+                self?.eventsSectionsArray[index] = event
+                self?.updateTableDelegate(atIndexPath: indexPath, forEvent: event)
+            }
+            
+            // Execute next steps
+            self?.executeOnelinkHandling()
+        }
     }
     
     @objc private func executeOnelinkHandling() {
@@ -237,27 +250,30 @@ public class CGClientTestingViewModel: NSObject {
                         self?.eventsSectionsArray[index] = .onelinkHandling(status: .failure)
                         self?.updateTableDelegate(atIndexPath: indexPath, forEvent: .onelinkHandling(status: .failure))
                     }
+                    
+                    // Execute next steps
+                    self?.executeEntryPointSetup()
                 }
             }
         } else {
             eventsSectionsArray[index] = .onelinkHandling(status: .failure)
             updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
+            
+            // Execute next steps
+            executeEntryPointSetup()
         }
-        
-        // Parallel execute next steps
-        executeSendingEventsWorking()
     }
     
-    private func executeSendingEventsWorking() {
-        let itemInfo = getIndexOfItem(.sendingEventsWorking(status: .pending))
-        guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
-
-        eventsSectionsArray[index] = .sendingEventsWorking(status: .pending)
-        updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
-        
-        // Parallel execute next steps
-        executeEntryPointSetup()
-    }
+//    private func executeSendingEventsWorking() {
+//        let itemInfo = getIndexOfItem(.sendingEventsWorking(status: .pending))
+//        guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+//
+//        eventsSectionsArray[index] = .sendingEventsWorking(status: .pending)
+//        updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
+//
+//        // Parallel execute next steps
+//        executeEntryPointSetup()
+//    }
     
     private func executeEntryPointSetup() {
         let itemInfo = getIndexOfItem(.entryPointSetup(status: .pending))

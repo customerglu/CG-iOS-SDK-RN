@@ -169,8 +169,10 @@ extension CGClientTestingViewController: CGClientTestingSDKSetupEventsCellDelega
 // MARK: - CGClientTestingProtocol
 extension CGClientTestingViewController: CGClientTestingProtocol {
     public func updateTable(atIndexPath indexPath: IndexPath, forEvent event: CGClientTestingRowItem) {
-        // Whenever any event completes execution, update the table UI
-        tableView.reloadRows(at: [indexPath], with: .automatic)
+        DispatchQueue.main.async {
+            // Whenever any event completes execution, update the table UI
+            self.tableView.reloadRows(at: [indexPath], with: .automatic)
+        }
     }
     
     public func showCallBackAlert() {
@@ -186,6 +188,9 @@ extension CGClientTestingViewController: CGCustomAlertDelegate {
 
         viewModel.eventsSectionsArray[index] = .callbackHanding(status: .success)
         self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+        
+        //Execute Next Step
+        viewModel.executeNudgeHandling()
     }
     
     func cancelButtonPressed(_ alert: CGCustomAlert, alertTag: Int) {
@@ -194,5 +199,8 @@ extension CGClientTestingViewController: CGCustomAlertDelegate {
 
         viewModel.eventsSectionsArray[index] = .callbackHanding(status: .failure)
         self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+        
+        //Execute Next Step
+        viewModel.executeNudgeHandling()
     }
 }
