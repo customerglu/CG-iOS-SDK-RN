@@ -11,7 +11,7 @@ import MqttCocoaAsyncSocket
 
 //MARK: - CGMqttClientHelper
 public class CGMqttClientHelper: NSObject {
-    private var client: CocoaMQTT5?
+    private var client: CocoaMQTT?
     
     /**
      * MQTT Client can be setup using the following parameters -
@@ -24,31 +24,26 @@ public class CGMqttClientHelper: NSObject {
     public func setupMQTTClient(username: String, token: String, serverHost: String, topic: String) {
         
         let clientID = UUID().uuidString
-        client = CocoaMQTT5(clientID: clientID, host: serverHost, port: 18925)
+        client = CocoaMQTT(clientID: clientID, host: serverHost, port: 18925)
         guard let client = client else { return }
-        
-        let connectProperties = MqttConnectProperties()
-        connectProperties.topicAliasMaximum = 0
-        connectProperties.sessionExpiryInterval = 0
-        connectProperties.receiveMaximum = 100
-        connectProperties.maximumPacketSize = 500
-        client.connectProperties = connectProperties
-        client.logLevel = .debug
 
         client.username = "j5uG9wdvO1cekcMb7XugpUBwaXn1"
         client.password = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJqNXVHOXdkdk8xY2VrY01iN1h1Z3BVQndhWG4xIiwiZ2x1SWQiOiI1MjgwOTQ3Ni1hMDcyLTQwMTQtYTQ2YS0yZjNjZjU5ZmQ3NTQiLCJjbGllbnQiOiJhYjQ1YzA3YS0wZDljLTRjMjMtYTNiMC1hMTY3NThkOWJjM2IiLCJkZXZpY2VJZCI6Imo1dUc5d2R2TzFjZWtjTWI3WHVncFVCd2FYbjFfZGVmYXVsdCIsImRldmljZVR5cGUiOiJkZWZhdWx0IiwiaXNMb2dnZWRJbiI6dHJ1ZSwiaWF0IjoxNjc3NTczOTQxLCJleHAiOjE3MDkxMDk5NDF9.5DBKxfV6lnVSXnNyy-U_OZ5olRbCE0od8PXvRj9-qKQ"
-        client.willMessage = CocoaMQTT5Message(topic: "/will", string: "dieout")
+        client.autoReconnect = true
+        client.autoReconnectTimeInterval = 60
         client.keepAlive = 60
+        
+        // First Connect
         _ = client.connect()
 
-        // DidReceiveMessage
-        client.didReceiveMessage = { mqtt, message, id, publish in
+        // Than Subscribe
+        subscribeToTopic(topic: topic)
+
+        // And Listen for Message
+        client.didReceiveMessage = { mqtt, message, id in
             print("Message received in topic \(message.topic) with payload \(message.string ?? "")")
             
         }
-        
-        // Subscribe
-        subscribeToTopic(topic: topic)
     }
     
     /**
