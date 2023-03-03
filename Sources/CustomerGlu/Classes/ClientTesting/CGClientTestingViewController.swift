@@ -188,6 +188,9 @@ extension CGClientTestingViewController: CGCustomAlertDelegate {
 
         viewModel.eventsSectionsArray[index] = .callbackHanding(status: .success)
         self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+        
+        //Execute Next Step
+        viewModel.executeNudgeHandling()
     }
     
     func cancelButtonPressed(_ alert: CGCustomAlert, alertTag: Int) {
@@ -196,5 +199,8 @@ extension CGClientTestingViewController: CGCustomAlertDelegate {
 
         viewModel.eventsSectionsArray[index] = .callbackHanding(status: .failure)
         self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+        
+        //Execute Next Step
+        viewModel.executeNudgeHandling()
     }
 }
