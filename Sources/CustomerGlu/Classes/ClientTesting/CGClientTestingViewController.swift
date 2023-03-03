@@ -169,8 +169,10 @@ extension CGClientTestingViewController: CGClientTestingSDKSetupEventsCellDelega
 // MARK: - CGClientTestingProtocol
 extension CGClientTestingViewController: CGClientTestingProtocol {
     public func updateTable(atIndexPath indexPath: IndexPath, forEvent event: CGClientTestingRowItem) {
-        // Whenever any event completes execution, update the table UI
-        tableView.reloadRows(at: [indexPath], with: .automatic)
+        DispatchQueue.main.async {
+            // Whenever any event completes execution, update the table UI
+            self.tableView.reloadRows(at: [indexPath], with: .automatic)
+        }
     }
     
     public func showCallBackAlert() {

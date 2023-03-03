@@ -212,8 +212,24 @@ public class CGClientTestingViewModel: NSObject {
         let itemInfo = getIndexOfItem(.nudgeHandling(status: .pending))
         guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
 
-        eventsSectionsArray[index] = .nudgeHandling(status: .retry)
-        updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
+        var queryParameters: [String: Any] = [:]
+        queryParameters[APIParameterKey.userId] = "glutest-4321"
+        queryParameters["flag"] = "staging"
+        queryParameters["client"] = "84acf2ac-b2e0-4927-8653-cba2b83816c2"
+        
+        APIManager.nudgeIntegration(queryParameters: queryParameters as NSDictionary) {[weak self] result in
+            switch result {
+            case .success(_):
+                let event: CGClientTestingRowItem = .nudgeHandling(status: .success)
+                self?.eventsSectionsArray[index] = event
+                self?.updateTableDelegate(atIndexPath: indexPath, forEvent: event)
+                
+            case .failure(_):
+                let event: CGClientTestingRowItem = .nudgeHandling(status: .retry)
+                self?.eventsSectionsArray[index] = event
+                self?.updateTableDelegate(atIndexPath: indexPath, forEvent: event)
+            }
+        }
         
         // Parallel execute next steps
         executeOnelinkHandling()
