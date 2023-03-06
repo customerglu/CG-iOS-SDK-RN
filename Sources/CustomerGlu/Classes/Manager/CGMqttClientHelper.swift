@@ -11,6 +11,8 @@ import MqttCocoaAsyncSocket
 
 //MARK: - CGMqttClientHelper
 public class CGMqttClientHelper: NSObject {
+    static let shared = CGMqttClientHelper()
+
     private var client: CocoaMQTT?
     
     /**
@@ -21,28 +23,51 @@ public class CGMqttClientHelper: NSObject {
      * @param serverHost - MQTT broker server url
      * @param topic      - Topic to subscribe
      */
-    public func setupMQTTClient(username: String, token: String, serverHost: String, topic: String) {
-        
-        let clientID = UUID().uuidString
-        client = CocoaMQTT(clientID: clientID, host: serverHost, port: 18925)
-        guard let client = client else { return }
-
-        client.username = "j5uG9wdvO1cekcMb7XugpUBwaXn1"
-        client.password = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJqNXVHOXdkdk8xY2VrY01iN1h1Z3BVQndhWG4xIiwiZ2x1SWQiOiI1MjgwOTQ3Ni1hMDcyLTQwMTQtYTQ2YS0yZjNjZjU5ZmQ3NTQiLCJjbGllbnQiOiJhYjQ1YzA3YS0wZDljLTRjMjMtYTNiMC1hMTY3NThkOWJjM2IiLCJkZXZpY2VJZCI6Imo1dUc5d2R2TzFjZWtjTWI3WHVncFVCd2FYbjFfZGVmYXVsdCIsImRldmljZVR5cGUiOiJkZWZhdWx0IiwiaXNMb2dnZWRJbiI6dHJ1ZSwiaWF0IjoxNjc3NTczOTQxLCJleHAiOjE3MDkxMDk5NDF9.5DBKxfV6lnVSXnNyy-U_OZ5olRbCE0od8PXvRj9-qKQ"
-        client.autoReconnect = true
-        client.autoReconnectTimeInterval = 60
-        client.keepAlive = 60
-        
-        // First Connect
-        _ = client.connect()
-
-        // Than Subscribe
-        subscribeToTopic(topic: topic)
-
-        // And Listen for Message
-        client.didReceiveMessage = { mqtt, message, id in
-            print("Message received in topic \(message.topic) with payload \(message.string ?? "")")
+    public func setupMQTTClient(withSettings settings: CGMqttSettings) {
+        DispatchQueue.main.async {
+            let clientID = UUID().uuidString
+            self.client = CocoaMQTT(clientID: clientID, host: settings.serverHost, port: settings.port)
+            guard let client = self.client else { return }
             
+            client.username = settings.username
+            client.password = settings.password
+            client.autoReconnect = true
+            client.autoReconnectTimeInterval = 60
+            client.keepAlive = 60
+//            client.enableSSL = true
+//            client.allowUntrustCACertificate = true
+            client.logLevel = .debug
+            
+            client.didConnectAck = { mqtt, ack in
+                print("Did Connect Acknowledge \(ack.description)")
+            }
+            
+            client.didPublishMessage = { mqtt, message, _ in
+                print("Did Publish Message \(message.topic) with payload \(message.string ?? "")")
+            }
+            
+            // And Listen for Message
+            client.didReceiveMessage = { mqtt, message, id in
+                print("Message received in topic \(message.topic) with payload \(message.string ?? "")")
+                
+            }
+            
+            client.didSubscribeTopics = { mqtt, dict, arr in
+                print("Did Subscribe to topic \(dict) \(arr)")
+                
+            }
+            
+            client.didChangeState = { mqtt, state in
+                print("Did Change State \(state.description)")
+            }
+            
+            // First Connect
+            _ = client.connect()
+            
+            // Than Subscribe
+            self.subscribeToTopic(topic: settings.topic)
+            client.publish(settings.topic, withString: "CustomerGLU")
+            client.ping()
         }
     }
     
