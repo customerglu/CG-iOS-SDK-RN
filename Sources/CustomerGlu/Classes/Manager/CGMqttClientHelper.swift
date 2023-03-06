@@ -27,13 +27,14 @@ public class CGMqttClientHelper: NSObject {
         DispatchQueue.main.async {
             let clientID = UUID().uuidString
             var options = LightMQTT.Options()
-            options.useTLS = false
-            options.securityLevel = .none
+            options.allowUntrustCACertificate = true
+            options.useTLS = true
+            options.securityLevel = .ssLv3
             options.networkServiceType = .background
             options.username = settings.username
             options.password = settings.password
             options.clientId = clientID
-            options.pingInterval = 60
+            options.pingInterval = 30
             options.bufferSize = 4096
             options.readQosClass = .background
 
