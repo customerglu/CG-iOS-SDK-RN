@@ -26,6 +26,63 @@ public class CGMqttClientHelper: NSObject {
     public func setupMQTTClient(withSettings settings: CGMqttSettings) {
         DispatchQueue.main.async {
             let clientID = UUID().uuidString
+            var options = LightMQTT.Options()
+            options.useTLS = false
+            options.securityLevel = .none
+            options.networkServiceType = .background
+            options.username = settings.username
+            options.password = settings.password
+            options.clientId = clientID
+            options.pingInterval = 60
+            options.bufferSize = 4096
+            options.readQosClass = .background
+
+            let client = LightMQTT(host: settings.serverHost, options: options)
+
+            client.connect() { success in
+                if success {
+                    print("*** Successfully Connected ***")
+                    // use the client to subscribe to topics here
+                    client.subscribe(to: settings.topic)
+                } else {
+                    print("*** Failed to Connect ***")
+                }
+            }
+            
+            client.receivingBuffer = { (topic: String, buffer: UnsafeBufferPointer<UTF8.CodeUnit>) in
+                // parse buffer to JSON here
+                
+                DispatchQueue.main.async {
+                    print("*** receivingBuffer :: \(topic) ***")
+                }
+            }
+            
+            client.receivingMessage = { (topic: String, message: String) in
+                // parse buffer to JSON here
+                
+                DispatchQueue.main.async {
+                    print("*** receivingMessage :: \(topic) :: \(message) ***")
+                }
+            }
+            
+            client.receivingBytes = { (topic: String, _) in
+                // parse buffer to JSON here
+                
+                DispatchQueue.main.async {
+                    print("*** receivingBytes :: \(topic) ***")
+                }
+            }
+            
+            client.receivingData = { (topic: String, _) in
+                // parse buffer to JSON here
+                
+                DispatchQueue.main.async {
+                    print("*** receivingData :: \(topic) ***")
+                }
+            }
+            
+            /*
+            let clientID = UUID().uuidString
             self.client = CocoaMQTT(clientID: clientID, host: settings.serverHost, port: settings.port)
             guard let client = self.client else { return }
             
@@ -68,6 +125,7 @@ public class CGMqttClientHelper: NSObject {
             self.subscribeToTopic(topic: settings.topic)
             client.publish(settings.topic, withString: "CustomerGLU")
             client.ping()
+             */
         }
     }
     
