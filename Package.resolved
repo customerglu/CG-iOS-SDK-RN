@@ -2,15 +2,6 @@
   "object": {
     "pins": [
       {
-        "package": "CocoaMQTT",
-        "repositoryURL": "https://github.com/emqx/CocoaMQTT.git",
-        "state": {
-          "branch": null,
-          "revision": "adeeef7ef724713111df38788df2fe4a29b60e7a",
-          "version": "2.1.1"
-        }
-      },
-      {
         "package": "Lottie",
         "repositoryURL": "https://github.com/airbnb/lottie-ios.git",
         "state": {
@@ -20,30 +11,12 @@
         }
       },
       {
-        "package": "MqttCocoaAsyncSocket",
-        "repositoryURL": "https://github.com/leeway1208/MqttCocoaAsyncSocket",
-        "state": {
-          "branch": null,
-          "revision": "ce3e18607fd01079495f86ff6195d8a3ca469f73",
-          "version": "1.0.8"
-        }
-      },
-      {
         "package": "Sentry",
         "repositoryURL": "https://github.com/getsentry/sentry-cocoa.git",
         "state": {
           "branch": null,
           "revision": "5238cc5f12c2b75027730a54ecf632cf103daf21",
           "version": "7.31.4"
-        }
-      },
-      {
-        "package": "Starscream",
-        "repositoryURL": "https://github.com/daltoniam/Starscream.git",
-        "state": {
-          "branch": null,
-          "revision": "a063fda2b8145a231953c20e7a646be254365396",
-          "version": "3.1.2"
         }
       }
     ]

@@ -6,45 +6,48 @@
 //
 
 import UIKit
-import CocoaMQTT
-import MqttCocoaAsyncSocket
+
+// MARK: - CGMqttClientDelegate
+protocol CGMqttClientDelegate: NSObjectProtocol {
+    func getEntryPointByID(_ entryPointID: String)
+}
 
 //MARK: - CGMqttClientHelper
-public class CGMqttClientHelper: NSObject {
+class CGMqttClientHelper: NSObject {
     static let shared = CGMqttClientHelper()
-
-    private var client: CocoaMQTT?
     
+    private weak var delegate: CGMqttClientDelegate?
+    private var client: LightMQTT?
     /**
      * MQTT Client can be setup using the following parameters -
      *
-     * @param username   - User name in CG SDK
-     * @param token      - JWT token shared in Registration call
-     * @param serverHost - MQTT broker server url
-     * @param topic      - Topic to subscribe
+     * @param settings   - Pass all settings or configs requried for setting up Mqtt
      */
-    public func setupMQTTClient(withSettings settings: CGMqttSettings) {
+    func setupMQTTClient(withSettings settings: CGMqttSettings, delegate: CGMqttClientDelegate) {
+        self.delegate = delegate
+        
         DispatchQueue.main.async {
-            let clientID = UUID().uuidString
             var options = LightMQTT.Options()
             options.allowUntrustCACertificate = true
-            options.useTLS = true
-            options.securityLevel = .ssLv3
+            options.useTLS = false
+            options.securityLevel = .none
             options.networkServiceType = .background
             options.username = settings.username
             options.password = settings.password
-            options.clientId = clientID
+            options.clientId = settings.mqttIdentifier
             options.pingInterval = 30
             options.bufferSize = 4096
             options.readQosClass = .background
 
-            let client = LightMQTT(host: settings.serverHost, options: options)
-
+            self.client = LightMQTT(host: settings.serverHost, options: options)
+            guard let client = self.client else { return }
+            
             client.connect() { success in
                 if success {
                     print("*** Successfully Connected ***")
+                    
                     // use the client to subscribe to topics here
-                    client.subscribe(to: settings.topic)
+                    self.subscribeToTopic(topic: settings.topic)
                 } else {
                     print("*** Failed to Connect ***")
                 }
@@ -63,6 +66,21 @@ public class CGMqttClientHelper: NSObject {
                 
                 DispatchQueue.main.async {
                     print("*** receivingMessage :: \(topic) :: \(message) ***")
+                    let jsonString = message.fromBase64() ?? "EMPTY"
+                    print("*** decodedString :: \(topic) :: \(jsonString) ***")
+                    
+                    let jsonData = Data(jsonString.utf8)
+                    let decoder = JSONDecoder()
+                    do {
+                        if(jsonData.count > 0) {
+                            let model = try decoder.decode(CGMqttMessage.self, from: jsonData)
+                            if let delegate = self.delegate, let entryPointID = model.id {
+                                delegate.getEntryPointByID(entryPointID)
+                            }
+                        }
+                    } catch {
+                        print(error.localizedDescription)
+                    }
                 }
             }
             
@@ -81,52 +99,6 @@ public class CGMqttClientHelper: NSObject {
                     print("*** receivingData :: \(topic) ***")
                 }
             }
-            
-            /*
-            let clientID = UUID().uuidString
-            self.client = CocoaMQTT(clientID: clientID, host: settings.serverHost, port: settings.port)
-            guard let client = self.client else { return }
-            
-            client.username = settings.username
-            client.password = settings.password
-            client.autoReconnect = true
-            client.autoReconnectTimeInterval = 60
-            client.keepAlive = 60
-//            client.enableSSL = true
-//            client.allowUntrustCACertificate = true
-            client.logLevel = .debug
-            
-            client.didConnectAck = { mqtt, ack in
-                print("Did Connect Acknowledge \(ack.description)")
-            }
-            
-            client.didPublishMessage = { mqtt, message, _ in
-                print("Did Publish Message \(message.topic) with payload \(message.string ?? "")")
-            }
-            
-            // And Listen for Message
-            client.didReceiveMessage = { mqtt, message, id in
-                print("Message received in topic \(message.topic) with payload \(message.string ?? "")")
-                
-            }
-            
-            client.didSubscribeTopics = { mqtt, dict, arr in
-                print("Did Subscribe to topic \(dict) \(arr)")
-                
-            }
-            
-            client.didChangeState = { mqtt, state in
-                print("Did Change State \(state.description)")
-            }
-            
-            // First Connect
-            _ = client.connect()
-            
-            // Than Subscribe
-            self.subscribeToTopic(topic: settings.topic)
-            client.publish(settings.topic, withString: "CustomerGLU")
-            client.ping()
-             */
         }
     }
     
@@ -135,9 +107,8 @@ public class CGMqttClientHelper: NSObject {
      *
      * @param topic
      */
-    public func subscribeToTopic(topic: String) {
+    func subscribeToTopic(topic: String) {
         guard let client = client else { return }
-        // CocoaMQTTQoS.qos1 == At least once delivery
-        client.subscribe(topic, qos: .qos1)
+        client.subscribe(to: topic)
     }
 }

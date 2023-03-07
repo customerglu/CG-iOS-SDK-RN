@@ -41,6 +41,7 @@ struct CGConstants {
     static let customerglu_encryptedKey = "customerglu_encryptedKey"
     static let CGOPENWALLET = "CG-OPEN-WALLET"
     static let CGSENTRYDSN = "https://d856e4a14b6d4c6eae1fc283d6ddbe8e@o4504440824856576.ingest.sentry.io/4504442660454400"
+    static let MQTT_Identifier = "MQTT_Identifier"
 }
 
 struct CGDiagnosticConstants{

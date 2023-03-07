@@ -37,5 +37,4 @@ A new CustomerGlu.
   s.swift_version = '5.0'
   s.dependency 'Sentry'
   s.dependency 'lottie-ios'
-  s.dependency "CocoaMQTT"
 end

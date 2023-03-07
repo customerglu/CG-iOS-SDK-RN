@@ -19,8 +19,7 @@ let package = Package(
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
         .package(url: "https://github.com/getsentry/sentry-cocoa.git", from: "7.31.4"),
-        .package(url: "https://github.com/airbnb/lottie-ios.git", from: "4.1.3"),
-        .package(url: "https://github.com/emqx/CocoaMQTT.git", from: "2.1.1")
+        .package(url: "https://github.com/airbnb/lottie-ios.git", from: "4.1.3")
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -29,8 +28,7 @@ let package = Package(
             name: "CustomerGlu",
             dependencies: [
                 .product(name: "Lottie", package: "lottie-ios"),
-                .product(name: "Sentry", package: "sentry-cocoa"),
-                .product(name: "CocoaMQTT", package: "CocoaMQTT")
+                .product(name: "Sentry", package: "sentry-cocoa")
             ],
             resources: [
                 .process("Resources")
