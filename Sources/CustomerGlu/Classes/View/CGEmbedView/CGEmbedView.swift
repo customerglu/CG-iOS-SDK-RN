@@ -294,7 +294,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
             }
             
             if embedViews.count != 0 {
-                let mobile = embedViews[0].mobile!
+                let mobile = embedViews[0].mobile
                 arrContent = [CGContent]()
                 condition = mobile.conditions
                 
@@ -428,7 +428,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
             }
             
             if embedViews.count != 0 {
-                let mobile = embedViews[0].mobile!
+                let mobile = embedViews[0].mobile
                 arrContent = [CGContent]()
                 condition = mobile.conditions
                 

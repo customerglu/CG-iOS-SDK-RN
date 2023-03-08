@@ -6,14 +6,12 @@
 import Foundation
 
 public struct CGEntryPoint: Codable{
-    
-    var data : [CGData]!
-    var success : Bool!
-    
+    var data :[CGData] = []
+    var success : Bool = false
     /**
      * Instantiate the instance using the passed dictionary values to set the properties values
      */
-    init(fromDictionary dictionary: [String:Any]){
+    init(fromDictionary dictionary: [String:Any]) {
         data = [CGData]()
         if let dataArray = dictionary["data"] as? [[String:Any]]{
             for dic in dataArray{
@@ -21,7 +19,7 @@ public struct CGEntryPoint: Codable{
                 data.append(value)
             }
         }
-        success = dictionary["success"] as? Bool
+        success = dictionary["success"] as? Bool ?? false
     }
     
     /**
