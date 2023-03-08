@@ -1044,7 +1044,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 
                 if entryPointID != nil {
                     // MQTT Flow
-                    let newEntryPointData = getUniqueEntryData(fromExistingData: CustomerGlu.entryPointdata, byComparingItWithNewEntryData: response.data)
+                    let newEntryPointData = OtherUtils.shared.getUniqueEntryData(fromExistingData: CustomerGlu.entryPointdata, byComparingItWithNewEntryData: response.data)
                     
                     if newEntryPointData.count > 0 {
                         for data in newEntryPointData {
@@ -2237,25 +2237,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
         }
     }
-    
-    // TODO: Ankit Jain - Check with Kausthub where to move this API
-    private func getUniqueEntryData(fromExistingData arr1: [CGData], byComparingItWithNewEntryData arr2: [CGData]) -> [CGData] {
-        var uniqueData: [CGData] = []
-        for data in arr2 {
-            if !arr1.contains(where: { model in
-                model._id == data._id
-            }) {
-                uniqueData.append(data)
-            }
-        }
-        
-        return uniqueData
-    }
 }
 
 // MARK: - CGMqttClientDelegate
 extension CustomerGlu: CGMqttClientDelegate {
     func getEntryPointByID(_ entryPointID: String) {
-        getEntryPointData()
+        getEntryPointData(entryPointID)
     }
 }
