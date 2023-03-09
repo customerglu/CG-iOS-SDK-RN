@@ -11,7 +11,7 @@
         <!--Customer Web View Controller-->
         <scene sceneID="VcW-hp-aED">
             <objects>
-                <viewController storyboardIdentifier="CustomerWebViewController" id="iR6-gh-eRW" customClass="CustomerWebViewController" customModule="CustomerGlu" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="CustomerWebViewController" id="iR6-gh-eRW" customClass="CustomerWebViewController" customModule="CustomerGluRN" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="sRO-xg-qge"/>
                         <viewControllerLayoutGuide type="bottom" id="KJZ-mG-2DI"/>
@@ -59,7 +59,7 @@
         <!--Load All Campaigns View Controller-->
         <scene sceneID="WZi-rN-Zgl">
             <objects>
-                <viewController storyboardIdentifier="LoadAllCampaignsViewController" id="fCL-Dh-r5U" customClass="LoadAllCampaignsViewController" customModule="CustomerGlu" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="LoadAllCampaignsViewController" id="fCL-Dh-r5U" customClass="LoadAllCampaignsViewController" customModule="CustomerGluRN" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="xD6-Un-csX"/>
                         <viewControllerLayoutGuide type="bottom" id="htu-fq-l3J"/>

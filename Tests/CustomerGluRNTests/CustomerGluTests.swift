@@ -1,5 +1,5 @@
 import XCTest
-@testable import CustomerGlu
+@testable import CustomerGluRN
 
 final class CustomerGluTests: XCTestCase {
    

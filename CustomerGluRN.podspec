@@ -3,13 +3,13 @@
 # Run `pod lib lint testsdk.podspec` to validate before publishing.
 #
 Pod::Spec.new do |s|
-  s.name             = 'CustomerGlu'
-  s.version          = '2.3.0'
-  s.summary          = 'CustomerGlu'
+  s.name             = 'CustomerGluRN'
+  s.version          = '1.1.0'
+  s.summary          = 'CustomerGluRN'
   s.description      = <<-DESC
 A new CustomerGlu.
                        DESC
-  s.homepage         = 'https://github.com/customerglu/CG-iOS-SDK'
+  s.homepage         = 'https://github.com/customerglu/CG-iOS-SDK-RN'
   s.license          = { :type => 'Apache License, Version 2.0', :text => <<-LICENSE
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -25,16 +25,16 @@ A new CustomerGlu.
     LICENSE
   }
   s.author           = { 'CustomerGlu' => 'code@customerglu.net' }
-  s.source           = { :git => 'https://github.com/customerglu/CG-iOS-SDK.git', :tag => 'v2.3.0'}
-  s.source_files = 'Sources/CustomerGlu/Classes/**/*.*'
+  s.source           = { :git => 'https://github.com/customerglu/CG-iOS-SDK-RN.git', :tag => 'v1.0.0'}
+  s.source_files = 'Sources/CustomerGluRN/Classes/**/*.*'
   s.exclude_files = 'Tests/**/*.*'
-  s.resources = 'Sources/CustomerGlu/Resources/**/*.*'
-  s.platform = :ios, '9.0'
+  s.resources = 'Sources/CustomerGluRN/Resources/**/*.*'
+  s.platform = :ios, '9.3'
 
   # Flutter.framework does not contain a i386 slice.
   # s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
   s.ios.deployment_target = '11.0'
   s.swift_version = '5.0'
   s.dependency 'Sentry'
-  s.dependency 'lottie-ios','>= 4.0.0'
+  s.dependency 'lottie-ios','~> 3.4.0'
 end

@@ -45,7 +45,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     private var opencgwebview_nudgeConfiguration: CGNudgeConfiguration?
     private var defaulttimer : Timer?
     var spinner = SpinnerView()
-    var progressView = LottieAnimationView()
+    var progressView = AnimationView()
     
     public func configureSafeAreaForDevices() {
         let window = UIApplication.shared.keyWindow
@@ -706,7 +706,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             spinner.removeFromSuperview()
             
             if (path.count > 0 && URL(string: path) != nil){
-                progressView = LottieAnimationView(filePath: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key))
+                progressView = AnimationView(filePath: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key))
                 
                 let size = (UIScreen.main.bounds.width <= UIScreen.main.bounds.height) ? UIScreen.main.bounds.width : UIScreen.main.bounds.height
                 
