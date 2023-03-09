@@ -37,8 +37,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     // MARK: - Global Variable
     var spinner = SpinnerView()
-    var progressView = LottieAnimationView()
     var arrFloatingButton = [FloatingButtonController]()
+    var progressView = AnimationView()
     
     // Singleton Instance
     @objc public static var getInstance = CustomerGlu()
@@ -70,7 +70,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     @objc public static var isDebugingEnabled = false
     @objc public static var isEntryPointEnabled = false
     @objc public static var activeViewController = ""
-    @objc public static var app_platform = "IOS"
+    @objc public static var app_platform = "IOS-RN"
     @objc public static var defaultBGCollor = UIColor.white
     @objc public static var lightBackground = UIColor.white
     @objc public static var darkBackground = UIColor.black
@@ -265,7 +265,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 spinner.removeFromSuperview()
                 
                 if (path.count > 0 && URL(string: path) != nil){
-                    progressView = LottieAnimationView(filePath: decryptUserDefaultKey(userdefaultKey: path_key))
+                    progressView = AnimationView(filePath: decryptUserDefaultKey(userdefaultKey: path_key))
                     
                     let size = (UIScreen.main.bounds.width <= UIScreen.main.bounds.height) ? UIScreen.main.bounds.width : UIScreen.main.bounds.height
                     
