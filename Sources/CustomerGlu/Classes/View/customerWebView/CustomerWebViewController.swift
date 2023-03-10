@@ -342,6 +342,19 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                         }
                     }else{
                         // Post notification
+                        if let eventData = postdata["data"] as? [String:Any], let isDeeplinkHandledByCG = eventData["isHandledByCG"], let deeplink = eventData["deepLink"]{
+                            if isDeeplinkHandledByCG as! String == "true" {
+                                 let dummyURL  = "customerglu://"
+                                guard let url = URL(string: dummyURL as! String) else { return}
+                                if #available(iOS 10.0, *) {
+                            
+                                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                                } else {
+                                    UIApplication.shared.openURL(url)
+                                }
+                            }
+                        }
+                        
                         self.canpost = false
                         NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_DEEPLINK_EVENT").rawValue), object: nil, userInfo: self.postdata)
                         self.postdata = [String:Any]()
