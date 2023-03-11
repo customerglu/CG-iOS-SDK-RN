@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'CustomerGlu'
-  s.version          = '2.2.5'
+  s.version          = '2.2.6'
   s.summary          = 'CustomerGlu'
   s.description      = <<-DESC
 A new CustomerGlu.
@@ -25,7 +25,7 @@ A new CustomerGlu.
     LICENSE
   }
   s.author           = { 'CustomerGlu' => 'code@customerglu.net' }
-  s.source           = { :git => 'https://github.com/customerglu/CG-iOS-SDK.git', :tag => 'v2.2.5'}
+  s.source           = { :git => 'https://github.com/customerglu/CG-iOS-SDK.git', :tag => 'v2.2.6'}
   s.source_files = 'Sources/CustomerGlu/Classes/**/*.*'
   s.exclude_files = 'Tests/**/*.*'
   s.resources = 'Sources/CustomerGlu/Resources/**/*.*'
@@ -36,5 +36,5 @@ A new CustomerGlu.
   s.ios.deployment_target = '11.0'
   s.swift_version = '5.0'
   s.dependency 'Sentry'
-  s.dependency 'lottie-ios','~> 4.1.3'
+  s.dependency 'lottie-ios','>= 4.0.0'
 end
