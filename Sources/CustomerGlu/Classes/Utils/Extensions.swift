@@ -33,6 +33,14 @@ extension String {
     func trimSpace() -> String {
         return self.trimmingCharacters(in: .whitespacesAndNewlines)
     }
+    
+    func fromBase64() -> String? {
+        guard let data = Data(base64Encoded: self) else {
+            return nil
+        }
+        
+        return String(data: data, encoding: .utf8)
+    }
 }
 
 extension UIViewController {
@@ -226,5 +234,29 @@ extension UIColor {
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
         getRed(&r, green: &g, blue: &b, alpha: &a)
         return [r, g, b, a].map { String(format: "%02lX", Int($0 * 255)) }.reduce("#", +)
+    }
+}
+
+// Below link will confirm to CellIdentifierProtocol for all cells in app
+extension UITableViewCell: CellIdentifierProtocol {}
+
+// MARK: - CellIdentifierProtocol
+protocol CellIdentifierProtocol {
+    static var reuseIdentifier: String { get }
+    static var nibName: String { get }
+    static var nib: String { get }
+}
+
+extension CellIdentifierProtocol where Self: UIView {
+    static var reuseIdentifier: String {
+        return String(describing: Self.self)
+    }
+    
+    static var nibName: String {
+        return String(describing: Self.self)
+    }
+    
+    static var nib: String {
+        return String(describing: Self.self)
     }
 }

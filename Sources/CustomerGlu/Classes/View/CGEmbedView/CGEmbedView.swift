@@ -294,7 +294,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
             }
             
             if embedViews.count != 0 {
-                let mobile = embedViews[0].mobile!
+                let mobile = embedViews[0].mobile
                 arrContent = [CGContent]()
                 condition = mobile.conditions
                 
@@ -336,7 +336,11 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
         
         let screenWidth = self.frame.size.width
         finalHeight = height
-        
+        if !CustomerGlu.embedIds.contains(self.embedId ?? "")
+        {
+            CustomerGlu.embedIds.append(self.embedId ?? "")
+            CustomerGlu.getInstance.sendEntryPointsIdLists()
+        }
         let postInfo: [String: Any] = [self.embedId ?? "" : finalHeight]
         NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CGEMBED_FINAL_HEIGHT").rawValue), object: nil, userInfo: postInfo)
         
@@ -424,7 +428,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
             }
             
             if embedViews.count != 0 {
-                let mobile = embedViews[0].mobile!
+                let mobile = embedViews[0].mobile
                 arrContent = [CGContent]()
                 condition = mobile.conditions
                 

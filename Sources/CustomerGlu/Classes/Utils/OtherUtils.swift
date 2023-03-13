@@ -46,4 +46,16 @@ class OtherUtils {
         return dict
     }
     
+    func getUniqueEntryData(fromExistingData arr1: [CGData], byComparingItWithNewEntryData arr2: [CGData]) -> [CGData] {
+        var uniqueData: [CGData] = []
+        for data in arr2 {
+            if !arr1.contains(where: { model in
+                model._id == data._id
+            }) {
+                uniqueData.append(data)
+            }
+        }
+        
+        return uniqueData
+    }
 }
