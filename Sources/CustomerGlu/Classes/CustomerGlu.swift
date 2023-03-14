@@ -605,9 +605,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         self.getAppConfig { result in
             
         }
-        
-        // Initialize Mqtt
-        initializeMqtt()
     }
     
     @objc internal func getAppConfig(completion: @escaping (Bool) -> Void) {
@@ -663,6 +660,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             if self.appconfigdata!.enableSentry != nil  {
                 CustomerGlu.sentry_enable =  self.appconfigdata?.enableSentry ?? false
                 CGSentryHelper.shared.setupSentry()
+            }
+            
+            if self.appconfigdata?.enableMqtt != nil  {
+                // Initialize Mqtt
+                initializeMqtt()
             }
             
             if(self.appconfigdata!.enableEntryPoints != nil){
@@ -1031,7 +1033,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         CustomerGlu.embedsHeight = nil
         
         var queryParameters: [AnyHashable: Any] = ["consumer": "MOBILE"]
-        if let entryPointID = entryPointID {
+        if let entryPointID = entryPointID, !entryPointID.isEmpty {
             queryParameters["id"] = entryPointID
         }
         
@@ -2209,16 +2211,15 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     // MARK: - MQTT Setup
     private func initializeMqtt() {
         // Check if client id is in the preferences, if not there then register
-        if let clientID = CustomerGlu.getInstance.cgUserData.client {
+        if let clientID = CustomerGlu.getInstance.cgUserData.client, let userID = CustomerGlu.getInstance.cgUserData.userId {
             // If client id is not nil, than setup MQTT
-            let token = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN)
-            let topic = "nudges/" + (clientID) + "/" + (CustomerGlu.getInstance.cgUserData.userId ?? "")
-            let host = "dev-hermes.customerglu.com"
-            let username = "j5uG9wdvO1cekcMb7XugpUBwaXn1"
-            let password = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJqNXVHOXdkdk8xY2VrY01iN1h1Z3BVQndhWG4xIiwiZ2x1SWQiOiI1MjgwOTQ3Ni1hMDcyLTQwMTQtYTQ2YS0yZjNjZjU5ZmQ3NTQiLCJjbGllbnQiOiJhYjQ1YzA3YS0wZDljLTRjMjMtYTNiMC1hMTY3NThkOWJjM2IiLCJkZXZpY2VJZCI6Imo1dUc5d2R2TzFjZWtjTWI3WHVncFVCd2FYbjFfZGVmYXVsdCIsImRldmljZVR5cGUiOiJkZWZhdWx0IiwiaXNMb2dnZWRJbiI6dHJ1ZSwiaWF0IjoxNjc3NTczOTQxLCJleHAiOjE3MDkxMDk5NDF9.5DBKxfV6lnVSXnNyy-U_OZ5olRbCE0od8PXvRj9-qKQ"
+            let topic = "nudges/" + (clientID) + "/" + (userID.sha256())
+            let host = "hermes.customerglu.com"
+            let username = userID
+            let password = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN)
             let mqttIdentifier = decryptUserDefaultKey(userdefaultKey: CGConstants.MQTT_Identifier)
 
-            let config = CGMqttConfig(username: username, password: password, token: token, serverHost: host, topic: topic, port: 1883, mqttIdentifier: mqttIdentifier)
+            let config = CGMqttConfig(username: username, password: password, serverHost: host, topic: topic, port: 1883, mqttIdentifier: mqttIdentifier)
             CGMqttClientHelper.shared.setupMQTTClient(withConfig: config, delegate: self)
         } else {
             // Client ID is not available - register
@@ -2228,6 +2229,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             self.registerDevice(userdata: userData) { success in
                 CustomerGlu.getInstance.loaderHide()
                 if success {
+
                     // Initialize Mqtt
                     self.initializeMqtt()
                 }
@@ -2239,6 +2241,13 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
 // MARK: - CGMqttClientDelegate
 extension CustomerGlu: CGMqttClientDelegate {
     func getEntryPointDataWithMqttMessage(_ mqttMessage: CGMqttMessage) {
-        getEntryPointData(mqttMessage.id)
+        if let entryPointID = mqttMessage.id, !entryPointID.isEmpty {
+            // Open Wallet - Will work in MQTT Flow
+            ApplicationManager.openWalletApi { _, _ in
+                self.getEntryPointData(mqttMessage.id)
+            }
+        } else {
+            getEntryPointData()
+        }
     }
 }

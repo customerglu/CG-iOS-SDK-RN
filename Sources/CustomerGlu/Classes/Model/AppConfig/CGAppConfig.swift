@@ -67,6 +67,7 @@ public class CGMobileData: Codable {
     public var activityIdList: PlatformList?
     public var bannerIds: PlatformList?
     public var embedIds: PlatformList?
+    public var enableMqtt: Bool?
 
     required public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -101,6 +102,7 @@ public class CGMobileData: Codable {
         self.activityIdList = try container.decodeIfPresent(PlatformList.self, forKey: .activityIdList) ?? PlatformList()
         self.bannerIds = try container.decodeIfPresent(PlatformList.self, forKey: .bannerIds) ?? PlatformList()
         self.embedIds = try container.decodeIfPresent(PlatformList.self, forKey: .embedIds) ?? PlatformList()
+        self.enableMqtt = try container.decodeIfPresent(Bool.self, forKey: .enableMqtt) ?? false
     }
     
     required public init() {
