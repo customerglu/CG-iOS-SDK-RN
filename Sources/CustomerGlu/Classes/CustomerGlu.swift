@@ -1779,7 +1779,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     $0._id == floatBtn._id
                 }
                 
-                if ((floatButton[0].mobile.content.count > 0) && (floatBtn.showcount?.count)! < floatButton[0].mobile.conditions.showCount.count) {
+                if floatButton.count > 0 && ((floatButton[0].mobile.content.count > 0) && (floatBtn.showcount?.count)! < floatButton[0].mobile.conditions.showCount.count) {
                     self.addFloatingButton(btnInfo: floatButton[0])
                 }
             }
@@ -2244,7 +2244,7 @@ extension CustomerGlu: CGMqttClientDelegate {
         if let entryPointID = mqttMessage.id, !entryPointID.isEmpty {
             // Open Wallet - Will work in MQTT Flow
             ApplicationManager.openWalletApi { _, _ in
-                self.getEntryPointData(mqttMessage.id)
+                self.getEntryPointData(entryPointID)
             }
         } else {
             getEntryPointData()
