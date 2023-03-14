@@ -1042,7 +1042,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     self.dismissFloatingButtons(is_remove: false)
                 }
                 
-                if entryPointID != nil {
+                if let entryPointID = entryPointID, !entryPointID.isEmpty {
                     // MQTT Flow
                     let newEntryPointData = OtherUtils.shared.getUniqueEntryData(fromExistingData: CustomerGlu.entryPointdata, byComparingItWithNewEntryData: response.data)
                     
@@ -1050,26 +1050,23 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         for data in newEntryPointData {
                             CustomerGlu.entryPointdata.append(data)
                         }
-                        
-                        // Post notification
-                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_ENTRY_POINT_DATA").rawValue), object: nil, userInfo: nil)
                     }
-                    
                 } else {
                     // Normal Flow
                     CustomerGlu.entryPointdata.removeAll()
                     CustomerGlu.entryPointdata = response.data
-                    
-                    // FLOATING Buttons
-                    let floatingButtons = CustomerGlu.entryPointdata.filter {
-                        $0.mobile.container.type == "FLOATING" || $0.mobile.container.type == "POPUP"
-                    }
-                    
-                    entryPointInfoAddDelete(entryPoint: floatingButtons)
-                    addFloatingBtns()
-                    postBannersCount()
-                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("EntryPointLoaded").rawValue), object: nil, userInfo: nil)
                 }
+                
+                // FLOATING Buttons
+                let floatingButtons = CustomerGlu.entryPointdata.filter {
+                    $0.mobile.container.type == "FLOATING" || $0.mobile.container.type == "POPUP"
+                }
+                
+                entryPointInfoAddDelete(entryPoint: floatingButtons)
+                addFloatingBtns()
+                postBannersCount()
+                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("EntryPointLoaded").rawValue), object: nil, userInfo: nil)
+
             case .failure(let error):
                 CustomerGlu.bannersHeight = [String:Any]()
                 CustomerGlu.embedsHeight = [String:Any]()
@@ -2221,8 +2218,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             let password = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJqNXVHOXdkdk8xY2VrY01iN1h1Z3BVQndhWG4xIiwiZ2x1SWQiOiI1MjgwOTQ3Ni1hMDcyLTQwMTQtYTQ2YS0yZjNjZjU5ZmQ3NTQiLCJjbGllbnQiOiJhYjQ1YzA3YS0wZDljLTRjMjMtYTNiMC1hMTY3NThkOWJjM2IiLCJkZXZpY2VJZCI6Imo1dUc5d2R2TzFjZWtjTWI3WHVncFVCd2FYbjFfZGVmYXVsdCIsImRldmljZVR5cGUiOiJkZWZhdWx0IiwiaXNMb2dnZWRJbiI6dHJ1ZSwiaWF0IjoxNjc3NTczOTQxLCJleHAiOjE3MDkxMDk5NDF9.5DBKxfV6lnVSXnNyy-U_OZ5olRbCE0od8PXvRj9-qKQ"
             let mqttIdentifier = decryptUserDefaultKey(userdefaultKey: CGConstants.MQTT_Identifier)
 
-            let settings = CGMqttSettings(username: username, password: password, token: token, serverHost: host, topic: topic, port: 1883, mqttIdentifier: mqttIdentifier)
-            CGMqttClientHelper.shared.setupMQTTClient(withSettings: settings, delegate: self)
+            let config = CGMqttConfig(username: username, password: password, token: token, serverHost: host, topic: topic, port: 1883, mqttIdentifier: mqttIdentifier)
+            CGMqttClientHelper.shared.setupMQTTClient(withConfig: config, delegate: self)
         } else {
             // Client ID is not available - register
             var userData = [String: AnyHashable]()
@@ -2241,7 +2238,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
 
 // MARK: - CGMqttClientDelegate
 extension CustomerGlu: CGMqttClientDelegate {
-    func getEntryPointByID(_ entryPointID: String) {
-        getEntryPointData(entryPointID)
+    func getEntryPointDataWithMqttMessage(_ mqttMessage: CGMqttMessage) {
+        getEntryPointData(mqttMessage.id)
     }
 }

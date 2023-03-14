@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct CGMqttSettings {
+struct CGMqttConfig {
     var username: String!
     var password: String!
     var token: String!

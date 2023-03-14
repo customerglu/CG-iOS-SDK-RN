@@ -9,7 +9,7 @@ import UIKit
 
 // MARK: - CGMqttClientDelegate
 protocol CGMqttClientDelegate: NSObjectProtocol {
-    func getEntryPointByID(_ entryPointID: String)
+    func getEntryPointDataWithMqttMessage(_ mqttMessage: CGMqttMessage)
 }
 
 //MARK: - CGMqttClientHelper
@@ -21,9 +21,9 @@ class CGMqttClientHelper: NSObject {
     /**
      * MQTT Client can be setup using the following parameters -
      *
-     * @param settings   - Pass all settings or configs requried for setting up Mqtt
+     * @param config   - Pass all config requried for setting up Mqtt
      */
-    func setupMQTTClient(withSettings settings: CGMqttSettings, delegate: CGMqttClientDelegate) {
+    func setupMQTTClient(withConfig config: CGMqttConfig, delegate: CGMqttClientDelegate) {
         self.delegate = delegate
         
         DispatchQueue.main.async {
@@ -32,32 +32,20 @@ class CGMqttClientHelper: NSObject {
             options.useTLS = false
             options.securityLevel = .none
             options.networkServiceType = .background
-            options.username = settings.username
-            options.password = settings.password
-            options.clientId = settings.mqttIdentifier
+            options.username = config.username
+            options.password = config.password
+            options.clientId = config.mqttIdentifier
             options.pingInterval = 30
             options.bufferSize = 4096
             options.readQosClass = .background
 
-            self.client = LightMQTT(host: settings.serverHost, options: options)
+            self.client = LightMQTT(host: config.serverHost, options: options)
             guard let client = self.client else { return }
             
             client.connect() { success in
                 if success {
-                    print("*** Successfully Connected ***")
-                    
                     // use the client to subscribe to topics here
-                    self.subscribeToTopic(topic: settings.topic)
-                } else {
-                    print("*** Failed to Connect ***")
-                }
-            }
-            
-            client.receivingBuffer = { (topic: String, buffer: UnsafeBufferPointer<UTF8.CodeUnit>) in
-                // parse buffer to JSON here
-                
-                DispatchQueue.main.async {
-                    print("*** receivingBuffer :: \(topic) ***")
+                    self.subscribeToTopic(topic: config.topic)
                 }
             }
             
@@ -65,38 +53,20 @@ class CGMqttClientHelper: NSObject {
                 // parse buffer to JSON here
                 
                 DispatchQueue.main.async {
-                    print("*** receivingMessage :: \(topic) :: \(message) ***")
-                    let jsonString = message.fromBase64() ?? "EMPTY"
-                    print("*** decodedString :: \(topic) :: \(jsonString) ***")
-                    
+                    let jsonString = message.fromBase64() ?? ""
                     let jsonData = Data(jsonString.utf8)
                     let decoder = JSONDecoder()
                     do {
                         if(jsonData.count > 0) {
                             let model = try decoder.decode(CGMqttMessage.self, from: jsonData)
-                            if let delegate = self.delegate, let entryPointID = model.id {
-                                delegate.getEntryPointByID(entryPointID)
+                            if let delegate = self.delegate, let type = model.type, type.caseInsensitiveCompare("ENTRYPOINT") == .orderedSame {
+                                delegate.getEntryPointDataWithMqttMessage(model)
                             }
                         }
                     } catch {
-                        print(error.localizedDescription)
+                        // Add Diagnostics
+                        //print(error.localizedDescription)
                     }
-                }
-            }
-            
-            client.receivingBytes = { (topic: String, _) in
-                // parse buffer to JSON here
-                
-                DispatchQueue.main.async {
-                    print("*** receivingBytes :: \(topic) ***")
-                }
-            }
-            
-            client.receivingData = { (topic: String, _) in
-                // parse buffer to JSON here
-                
-                DispatchQueue.main.async {
-                    print("*** receivingData :: \(topic) ***")
                 }
             }
         }
