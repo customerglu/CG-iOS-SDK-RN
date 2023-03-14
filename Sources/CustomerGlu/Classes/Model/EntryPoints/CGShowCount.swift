@@ -7,24 +7,31 @@ import Foundation
 
 public struct CGShowCount: Codable{
     
-    var count : Int = 0
-    var dailyRefresh : Bool = false
+    var count : Int!
+    var dailyRefresh : Bool!
     
     /**
      * Instantiate the instance using the passed dictionary values to set the properties values
      */
-    init(fromDictionary dictionary: [String:Any]) {
-        count = dictionary["count"] as? Int ?? 0
-        dailyRefresh = dictionary["dailyRefresh"] as? Bool ?? false
+    init(fromDictionary dictionary: [String:Any]){
+        count = dictionary["count"] as? Int
+        dailyRefresh = dictionary["dailyRefresh"] as? Bool
+        count = dictionary["count"] as? Int
     }
     
     /**
      * Returns all the available property values in the form of [String:Any] object where the key is the approperiate json key and the value is the value of the corresponding property
      */
-    func toDictionary() -> [String:Any] {
+    func toDictionary() -> [String:Any]
+    {
         var dictionary = [String:Any]()
-        dictionary["count"] = count
-        dictionary["dailyRefresh"] = dailyRefresh
+        if count != nil{
+            dictionary["count"] = count
+        }
+        if dailyRefresh != nil{
+            dictionary["dailyRefresh"] = dailyRefresh
+        }
         return dictionary
     }
+    
 }

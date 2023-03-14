@@ -836,7 +836,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             if CustomerGlu.isEntryPointEnabled {
                                 CustomerGlu.bannersHeight = nil
                                 CustomerGlu.embedsHeight = nil
-                                APIManager.getEntryPointdata(queryParameters: [:]) { result in
+                                APIManager.getEntryPointdata(queryParameters: ["consumer": "MOBILE"]) { result in
                                     switch result {
                                     case .success(let responseGetEntry):
                                         DispatchQueue.main.async {
@@ -959,7 +959,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     if CustomerGlu.isEntryPointEnabled {
                         CustomerGlu.bannersHeight = nil
                         CustomerGlu.embedsHeight = nil
-                        APIManager.getEntryPointdata(queryParameters: [:]) { result in
+                        APIManager.getEntryPointdata(queryParameters: ["consumer": "MOBILE"]) { result in
                             switch result {
                             case .success(let responseGetEntry):
                                 DispatchQueue.main.async {
@@ -1020,7 +1020,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         var eventData: [String: Any] = [:]
         var token: String? = "";
         if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
-            token = UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) as? String ?? ""
+            token = self.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN)
             eventData["token"] = token
         }else{
             eventData["token"] = token
@@ -1030,9 +1030,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         CustomerGlu.bannersHeight = nil
         CustomerGlu.embedsHeight = nil
         
-        var queryParameters: [AnyHashable: Any] = [:]
+        var queryParameters: [AnyHashable: Any] = ["consumer": "MOBILE"]
         if let entryPointID = entryPointID {
-            queryParameters["entryPointId"] = entryPointID
+            queryParameters["id"] = entryPointID
         }
         
         APIManager.getEntryPointdata(queryParameters: queryParameters as NSDictionary) { [self] result in
@@ -1940,7 +1940,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             nudgeConfiguration.relativeHeight = finalPopUp.mobile.content[0].relativeHeight ?? 0.0
             nudgeConfiguration.absoluteHeight = finalPopUp.mobile.content[0].absoluteHeight ?? 0.0
             
-            CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp.mobile.content[0].campaignId)!, nudgeConfiguration: nudgeConfiguration)
+            CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp.mobile.content[0].campaignId), nudgeConfiguration: nudgeConfiguration)
             
             self.popupDisplayScreens.append(CustomerGlu.getInstance.activescreenname)
             updateShowCount(showCount: showCount, eventData: finalPopUp)
@@ -1952,9 +1952,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     internal func callEventPublishNudge(data: CGData, className: String, actionType: String, event_name:String) {
         
         if(event_name == "ENTRY_POINT_LOAD" && data.mobile.container.type == "POPUP"){
-            postAnalyticsEventForEntryPoints(event_name: event_name, entry_point_id: data.mobile.content[0]._id, entry_point_name: data.name ?? "", entry_point_container: data.mobile.container.type, content_campaign_id: data.mobile.content[0].campaignId, open_container: data.mobile.content[0].openLayout, action_c_campaign_id: data.mobile.content[0].campaignId)
+            postAnalyticsEventForEntryPoints(event_name: event_name, entry_point_id: data.mobile.content[0]._id, entry_point_name: data.name , entry_point_container: data.mobile.container.type, content_campaign_id: data.mobile.content[0].campaignId, open_container: data.mobile.content[0].openLayout, action_c_campaign_id: data.mobile.content[0].campaignId)
         }else{
-            postAnalyticsEventForEntryPoints(event_name: event_name, entry_point_id: data.mobile.content[0]._id, entry_point_name: data.name ?? "", entry_point_container: data.mobile.container.type, content_campaign_id: data.mobile.content[0].url, open_container: data.mobile.content[0].openLayout, action_c_campaign_id: data.mobile.content[0].campaignId)
+            postAnalyticsEventForEntryPoints(event_name: event_name, entry_point_id: data.mobile.content[0]._id, entry_point_name: data.name , entry_point_container: data.mobile.container.type, content_campaign_id: data.mobile.content[0].url, open_container: data.mobile.content[0].openLayout, action_c_campaign_id: data.mobile.content[0].campaignId)
         }
         
     }

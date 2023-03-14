@@ -293,8 +293,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                 $0.mobile.container.type == "EMBEDDED" && $0.mobile.container.bannerId == self.embedId
             }
             
-            if embedViews.count != 0 {
-                let mobile = embedViews[0].mobile
+            if embedViews.count != 0, let mobile = embedViews[0].mobile {
                 arrContent = [CGContent]()
                 condition = mobile.conditions
                 
@@ -427,8 +426,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                 $0.mobile.container.type == "EMBEDDED" && $0.mobile.container.bannerId == self.embedId ?? ""
             }
             
-            if embedViews.count != 0 {
-                let mobile = embedViews[0].mobile
+            if embedViews.count != 0, let mobile = embedViews[0].mobile {
                 arrContent = [CGContent]()
                 condition = mobile.conditions
                 
