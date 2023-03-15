@@ -1067,7 +1067,20 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 entryPointInfoAddDelete(entryPoint: floatingButtons)
                 addFloatingBtns()
                 postBannersCount()
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("EntryPointLoaded").rawValue), object: nil, userInfo: nil)
+                
+                /*
+                 In case of MQTT - type POPUP was not launching the screen.
+                 So below code only handles that scenario to show POPUP if it exists in API response.
+                 */
+                let popupData = CustomerGlu.entryPointdata.filter {
+                    $0.mobile.container.type == "POPUP"
+                }
+                if let entryPointID = entryPointID, !entryPointID.isEmpty, popupData.count > 0 {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(0), execute: {
+                        CustomerGlu.getInstance.setCurrentClassName(className: CustomerGlu.getInstance.activescreenname)
+                    })
+                }
+                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("EntryPointLoaded").rawValue), object:    nil, userInfo: nil)
 
             case .failure(let error):
                 CustomerGlu.bannersHeight = [String:Any]()
@@ -1921,8 +1934,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         encryptUserDefaultKey(str: jsonString2, userdefaultKey: CGConstants.CustomerGluPopupDict)
     }
     
-    @objc private  func showPopupAfterTime(sender: Timer) {
-        
+    @objc private func showPopupAfterTime(sender: Timer) {
         if popuptimer != nil && !popupDisplayScreens.contains(CustomerGlu.getInstance.activescreenname) {
             
             let userInfo = sender.userInfo as! [String:Any]
@@ -1944,7 +1956,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             self.popupDisplayScreens.append(CustomerGlu.getInstance.activescreenname)
             updateShowCount(showCount: showCount, eventData: finalPopUp)
             callEventPublishNudge(data: finalPopUp, className: CustomerGlu.getInstance.activescreenname, actionType: "OPEN", event_name: "ENTRY_POINT_LOAD")
-            
         }
     }
     
