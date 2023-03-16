@@ -41,6 +41,7 @@ struct CGConstants {
     static let customerglu_encryptedKey = "customerglu_encryptedKey"
     static let CGOPENWALLET = "CG-OPEN-WALLET"
     static let CGSENTRYDSN = "https://d856e4a14b6d4c6eae1fc283d6ddbe8e@o4504440824856576.ingest.sentry.io/4504442660454400"
+    static let MQTT_Identifier = "MQTT_Identifier"
 }
 
 struct CGDiagnosticConstants{
@@ -149,12 +150,14 @@ struct APIParameterKey {
     static let pageType = "pageType"
     static let campaignId = "campaignId"
     static let activityIdList = "activityIdList"
+    static let embedIds = "embedIds"
+    static let bannerIds = "bannerIds"
     static let eventId = "eventId"
     static let optionalPayload = "optionalPayload"
     static let appSessionId = "appSessionId"
     static let userAgent = "userAgent"
     static let eventName = "eventName"
-    static let cgsdkversionvalue = "2.2.6"
+    static let cgsdkversionvalue = "2.3.0"
     static let analytics_version_value = "4.0.0"
     static let analytics_version = "analytics_version"
     static let dismiss_trigger = "dismiss_trigger"

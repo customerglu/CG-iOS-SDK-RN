@@ -46,6 +46,7 @@ public class CGMobileData: Codable {
     public var loadScreenColor: String? = CustomerGlu.defaultBGCollor.hexString
     public var loaderColor: String? = CustomerGlu.arrColor[0].hexString
     public var whiteListedDomains: [String]? = CustomerGlu.whiteListedDomains
+    public var testUserIds: [String]? = CustomerGlu.testUsers
     public var secretKey: String? = ""
     public var enableSentry: Bool? = false
     public var forceUserRegistration: Bool? = false
@@ -57,11 +58,17 @@ public class CGMobileData: Codable {
     public var loaderConfig: CGLoaderConfig? = CGLoaderConfig()
     public var androidStatusBarLightColor: String?
     public var androidStatusBarDarkColor: String?
+    public var callbackConfigurationUrl: String? = ""
+    public var deeplinkUrl: String? = ""
     public var isDiagnosticsEnabled: Bool = false
     public var isMetricsEnabled: Bool = true
     public var isCrashLoggingEnabled: Bool = true
     public var sentryDsn: CGSentryDSN?
-    
+    public var activityIdList: PlatformList?
+    public var bannerIds: PlatformList?
+    public var embedIds: PlatformList?
+    public var enableMqtt: Bool?
+
     required public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
@@ -89,6 +96,13 @@ public class CGMobileData: Codable {
         self.isMetricsEnabled = try container.decodeIfPresent(Bool.self, forKey: .isMetricsEnabled) ?? true
         self.isCrashLoggingEnabled = try container.decodeIfPresent(Bool.self, forKey: .isCrashLoggingEnabled) ?? true
         self.sentryDsn = try container.decodeIfPresent(CGSentryDSN.self, forKey: .sentryDsn) ?? CGSentryDSN()
+        self.deeplinkUrl = try container.decodeIfPresent(String.self, forKey: .deeplinkUrl) ?? ""
+        self.callbackConfigurationUrl = try container.decodeIfPresent(String.self, forKey: .callbackConfigurationUrl) ?? ""
+        self.testUserIds = try container.decodeIfPresent([String].self, forKey: .testUserIds) ?? CustomerGlu.testUsers
+        self.activityIdList = try container.decodeIfPresent(PlatformList.self, forKey: .activityIdList) ?? PlatformList()
+        self.bannerIds = try container.decodeIfPresent(PlatformList.self, forKey: .bannerIds) ?? PlatformList()
+        self.embedIds = try container.decodeIfPresent(PlatformList.self, forKey: .embedIds) ?? PlatformList()
+        self.enableMqtt = try container.decodeIfPresent(Bool.self, forKey: .enableMqtt) ?? false
     }
     
     required public init() {
@@ -166,6 +180,23 @@ public class CGSentryDSN: Codable {
         self.iOS = try container.decodeIfPresent(String.self, forKey: .iOS) ?? ""
         self.Flutter = try container.decodeIfPresent(String.self, forKey: .Flutter) ?? ""
         self.ReactNative = try container.decodeIfPresent(String.self, forKey: .ReactNative) ?? ""
+    }
+    
+    required public init(){
+        
+    }
+    
+}
+public class PlatformList: Codable {
+    
+    public var android: [String]?
+    public var ios: [String]?
+
+    
+    required public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.android = try container.decodeIfPresent([String].self, forKey: .android) ?? [] as? [String]
+        self.ios = try container.decodeIfPresent([String].self, forKey: .ios) ?? [] as? [String]
     }
     
     required public init(){
