@@ -351,8 +351,49 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 }
             }
             
-            // Moved it to below function so it is accessiable in Client testing flow
-            handleDeeplinkEvent(withEventName: bodyStruct?.eventName ?? "", bodyData: bodyData, message: message)
+            if bodyStruct?.eventName == WebViewsKey.open_deeplink {
+                let deeplink = try? JSONDecoder().decode(CGDeepLinkModel.self, from: bodyData)
+                if  let deep_link = deeplink?.data?.deepLink {
+                    CustomerGlu.getInstance.printlog(cglog: String(deep_link), isException: false, methodName: "WebViewVC-WebViewsKey.open_deeplink", posttoserver: false)
+                    postdata = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!) ?? [String:Any]()
+                    self.canpost = true
+                   
+                        // Post notification
+                        if let eventData = postdata["data"] as? [String:Any], let isDeeplinkHandledByCG = eventData["isHandledByCG"], let deeplink = eventData["deepLink"]{
+                            
+                            if let closeOnDeeplink =  eventData["closeOnDeeplink"] {
+                                auto_close_webview = closeOnDeeplink as? String == "true" ? true : false
+                            }
+                           
+                            if isDeeplinkHandledByCG as! String == "true" {
+                                guard let url = URL(string: "http://assets.customerglu.com/deeplink-redirect/?redirect=\(deeplink)" as! String) else { return}
+                                
+                                if #available(iOS 10.0, *) {
+                                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                                } else {
+                                    UIApplication.shared.openURL(url)
+                                }
+                                
+                            }
+                        
+                       if self.auto_close_webview == true {
+                           // Posted a notification in viewDidDisappear method
+                           if notificationHandler || iscampignId {
+                               self.closePage(animated: true,dismissaction: CGDismissAction.CTA_REDIRECT)
+                           } else {
+                               self.navigationController?.popViewController(animated: true)
+                           }
+                       }
+                        
+                        
+                    }
+                    
+                    self.canpost = false
+                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_DEEPLINK_EVENT").rawValue), object: nil, userInfo: self.postdata)
+                    self.postdata = [String:Any]()
+                }
+            }
+
             
             if bodyStruct?.eventName == WebViewsKey.share {
                 let share = try? JSONDecoder().decode(CGEventShareModel.self, from: bodyData)
