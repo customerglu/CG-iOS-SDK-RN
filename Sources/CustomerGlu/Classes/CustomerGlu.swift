@@ -1075,7 +1075,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 let popupData = CustomerGlu.entryPointdata.filter {
                     $0.mobile.container.type == "POPUP"
                 }
-                if let entryPointID = entryPointID, !entryPointID.isEmpty, popupData.count > 0 {
+                if let entryPointID = entryPointID, let popupDataId = popupData.first?._id , popupDataId == entryPointID,!entryPointID.isEmpty, popupData.count > 0  {
                     DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(0), execute: {
                         CustomerGlu.getInstance.setCurrentClassName(className: CustomerGlu.getInstance.activescreenname)
                     })
