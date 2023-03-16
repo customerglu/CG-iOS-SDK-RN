@@ -115,7 +115,7 @@ class ApplicationManager {
         params![APIParameterKey.stack_trace] = cglog
         params![APIParameterKey.method] = methodName
         params![APIParameterKey.user_id] = user_id
-        params![APIParameterKey.version] = "1.0.1"
+        params![APIParameterKey.version] = "1.1.0"
         crashReport(parameters: (params as NSDictionary?)!) { success, _ in
             if success {
                 UserDefaults.standard.removeObject(forKey: CGConstants.CustomerGluCrash)
