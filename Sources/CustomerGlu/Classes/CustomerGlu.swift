@@ -662,9 +662,18 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 CGSentryHelper.shared.setupSentry()
             }
             
-            if self.appconfigdata?.enableMqtt != nil  {
+            if let enableMqtt = self.appconfigdata?.enableMqtt, enableMqtt {
+                var eventData: [String: Any] = [:]
+                eventData["enableMqtt"] = enableMqtt
+                
+                CGEventsDiagnosticsHelper.shared.sendMultipleDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_ENABLED, eventTypes: [CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, CGDiagnosticConstants.CG_TYPE_METRICS], eventMeta:eventData)
+                
                 // Initialize Mqtt
                 initializeMqtt()
+            } else {
+                var eventData: [String: Any] = [:]
+                eventData["enableMqtt"] = false
+                CGEventsDiagnosticsHelper.shared.sendMultipleDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_DISABLED, eventTypes: [CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, CGDiagnosticConstants.CG_TYPE_METRICS], eventMeta:eventData)
             }
             
             if(self.appconfigdata!.enableEntryPoints != nil){

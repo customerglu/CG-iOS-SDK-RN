@@ -69,8 +69,21 @@ struct CGDiagnosticConstants{
     static let CG_DIAGNOSTICS_DISABLE_SDK_CALLED = "CGDiagnostics - SDK disableGluSdk Called";
     static let CG_DIAGNOSTICS_NOTIFICATION_CALLED = "CGDiagnostics - SDK Push notification Received ";
     static let CG_DIAGNOSTICS_BACKGROUND_NOTIFICATION_CALLED = "CGDiagnostics - SDK background notification Received";
-
-
+    
+    static let CG_DIAGNOSTICS_MQTT_ENABLED = "CGDiagnostics - MQTT Enabled"
+    static let CG_DIAGNOSTICS_MQTT_DISABLED = "CGDiagnostics - MQTT Disabled"
+    static let CG_DIAGNOSTICS_MQTT_INITIALIZE = "CGDiagnostics - MQTT Initialize"
+    static let CG_DIAGNOSTICS_MQTT_CONNECTION_SUCCESS = "CGDiagnostics - MQTT Connection Success"
+    static let CG_DIAGNOSTICS_MQTT_CONNECTION_FAILURE = "CGDiagnostics - MQTT Connection Failure"
+    static let CG_DIAGNOSTICS_MQTT_SUBSCRIBE = "CGDiagnostics - MQTT Subscribe"
+    static let CG_DIAGNOSTICS_MQTT_RECEIVING_MESSAGE = "CGDiagnostics - MQTT Receiving Message"
+    
+    static let CG_DIAGNOSTICS_WEBVIEW_DIDFINISH = "CGDiagnostics - WebView Did Finish"
+    static let CG_DIAGNOSTICS_WEBVIEW_START_PROVISIONAL = "CGDiagnostics - WebView Start Provisional"
+    static let CG_DIAGNOSTICS_WEBVIEW_FAILED_PROVISIONAL = "CGDiagnostics - WebView Failed Provisional"
+    static let CG_DIAGNOSTICS_WEBVIEW_RECEIVE_MESSAGE_FROM_WEBVIEW = "CGDiagnostics - WebView Receive Message from Webview"
+    static let CG_DIAGNOSTICS_WEBVIEW_HANDLE_DEEPLINK = "CGDiagnostics - WebView Handle Deeplink"
+    
     // Metrics Event
     static let CG_METRICS_SDK_READY = "CGMetrics - SDK Ready ";
     static let CG_METRICS_SDK_CONFIG_CALLED = "CGMetrics - SDK Config Called";
