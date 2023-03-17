@@ -1029,7 +1029,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             return
         }
         var eventData: [String: Any] = [:]
-        var token: String? = "";
+        var token: String? = ""
         if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
             token = self.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN)
             eventData["token"] = token
@@ -1573,7 +1573,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             return
         }
         var eventData: [String: Any] = [:]
-        var token: String? = "";
+        var token: String? = ""
         if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
             token = UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) as! String
             eventData["token"] = token
@@ -1650,7 +1650,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     internal func validateURL(url: URL) -> URL {
-        // return url;
         let host = url.host
         if(host != nil && host!.count > 0){
             for str_url in CustomerGlu.whiteListedDomains {

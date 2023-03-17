@@ -71,7 +71,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         
     }
     public override var shouldAutorotate: Bool{
-        return false;
+        return false
     }
     
     func getframe()->CGRect{
