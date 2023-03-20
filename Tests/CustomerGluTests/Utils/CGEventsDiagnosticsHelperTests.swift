@@ -11,12 +11,12 @@ import XCTest
 // MARK: - CGEventsDiagnosticsHelperTests
 final class CGEventsDiagnosticsHelperTests: CGBaseTestCase {
 
-    var eventsDiagnosticsHelper: CGEventsDiagnosticsHelperSpy?
+    var eventsDiagnosticsHelper: CGEventsDiagnosticsHelperMock?
     
     // MARK: - Setup Methods
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
-        eventsDiagnosticsHelper = CGEventsDiagnosticsHelperSpy(parent: CGEventsDiagnosticsHelper.shared)
+        eventsDiagnosticsHelper = CGEventsDiagnosticsHelperMock(parent: CGEventsDiagnosticsHelper.shared)
     }
 
     override func tearDownWithError() throws {

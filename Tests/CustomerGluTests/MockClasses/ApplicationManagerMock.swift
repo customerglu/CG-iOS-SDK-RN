@@ -8,8 +8,8 @@
 import Foundation
 @testable import CustomerGlu
 
-// MARK: - CGEventsDiagnosticsHelperSpy
-class ApplicationManagerSpy: ApplicationManager {
+// MARK: - ApplicationManagerMock
+class ApplicationManagerMock: ApplicationManager {
     var apiCalled: Bool = false
     private var parent: ApplicationManager?
     

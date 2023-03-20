@@ -8,8 +8,8 @@
 import Foundation
 @testable import CustomerGlu
 
-// MARK: - CGEventsDiagnosticsHelperSpy
-class CGEventsDiagnosticsHelperSpy: CGEventsDiagnosticsHelper {
+// MARK: - CGEventsDiagnosticsHelperMock
+class CGEventsDiagnosticsHelperMock: CGEventsDiagnosticsHelper {
     var sendDiagnosticsReportCalled: Bool = false
     private var parent: CGEventsDiagnosticsHelper?
     
