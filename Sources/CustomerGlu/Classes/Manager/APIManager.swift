@@ -44,7 +44,7 @@ private struct MethodNameandPath {
     static let getWalletRewards = MethodandPath(method: "GET", path: "reward/v1.1/user")
     static let addToCart = MethodandPath(method: "POST", path: "server/v4")
     static let crashReport = MethodandPath(method: "PUT", path: "api/v1/report")
-    static let entryPointdata = MethodandPath(method: "GET", path: "entrypoints/v1/list?consumer=MOBILE")
+    static let entryPointdata = MethodandPath(method: "GET", path: "entrypoints/v1/list")
     static let entrypoints_config = MethodandPath(method: "POST", path: "entrypoints/v1/config")
     static let send_analytics_event = MethodandPath(method: "POST", path: "v4/sdk")
     static let appconfig = MethodandPath(method: "GET", path: "client/v1/sdk/config")
@@ -102,9 +102,6 @@ class APIManager {
         let strUrl = "https://" + baseurl
         url = URL(string: strUrl + methodandpath.path)!
         urlRequest = URLRequest(url: url)
-        if(true == CustomerGlu.isDebugingEnabled){
-            print(urlRequest!)
-        }
         
         // HTTP Method
         urlRequest.httpMethod = methodandpath.method//method.rawValue
@@ -139,6 +136,10 @@ class APIManager {
             } else {
                 urlRequest.httpBody = try? JSONSerialization.data(withJSONObject: parametersDict as Any, options: .fragmentsAllowed)
             }
+        }
+        
+        if(true == CustomerGlu.isDebugingEnabled) {
+            print(urlRequest!)
         }
         
         let task = shared.session.dataTask(with: urlRequest) { data, response, error in
@@ -463,6 +464,7 @@ class APIManager {
             // response with model object
             completion(.success(object))
         } catch let error { // response with error
+            print("JSON decode failed: \(error.localizedDescription)")
             completion(.failure(error))
         }
     }

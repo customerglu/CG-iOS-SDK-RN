@@ -6,10 +6,11 @@
 //
 
 import UIKit
+import CommonCrypto
 
 // MARK: - CGMqttClientDelegate
 protocol CGMqttClientDelegate: NSObjectProtocol {
-    func getEntryPointByID(_ entryPointID: String)
+    func getEntryPointDataWithMqttMessage(_ mqttMessage: CGMqttMessage)
 }
 
 //MARK: - CGMqttClientHelper
@@ -21,9 +22,25 @@ class CGMqttClientHelper: NSObject {
     /**
      * MQTT Client can be setup using the following parameters -
      *
-     * @param settings   - Pass all settings or configs requried for setting up Mqtt
+     * @param config   - Pass all config requried for setting up Mqtt
      */
-    func setupMQTTClient(withSettings settings: CGMqttSettings, delegate: CGMqttClientDelegate) {
+    func setupMQTTClient(withConfig config: CGMqttConfig, delegate: CGMqttClientDelegate) {
+        
+        // DIAGNOSTICS
+        var eventData: [String: Any] = [:]
+        eventData["username"] = config.username
+        eventData["password"] = config.password
+        eventData["serverHost"] = config.serverHost
+        eventData["topic"] = config.topic
+        eventData["port"] = config.port
+        eventData["mqttIdentifier"] = config.mqttIdentifier
+                
+        // DIAGNOSTICS
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_INITIALIZE, eventType: CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
+        
+        // METRICS
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_INITIALIZE, eventType: CGDiagnosticConstants.CG_TYPE_METRICS, eventMeta:["Initialize": "YES"])
+        
         self.delegate = delegate
         
         DispatchQueue.main.async {
@@ -32,32 +49,32 @@ class CGMqttClientHelper: NSObject {
             options.useTLS = false
             options.securityLevel = .none
             options.networkServiceType = .background
-            options.username = settings.username
-            options.password = settings.password
-            options.clientId = settings.mqttIdentifier
+            options.username = config.username
+            options.password = config.password
+            options.clientId = config.mqttIdentifier
             options.pingInterval = 30
             options.bufferSize = 4096
             options.readQosClass = .background
 
-            self.client = LightMQTT(host: settings.serverHost, options: options)
+            self.client = LightMQTT(host: config.serverHost, options: options)
             guard let client = self.client else { return }
             
             client.connect() { success in
-                if success {
-                    print("*** Successfully Connected ***")
-                    
-                    // use the client to subscribe to topics here
-                    self.subscribeToTopic(topic: settings.topic)
-                } else {
-                    print("*** Failed to Connect ***")
-                }
-            }
-            
-            client.receivingBuffer = { (topic: String, buffer: UnsafeBufferPointer<UTF8.CodeUnit>) in
-                // parse buffer to JSON here
+                // DIAGNOSTICS
+                var eventData: [String: Any] = [:]
+                eventData["username"] = config.username
+                eventData["password"] = config.password
+                eventData["serverHost"] = config.serverHost
+                eventData["topic"] = config.topic
+                eventData["port"] = config.port
+                eventData["mqttIdentifier"] = config.mqttIdentifier
                 
-                DispatchQueue.main.async {
-                    print("*** receivingBuffer :: \(topic) ***")
+                let eventName = (success) ? CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_CONNECTION_SUCCESS : CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_CONNECTION_FAILURE
+                CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: eventName, eventType: CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
+                
+                if success {
+                    // use the client to subscribe to topics here
+                    self.subscribeToTopic(topic: config.topic)
                 }
             }
             
@@ -65,38 +82,27 @@ class CGMqttClientHelper: NSObject {
                 // parse buffer to JSON here
                 
                 DispatchQueue.main.async {
-                    print("*** receivingMessage :: \(topic) :: \(message) ***")
-                    let jsonString = message.fromBase64() ?? "EMPTY"
-                    print("*** decodedString :: \(topic) :: \(jsonString) ***")
+                    let jsonString = message.fromBase64() ?? ""
+                    
+                    // DIAGNOSTICS
+                    CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_RECEIVING_MESSAGE, eventType: CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:["topic": topic, "message": message])
+                    
+                    // METRICS
+                    CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_RECEIVING_MESSAGE, eventType: CGDiagnosticConstants.CG_TYPE_METRICS, eventMeta:["message": "YES"])
                     
                     let jsonData = Data(jsonString.utf8)
                     let decoder = JSONDecoder()
                     do {
                         if(jsonData.count > 0) {
                             let model = try decoder.decode(CGMqttMessage.self, from: jsonData)
-                            if let delegate = self.delegate, let entryPointID = model.id {
-                                delegate.getEntryPointByID(entryPointID)
+                            if let delegate = self.delegate, let type = model.type, type.caseInsensitiveCompare("ENTRYPOINT") == .orderedSame {
+                                delegate.getEntryPointDataWithMqttMessage(model)
                             }
                         }
                     } catch {
-                        print(error.localizedDescription)
+                        // Add Diagnostics
+                        //print(error.localizedDescription)
                     }
-                }
-            }
-            
-            client.receivingBytes = { (topic: String, _) in
-                // parse buffer to JSON here
-                
-                DispatchQueue.main.async {
-                    print("*** receivingBytes :: \(topic) ***")
-                }
-            }
-            
-            client.receivingData = { (topic: String, _) in
-                // parse buffer to JSON here
-                
-                DispatchQueue.main.async {
-                    print("*** receivingData :: \(topic) ***")
                 }
             }
         }
@@ -110,5 +116,47 @@ class CGMqttClientHelper: NSObject {
     func subscribeToTopic(topic: String) {
         guard let client = client else { return }
         client.subscribe(to: topic)
+        
+        // DIAGNOSTICS
+        var eventData: [String: Any] = [:]
+        eventData["topic"] = topic
+        
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_SUBSCRIBE, eventType: CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
+    }
+}
+
+// MARK: - Data
+extension Data {
+    public func sha256() -> String {
+        return hexStringFromData(input: digest(input: self as NSData))
+    }
+    
+    private func digest(input : NSData) -> NSData {
+        let digestLength = Int(CC_SHA256_DIGEST_LENGTH)
+        var hash = [UInt8](repeating: 0, count: digestLength)
+        CC_SHA256(input.bytes, UInt32(input.length), &hash)
+        return NSData(bytes: hash, length: digestLength)
+    }
+    
+    private  func hexStringFromData(input: NSData) -> String {
+        var bytes = [UInt8](repeating: 0, count: input.length)
+        input.getBytes(&bytes, length: input.length)
+        
+        var hexString = ""
+        for byte in bytes {
+            hexString += String(format:"%02x", UInt8(byte))
+        }
+        
+        return hexString
+    }
+}
+
+// MARK: - String
+public extension String {
+    func sha256() -> String {
+        if let stringData = self.data(using: String.Encoding.utf8) {
+            return stringData.sha256()
+        }
+        return ""
     }
 }

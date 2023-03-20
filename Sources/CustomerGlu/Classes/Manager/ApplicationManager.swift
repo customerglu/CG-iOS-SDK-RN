@@ -23,7 +23,7 @@ class ApplicationManager {
             return
         }
         var eventData: [String: Any] = [:]
-        var token: String? = "";
+        var token: String? = ""
         if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
             token = UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) as! String ?? ""
             eventData["token"] = token

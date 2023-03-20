@@ -7,19 +7,17 @@
 
 import Foundation
 
-struct CGMqttSettings {
+struct CGMqttConfig {
     var username: String!
     var password: String!
-    var token: String!
     var serverHost: String!
     var topic: String!
     var port: UInt16!
     var mqttIdentifier: String!
     
-    init(username: String, password: String, token: String, serverHost: String, topic: String, port: UInt16, mqttIdentifier: String) {
+    init(username: String, password: String, serverHost: String, topic: String, port: UInt16, mqttIdentifier: String) {
         self.username = username
         self.password = password
-        self.token = token
         self.serverHost = serverHost
         self.topic = topic
         self.port = port

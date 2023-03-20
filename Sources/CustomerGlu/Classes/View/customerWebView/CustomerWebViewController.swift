@@ -71,7 +71,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         
     }
     public override var shouldAutorotate: Bool{
-        return false;
+        return false
     }
     
     func getframe()->CGRect{
@@ -295,14 +295,22 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+        // DIAGNOSTICS
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_WEBVIEW_START_PROVISIONAL, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta: [:])
     }
     
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        // DIAGNOSTICS
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_WEBVIEW_DIDFINISH, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta: [:])
+        
         postAnalyticsEventForWebView(isopenevent: true, dismissaction: CGDismissAction.UI_BUTTON)
     }
     
     public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-        
+        // DIAGNOSTICS
+        let eventData: [String: Any] = ["Error": error.localizedDescription]
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_WEBVIEW_FAILED_PROVISIONAL, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta: eventData)
+
         CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "didFailProvisionalNavigation", posttoserver: true)
         
         hideLoaderNShowWebview()
@@ -314,6 +322,16 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             if  let deep_link = deeplink?.data?.deepLink {
                 CustomerGlu.getInstance.printlog(cglog: String(deep_link), isException: false, methodName: "WebViewVC-WebViewsKey.open_deeplink", posttoserver: false)
                 postdata = OtherUtils.shared.convertToDictionary(text: (message.body as? String) ?? "") ?? [String:Any]()
+                
+                // DIAGNOSTICS
+                let eventData: [String: Any] = ["eventName": eventName,
+                                                "deeplink": deep_link,
+                                                "auto_close_webview": auto_close_webview ?? false,
+                                                "postdata": postdata,
+                                                "notificationHandler": notificationHandler,
+                                                "iscampignId": iscampignId]
+                CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_WEBVIEW_HANDLE_DEEPLINK, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta: eventData)
+
                 self.canpost = true
                 if self.auto_close_webview == true {
                     // Posted a notification in viewDidDisappear method
@@ -333,9 +351,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     // receive message from wkwebview
-    public func userContentController(
-        _ userContentController: WKUserContentController, didReceive message: WKScriptMessage
-    ) {
+    public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         
         if message.name == WebViewsKey.callback {
             guard let bodyString = message.body as? String,
@@ -343,7 +359,14 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             
             let bodyStruct = try? JSONDecoder().decode(CGEventModel.self, from: bodyData)
             
+            // DIAGNOSTICS
+            var diagnosticsEventData: [String: Any] = ["eventName": bodyStruct?.eventName ?? "",
+                                            "Name": WebViewsKey.callback]
+
             if bodyStruct?.eventName == WebViewsKey.close {
+                diagnosticsEventData["notificationHandler"] = notificationHandler
+                diagnosticsEventData["iscampignId"] = iscampignId
+                
                 if notificationHandler || iscampignId {
                     self.closePage(animated: true,dismissaction: CGDismissAction.UI_BUTTON)
                 } else {
@@ -351,14 +374,72 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 }
             }
             
-            // Moved it to below function so it is accessiable in Client testing flow
-            handleDeeplinkEvent(withEventName: bodyStruct?.eventName ?? "", bodyData: bodyData, message: message)
+            if bodyStruct?.eventName == WebViewsKey.open_deeplink {
+                let deeplink = try? JSONDecoder().decode(CGDeepLinkModel.self, from: bodyData)
+                if  let deep_link = deeplink?.data?.deepLink {
+                    diagnosticsEventData["Data Deeplink"] = deep_link
+                    
+                    CustomerGlu.getInstance.printlog(cglog: String(deep_link), isException: false, methodName: "WebViewVC-WebViewsKey.open_deeplink", posttoserver: false)
+                    postdata = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!) ?? [String:Any]()
+                    self.canpost = true
+                   
+                    diagnosticsEventData["postdata"] = postdata
+                    diagnosticsEventData["isDeeplinkHandledByCG"] = "NA"
+                    
+                        // Post notification
+                        if let eventData = postdata["data"] as? [String:Any], let isDeeplinkHandledByCG = eventData["isHandledByCG"], let deeplink = eventData["deepLink"]{
+                            
+                            diagnosticsEventData["isDeeplinkHandledByCG"] = isDeeplinkHandledByCG
+                            diagnosticsEventData["eventData deeplink"] = deeplink
+                            
+                            if let closeOnDeeplink =  eventData["closeOnDeeplink"] {
+                                diagnosticsEventData["closeOnDeeplink"] = closeOnDeeplink
+
+                                auto_close_webview = closeOnDeeplink as? String == "true" ? true : false
+                            }
+                           
+                            if isDeeplinkHandledByCG as! String == "true" {
+                                guard let url = URL(string: "http://assets.customerglu.com/deeplink-redirect/?redirect=\(deeplink)" as! String) else { return}
+                                
+                                if #available(iOS 10.0, *) {
+                                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                                } else {
+                                    UIApplication.shared.openURL(url)
+                                }
+                                
+                            }
+                        
+                       if self.auto_close_webview == true {
+                           diagnosticsEventData["notificationHandler"] = notificationHandler
+                           diagnosticsEventData["iscampignId"] = iscampignId
+                           
+                           // Posted a notification in viewDidDisappear method
+                           if notificationHandler || iscampignId {
+                               self.closePage(animated: true,dismissaction: CGDismissAction.CTA_REDIRECT)
+                           } else {
+                               self.navigationController?.popViewController(animated: true)
+                           }
+                       }
+                        
+                        
+                    }
+                    
+                    self.canpost = false
+                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_DEEPLINK_EVENT").rawValue), object: nil, userInfo: self.postdata)
+                    self.postdata = [String:Any]()
+                }
+            }
+
             
             if bodyStruct?.eventName == WebViewsKey.share {
                 let share = try? JSONDecoder().decode(CGEventShareModel.self, from: bodyData)
                 let text = share?.data?.text
                 let channelName = share?.data?.channelName
                 if let imageurl = share?.data?.image {
+                    diagnosticsEventData["imageurl"] = imageurl
+                    diagnosticsEventData["channelName"] = channelName
+                    diagnosticsEventData["text"] = text ?? ""
+                    
                     if imageurl == "" {
                         if channelName == "WHATSAPP" {
                             sendToWhatsapp(shareText: text!)
@@ -376,6 +457,8 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }
             
             if bodyStruct?.eventName == WebViewsKey.analytics {
+                diagnosticsEventData["analyticsEvent"] = CustomerGlu.analyticsEvent
+                
                 if (true == CustomerGlu.analyticsEvent) {
                     let dict = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!)
                     if(dict != nil && dict!.count>0 && dict?["data"] != nil){
@@ -440,6 +523,14 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                         opencgwebview_nudgeConfiguration?.url = contenturl
                     }
                     
+                    diagnosticsEventData["contenttype"] = contenttype
+                    diagnosticsEventData["contenturl"] = contenturl
+                    diagnosticsEventData["contentcampaignId"] = contentcampaignId
+                    diagnosticsEventData["containertype"] = containertype
+                    diagnosticsEventData["containerabsoluteHeight"] = containerabsoluteHeight
+                    diagnosticsEventData["containerrelativeHeight"] = containerrelativeHeight
+                    diagnosticsEventData["hidePrevious"] = hidePrevious
+                    
                     if(true == hidePrevious){
                         canopencgwebview = true
                         if notificationHandler || iscampignId {
@@ -455,8 +546,11 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 }
             }
             
+            // DIAGNOSTICS
+            CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_WEBVIEW_RECEIVE_MESSAGE_FROM_WEBVIEW, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta: diagnosticsEventData)
         }
     }
+    
     private func openCGWebView(){
         if(opencgwebview_nudgeConfiguration != nil){
             

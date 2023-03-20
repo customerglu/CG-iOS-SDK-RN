@@ -108,8 +108,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 $0.mobile.container.type == "BANNER" && $0.mobile.container.bannerId == self.bannerId
             }
             
-            if bannerViews.count != 0 {
-                let mobile = bannerViews[0].mobile
+            if bannerViews.count != 0, let mobile = bannerViews[0].mobile {
                 arrContent = [CGContent]()
                 condition = mobile.conditions
                 
@@ -286,8 +285,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 $0.mobile.container.type == "BANNER" && $0.mobile.container.bannerId == self.bannerId ?? ""
             }
             
-            if bannerViews.count != 0 {
-                let mobile = bannerViews[0].mobile
+            if bannerViews.count != 0, let mobile = bannerViews[0].mobile {
                 arrContent = [CGContent]()
                 condition = mobile.conditions
                 

@@ -605,9 +605,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         self.getAppConfig { result in
             
         }
-        
-        // Initialize Mqtt
-        initializeMqtt()
     }
     
     @objc internal func getAppConfig(completion: @escaping (Bool) -> Void) {
@@ -663,6 +660,20 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             if self.appconfigdata!.enableSentry != nil  {
                 CustomerGlu.sentry_enable =  self.appconfigdata?.enableSentry ?? false
                 CGSentryHelper.shared.setupSentry()
+            }
+            
+            if let enableMqtt = self.appconfigdata?.enableMqtt, enableMqtt {
+                var eventData: [String: Any] = [:]
+                eventData["enableMqtt"] = enableMqtt
+                
+                CGEventsDiagnosticsHelper.shared.sendMultipleDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_ENABLED, eventTypes: [CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, CGDiagnosticConstants.CG_TYPE_METRICS], eventMeta:eventData)
+                
+                // Initialize Mqtt
+                initializeMqtt()
+            } else {
+                var eventData: [String: Any] = [:]
+                eventData["enableMqtt"] = false
+                CGEventsDiagnosticsHelper.shared.sendMultipleDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_DISABLED, eventTypes: [CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, CGDiagnosticConstants.CG_TYPE_METRICS], eventMeta:eventData)
             }
             
             if(self.appconfigdata!.enableEntryPoints != nil){
@@ -836,7 +847,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             if CustomerGlu.isEntryPointEnabled {
                                 CustomerGlu.bannersHeight = nil
                                 CustomerGlu.embedsHeight = nil
-                                APIManager.getEntryPointdata(queryParameters: [:]) { result in
+                                APIManager.getEntryPointdata(queryParameters: ["consumer": "MOBILE"]) { result in
                                     switch result {
                                     case .success(let responseGetEntry):
                                         DispatchQueue.main.async {
@@ -959,7 +970,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     if CustomerGlu.isEntryPointEnabled {
                         CustomerGlu.bannersHeight = nil
                         CustomerGlu.embedsHeight = nil
-                        APIManager.getEntryPointdata(queryParameters: [:]) { result in
+                        APIManager.getEntryPointdata(queryParameters: ["consumer": "MOBILE"]) { result in
                             switch result {
                             case .success(let responseGetEntry):
                                 DispatchQueue.main.async {
@@ -1018,9 +1029,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             return
         }
         var eventData: [String: Any] = [:]
-        var token: String? = "";
+        var token: String? = ""
         if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
-            token = UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) as? String ?? ""
+            token = self.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN)
             eventData["token"] = token
         }else{
             eventData["token"] = token
@@ -1030,9 +1041,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         CustomerGlu.bannersHeight = nil
         CustomerGlu.embedsHeight = nil
         
-        var queryParameters: [AnyHashable: Any] = [:]
-        if let entryPointID = entryPointID {
-            queryParameters["entryPointId"] = entryPointID
+        var queryParameters: [AnyHashable: Any] = ["consumer": "MOBILE"]
+        if let entryPointID = entryPointID, !entryPointID.isEmpty {
+            queryParameters["id"] = entryPointID
         }
         
         APIManager.getEntryPointdata(queryParameters: queryParameters as NSDictionary) { [self] result in
@@ -1042,7 +1053,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     self.dismissFloatingButtons(is_remove: false)
                 }
                 
-                if entryPointID != nil {
+                if let entryPointID = entryPointID, !entryPointID.isEmpty {
                     // MQTT Flow
                     let newEntryPointData = OtherUtils.shared.getUniqueEntryData(fromExistingData: CustomerGlu.entryPointdata, byComparingItWithNewEntryData: response.data)
                     
@@ -1050,26 +1061,36 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         for data in newEntryPointData {
                             CustomerGlu.entryPointdata.append(data)
                         }
-                        
-                        // Post notification
-                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_ENTRY_POINT_DATA").rawValue), object: nil, userInfo: nil)
                     }
-                    
                 } else {
                     // Normal Flow
                     CustomerGlu.entryPointdata.removeAll()
                     CustomerGlu.entryPointdata = response.data
-                    
-                    // FLOATING Buttons
-                    let floatingButtons = CustomerGlu.entryPointdata.filter {
-                        $0.mobile.container.type == "FLOATING" || $0.mobile.container.type == "POPUP"
-                    }
-                    
-                    entryPointInfoAddDelete(entryPoint: floatingButtons)
-                    addFloatingBtns()
-                    postBannersCount()
-                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("EntryPointLoaded").rawValue), object: nil, userInfo: nil)
                 }
+                
+                // FLOATING Buttons
+                let floatingButtons = CustomerGlu.entryPointdata.filter {
+                    $0.mobile.container.type == "FLOATING" || $0.mobile.container.type == "POPUP"
+                }
+                
+                entryPointInfoAddDelete(entryPoint: floatingButtons)
+                addFloatingBtns()
+                postBannersCount()
+                
+                /*
+                 In case of MQTT - type POPUP was not launching the screen.
+                 So below code only handles that scenario to show POPUP if it exists in API response.
+                 */
+                let popupData = CustomerGlu.entryPointdata.filter {
+                    $0.mobile.container.type == "POPUP"
+                }
+                if let entryPointID = entryPointID, let popupDataId = popupData.first?._id , popupDataId == entryPointID,!entryPointID.isEmpty, popupData.count > 0  {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(0), execute: {
+                        CustomerGlu.getInstance.setCurrentClassName(className: CustomerGlu.getInstance.activescreenname)
+                    })
+                }
+                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("EntryPointLoaded").rawValue), object:    nil, userInfo: nil)
+
             case .failure(let error):
                 CustomerGlu.bannersHeight = [String:Any]()
                 CustomerGlu.embedsHeight = [String:Any]()
@@ -1552,7 +1573,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             return
         }
         var eventData: [String: Any] = [:]
-        var token: String? = "";
+        var token: String? = ""
         if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
             token = UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) as! String
             eventData["token"] = token
@@ -1629,7 +1650,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     internal func validateURL(url: URL) -> URL {
-        // return url;
         let host = url.host
         if(host != nil && host!.count > 0){
             for str_url in CustomerGlu.whiteListedDomains {
@@ -1780,7 +1800,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     $0._id == floatBtn._id
                 }
                 
-                if ((floatButton[0].mobile.content.count > 0) && (floatBtn.showcount?.count)! < floatButton[0].mobile.conditions.showCount.count) {
+                if floatButton.count > 0 && ((floatButton[0].mobile.content.count > 0) && (floatBtn.showcount?.count)! < floatButton[0].mobile.conditions.showCount.count) {
                     self.addFloatingButton(btnInfo: floatButton[0])
                 }
             }
@@ -1922,8 +1942,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         encryptUserDefaultKey(str: jsonString2, userdefaultKey: CGConstants.CustomerGluPopupDict)
     }
     
-    @objc private  func showPopupAfterTime(sender: Timer) {
-        
+    @objc private func showPopupAfterTime(sender: Timer) {
         if popuptimer != nil && !popupDisplayScreens.contains(CustomerGlu.getInstance.activescreenname) {
             
             let userInfo = sender.userInfo as! [String:Any]
@@ -1940,21 +1959,20 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             nudgeConfiguration.relativeHeight = finalPopUp.mobile.content[0].relativeHeight ?? 0.0
             nudgeConfiguration.absoluteHeight = finalPopUp.mobile.content[0].absoluteHeight ?? 0.0
             
-            CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp.mobile.content[0].campaignId)!, nudgeConfiguration: nudgeConfiguration)
+            CustomerGlu.getInstance.openCampaignById(campaign_id: (finalPopUp.mobile.content[0].campaignId), nudgeConfiguration: nudgeConfiguration)
             
             self.popupDisplayScreens.append(CustomerGlu.getInstance.activescreenname)
             updateShowCount(showCount: showCount, eventData: finalPopUp)
             callEventPublishNudge(data: finalPopUp, className: CustomerGlu.getInstance.activescreenname, actionType: "OPEN", event_name: "ENTRY_POINT_LOAD")
-            
         }
     }
     
     internal func callEventPublishNudge(data: CGData, className: String, actionType: String, event_name:String) {
         
         if(event_name == "ENTRY_POINT_LOAD" && data.mobile.container.type == "POPUP"){
-            postAnalyticsEventForEntryPoints(event_name: event_name, entry_point_id: data.mobile.content[0]._id, entry_point_name: data.name ?? "", entry_point_container: data.mobile.container.type, content_campaign_id: data.mobile.content[0].campaignId, open_container: data.mobile.content[0].openLayout, action_c_campaign_id: data.mobile.content[0].campaignId)
+            postAnalyticsEventForEntryPoints(event_name: event_name, entry_point_id: data.mobile.content[0]._id, entry_point_name: data.name , entry_point_container: data.mobile.container.type, content_campaign_id: data.mobile.content[0].campaignId, open_container: data.mobile.content[0].openLayout, action_c_campaign_id: data.mobile.content[0].campaignId)
         }else{
-            postAnalyticsEventForEntryPoints(event_name: event_name, entry_point_id: data.mobile.content[0]._id, entry_point_name: data.name ?? "", entry_point_container: data.mobile.container.type, content_campaign_id: data.mobile.content[0].url, open_container: data.mobile.content[0].openLayout, action_c_campaign_id: data.mobile.content[0].campaignId)
+            postAnalyticsEventForEntryPoints(event_name: event_name, entry_point_id: data.mobile.content[0]._id, entry_point_name: data.name , entry_point_container: data.mobile.container.type, content_campaign_id: data.mobile.content[0].url, open_container: data.mobile.content[0].openLayout, action_c_campaign_id: data.mobile.content[0].campaignId)
         }
         
     }
@@ -2212,17 +2230,16 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     // MARK: - MQTT Setup
     private func initializeMqtt() {
         // Check if client id is in the preferences, if not there then register
-        if let clientID = CustomerGlu.getInstance.cgUserData.client {
+        if let clientID = CustomerGlu.getInstance.cgUserData.client, let userID = CustomerGlu.getInstance.cgUserData.userId {
             // If client id is not nil, than setup MQTT
-            let token = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN)
-            let topic = "nudges/" + (clientID) + "/" + (CustomerGlu.getInstance.cgUserData.userId ?? "")
-            let host = "dev-hermes.customerglu.com"
-            let username = "j5uG9wdvO1cekcMb7XugpUBwaXn1"
-            let password = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJqNXVHOXdkdk8xY2VrY01iN1h1Z3BVQndhWG4xIiwiZ2x1SWQiOiI1MjgwOTQ3Ni1hMDcyLTQwMTQtYTQ2YS0yZjNjZjU5ZmQ3NTQiLCJjbGllbnQiOiJhYjQ1YzA3YS0wZDljLTRjMjMtYTNiMC1hMTY3NThkOWJjM2IiLCJkZXZpY2VJZCI6Imo1dUc5d2R2TzFjZWtjTWI3WHVncFVCd2FYbjFfZGVmYXVsdCIsImRldmljZVR5cGUiOiJkZWZhdWx0IiwiaXNMb2dnZWRJbiI6dHJ1ZSwiaWF0IjoxNjc3NTczOTQxLCJleHAiOjE3MDkxMDk5NDF9.5DBKxfV6lnVSXnNyy-U_OZ5olRbCE0od8PXvRj9-qKQ"
+            let topic = "nudges/" + (clientID) + "/" + (userID.sha256())
+            let host = "hermes.customerglu.com"
+            let username = userID
+            let password = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN)
             let mqttIdentifier = decryptUserDefaultKey(userdefaultKey: CGConstants.MQTT_Identifier)
 
-            let settings = CGMqttSettings(username: username, password: password, token: token, serverHost: host, topic: topic, port: 1883, mqttIdentifier: mqttIdentifier)
-            CGMqttClientHelper.shared.setupMQTTClient(withSettings: settings, delegate: self)
+            let config = CGMqttConfig(username: username, password: password, serverHost: host, topic: topic, port: 1883, mqttIdentifier: mqttIdentifier)
+            CGMqttClientHelper.shared.setupMQTTClient(withConfig: config, delegate: self)
         } else {
             // Client ID is not available - register
             var userData = [String: AnyHashable]()
@@ -2231,6 +2248,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             self.registerDevice(userdata: userData) { success in
                 CustomerGlu.getInstance.loaderHide()
                 if success {
+
                     // Initialize Mqtt
                     self.initializeMqtt()
                 }
@@ -2241,7 +2259,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
 
 // MARK: - CGMqttClientDelegate
 extension CustomerGlu: CGMqttClientDelegate {
-    func getEntryPointByID(_ entryPointID: String) {
-        getEntryPointData(entryPointID)
+    func getEntryPointDataWithMqttMessage(_ mqttMessage: CGMqttMessage) {
+        if let entryPointID = mqttMessage.id, !entryPointID.isEmpty {
+            // Open Wallet - Will work in MQTT Flow
+            ApplicationManager.openWalletApi { _, _ in
+                self.getEntryPointData(entryPointID)
+            }
+        } else {
+            getEntryPointData()
+        }
     }
 }
