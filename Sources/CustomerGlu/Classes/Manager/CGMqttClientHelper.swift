@@ -19,13 +19,16 @@ class CGMqttClientHelper: NSObject {
     
     private weak var delegate: CGMqttClientDelegate?
     private var client: LightMQTT?
-    private var isMQTTConnected: Bool = false
+    private var config: CGMqttConfig?
+    
     /**
      * MQTT Client can be setup using the following parameters -
      *
      * @param config   - Pass all config requried for setting up Mqtt
      */
     func setupMQTTClient(withConfig config: CGMqttConfig, delegate: CGMqttClientDelegate) {
+        // Save config for future reference and make it nil for disconnect state
+        self.config = config
         
         // DIAGNOSTICS
         var eventData: [String: Any] = [:]
@@ -75,7 +78,6 @@ class CGMqttClientHelper: NSObject {
                 
                 if success {
                     // use the client to subscribe to topics here
-                    self.isMQTTConnected = true
                     self.subscribeToTopic(topic: config.topic)
                 }
             }
@@ -126,16 +128,30 @@ class CGMqttClientHelper: NSObject {
         CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_SUBSCRIBE, eventType: CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
     }
     
-    func checkISMQTTConnected() -> Bool {
-        return isMQTTConnected
+    func checkIsMQTTConnected() -> Bool {
+        return client?.isConnected ?? false
     }
     
-    func disconnectMQTT(){
+    func disconnectMQTT() {
         guard let client = self.client else { return }
+        
+        // DIAGNOSTICS
+        if let config = config {
+            var eventData: [String: Any] = [:]
+            eventData["username"] = config.username
+            eventData["password"] = config.password
+            eventData["serverHost"] = config.serverHost
+            eventData["topic"] = config.topic
+            eventData["port"] = config.port
+            eventData["mqttIdentifier"] = config.mqttIdentifier
+            
+            CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_DISCONNECT, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
+        }
+        
+        // Disconnect
         client.disconnect()
-        isMQTTConnected = false
+        config = nil // reset the value
     }
-    
 }
 
 // MARK: - Data
