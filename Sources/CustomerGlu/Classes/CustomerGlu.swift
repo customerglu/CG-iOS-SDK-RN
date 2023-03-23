@@ -98,6 +98,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var lightEmbedLoaderURL = ""
     public static var darkEmbedLoaderURL = ""
     @objc public var cgUserData = CGUser()
+    private var sdkInitialized: Bool = false
     
     private override init() {
         super.init()
@@ -579,31 +580,31 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     // MARK: - API Calls Methods
     
     @objc public func initializeSdk() {
-        //  ExampleEvents
-        var eventData: [String: Any] = [:]
-        
-        // Needs to be deleted. Just for reference.
-        let writekey = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String ?? ""
-        if !(writekey.isEmpty)
-        {
-            eventData["writeKeyPresent"] = "true"
-
-        }else {
-        eventData["writeKeyPresent"] = "fasle"
-        }
-        if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
-
-        eventData["userRegistered"] = "true"
-        }else{
-            eventData["userRegistered"] = "false"
-
-        }
-
-        
-        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_INIT_START, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData )
-       
-        self.getAppConfig { result in
+        if !sdkInitialized {
+            // So SDK is initialized
+            sdkInitialized = true
             
+            //  ExampleEvents
+            var eventData: [String: Any] = [:]
+            
+            // Needs to be deleted. Just for reference.
+            let writekey = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String ?? ""
+            if !(writekey.isEmpty) {
+                eventData["writeKeyPresent"] = "true"
+            } else {
+                eventData["writeKeyPresent"] = "fasle"
+            }
+            if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
+                eventData["userRegistered"] = "true"
+            } else {
+                eventData["userRegistered"] = "false"
+            }
+
+            CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_INIT_START, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData )
+           
+            // Get Config
+            self.getAppConfig { result in
+            }
         }
     }
     
@@ -662,9 +663,18 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 CGSentryHelper.shared.setupSentry()
             }
             
-            if self.appconfigdata?.enableMqtt != nil  {
+            if let enableMqtt = self.appconfigdata?.enableMqtt, enableMqtt {
+                var eventData: [String: Any] = [:]
+                eventData["enableMqtt"] = enableMqtt
+                
+                CGEventsDiagnosticsHelper.shared.sendMultipleDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_ENABLED, eventTypes: [CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, CGDiagnosticConstants.CG_TYPE_METRICS], eventMeta:eventData)
+                
                 // Initialize Mqtt
                 initializeMqtt()
+            } else {
+                var eventData: [String: Any] = [:]
+                eventData["enableMqtt"] = false
+                CGEventsDiagnosticsHelper.shared.sendMultipleDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_DISABLED, eventTypes: [CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, CGDiagnosticConstants.CG_TYPE_METRICS], eventMeta:eventData)
             }
             
             if(self.appconfigdata!.enableEntryPoints != nil){
@@ -832,6 +842,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     self.encryptUserDefaultKey(str: jsonString, userdefaultKey: CGConstants.CUSTOMERGLU_USERDATA)
                     
                     self.userDefaults.synchronize()
+                    
+                    if CGMqttClientHelper.shared.checkIsMQTTConnected(){
+                        CGMqttClientHelper.shared.disconnectMQTT()
+                        self.initializeMqtt()
+                    }
+                    
 
                     ApplicationManager.openWalletApi { success, _ in
                         if success {
@@ -1020,7 +1036,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             return
         }
         var eventData: [String: Any] = [:]
-        var token: String? = "";
+        var token: String? = ""
         if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
             token = self.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN)
             eventData["token"] = token
@@ -1564,7 +1580,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             return
         }
         var eventData: [String: Any] = [:]
-        var token: String? = "";
+        var token: String? = ""
         if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
             token = UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) as! String
             eventData["token"] = token
@@ -1641,7 +1657,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     internal func validateURL(url: URL) -> URL {
-        // return url;
         let host = url.host
         if(host != nil && host!.count > 0){
             for str_url in CustomerGlu.whiteListedDomains {

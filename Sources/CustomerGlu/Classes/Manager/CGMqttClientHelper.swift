@@ -19,12 +19,32 @@ class CGMqttClientHelper: NSObject {
     
     private weak var delegate: CGMqttClientDelegate?
     private var client: LightMQTT?
+    private var config: CGMqttConfig?
+    
     /**
      * MQTT Client can be setup using the following parameters -
      *
      * @param config   - Pass all config requried for setting up Mqtt
      */
     func setupMQTTClient(withConfig config: CGMqttConfig, delegate: CGMqttClientDelegate) {
+        // Save config for future reference and make it nil for disconnect state
+        self.config = config
+        
+        // DIAGNOSTICS
+        var eventData: [String: Any] = [:]
+        eventData["username"] = config.username
+        eventData["password"] = config.password
+        eventData["serverHost"] = config.serverHost
+        eventData["topic"] = config.topic
+        eventData["port"] = config.port
+        eventData["mqttIdentifier"] = config.mqttIdentifier
+                
+        // DIAGNOSTICS
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_INITIALIZE, eventType: CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
+        
+        // METRICS
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_INITIALIZE, eventType: CGDiagnosticConstants.CG_TYPE_METRICS, eventMeta:["Initialize": "YES"])
+        
         self.delegate = delegate
         
         DispatchQueue.main.async {
@@ -44,6 +64,18 @@ class CGMqttClientHelper: NSObject {
             guard let client = self.client else { return }
             
             client.connect() { success in
+                // DIAGNOSTICS
+                var eventData: [String: Any] = [:]
+                eventData["username"] = config.username
+                eventData["password"] = config.password
+                eventData["serverHost"] = config.serverHost
+                eventData["topic"] = config.topic
+                eventData["port"] = config.port
+                eventData["mqttIdentifier"] = config.mqttIdentifier
+                
+                let eventName = (success) ? CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_CONNECTION_SUCCESS : CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_CONNECTION_FAILURE
+                CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: eventName, eventType: CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
+                
                 if success {
                     // use the client to subscribe to topics here
                     self.subscribeToTopic(topic: config.topic)
@@ -55,6 +87,13 @@ class CGMqttClientHelper: NSObject {
                 
                 DispatchQueue.main.async {
                     let jsonString = message.fromBase64() ?? ""
+                    
+                    // DIAGNOSTICS
+                    CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_RECEIVING_MESSAGE, eventType: CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:["topic": topic, "message": message])
+                    
+                    // METRICS
+                    CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_RECEIVING_MESSAGE, eventType: CGDiagnosticConstants.CG_TYPE_METRICS, eventMeta:["message": "YES"])
+                    
                     let jsonData = Data(jsonString.utf8)
                     let decoder = JSONDecoder()
                     do {
@@ -81,6 +120,37 @@ class CGMqttClientHelper: NSObject {
     func subscribeToTopic(topic: String) {
         guard let client = client else { return }
         client.subscribe(to: topic)
+        
+        // DIAGNOSTICS
+        var eventData: [String: Any] = [:]
+        eventData["topic"] = topic
+        
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_SUBSCRIBE, eventType: CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
+    }
+    
+    func checkIsMQTTConnected() -> Bool {
+        return client?.isConnected ?? false
+    }
+    
+    func disconnectMQTT() {
+        guard let client = self.client else { return }
+        
+        // DIAGNOSTICS
+        if let config = config {
+            var eventData: [String: Any] = [:]
+            eventData["username"] = config.username
+            eventData["password"] = config.password
+            eventData["serverHost"] = config.serverHost
+            eventData["topic"] = config.topic
+            eventData["port"] = config.port
+            eventData["mqttIdentifier"] = config.mqttIdentifier
+            
+            CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_DISCONNECT, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
+        }
+        
+        // Disconnect
+        client.disconnect()
+        config = nil // reset the value
     }
 }
 
