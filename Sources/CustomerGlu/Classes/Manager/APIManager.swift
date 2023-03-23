@@ -68,6 +68,7 @@ private struct CGRequestData {
     var methodandpath: MethodandPath
     var parametersDict: NSDictionary
     var dispatchGroup:DispatchGroup = DispatchGroup()
+    var redirectCount: Int = CGAPIConstant.maxRetries
 }
 
 private struct CGAPIConstant {
@@ -182,6 +183,7 @@ class APIManager {
     static func userRegister(queryParameters: NSDictionary, completion: @escaping (Result<CGRegistrationModel, Error>) -> Void) {
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
+        let requestData = CGRequestData(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.userRegister, parametersDict: queryParameters)
         
         // Added Task into Queue
         blockOperation.addExecutionBlock {
@@ -190,20 +192,28 @@ class APIManager {
             let block: (Result<CGRegistrationModel, Error>) -> Void = { result in
                 switch result {
                 case .success(let response):
-                    completion(.success(response))
+                    if !(response.success ?? true) {
+                        retriesCount = retriesCount - 1 
+                        if retriesCount > 1 {
+                            registrationPerformRequest(requestData: requestData, completion: completion)
+                        } else {
+                            completion(.success(response))
+                        }
+                    } else {
+                        completion(.success(response))
+                    }
+                    
                 case .failure(let error):
                     retriesCount = retriesCount - 1
                     if retriesCount > 1 {
-                        APIManager.userRegister(queryParameters: queryParameters, completion: completion)
+                        registrationPerformRequest(requestData: requestData, completion: completion)
                     } else {
                         completion(.failure(error))
                     }
                 }
             }
                         
-            registrationPerformRequest(requestData: CGRequestData(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.userRegister, parametersDict: queryParameters), completion: block)
-            
-//            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.userRegister, parametersDict: queryParameters, completion: completion)
+            registrationPerformRequest(requestData: requestData, completion: block)
         }
         
         // Add dependency to finish previus task before starting new one
