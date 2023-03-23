@@ -19,6 +19,7 @@ class CGMqttClientHelper: NSObject {
     
     private weak var delegate: CGMqttClientDelegate?
     private var client: LightMQTT?
+    private var isMQTTConnected: Bool = false
     /**
      * MQTT Client can be setup using the following parameters -
      *
@@ -46,6 +47,7 @@ class CGMqttClientHelper: NSObject {
             client.connect() { success in
                 if success {
                     // use the client to subscribe to topics here
+                    self.isMQTTConnected = true
                     self.subscribeToTopic(topic: config.topic)
                 }
             }
@@ -82,6 +84,17 @@ class CGMqttClientHelper: NSObject {
         guard let client = client else { return }
         client.subscribe(to: topic)
     }
+    
+    func checkISMQTTConnected() -> Bool {
+        return isMQTTConnected
+    }
+    
+    func disconnectMQTT(){
+        guard let client = self.client else { return }
+        client.disconnect()
+        isMQTTConnected = false
+    }
+    
 }
 
 // MARK: - Data

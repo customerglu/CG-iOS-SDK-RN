@@ -832,6 +832,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     self.encryptUserDefaultKey(str: jsonString, userdefaultKey: CGConstants.CUSTOMERGLU_USERDATA)
                     
                     self.userDefaults.synchronize()
+                    
+                    if CGMqttClientHelper.shared.checkISMQTTConnected(){
+                        CGMqttClientHelper.shared.disconnectMQTT()
+                        self.initializeMqtt()
+                    }
+                    
 
                     ApplicationManager.openWalletApi { success, _ in
                         if success {
