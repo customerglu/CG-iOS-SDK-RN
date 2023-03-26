@@ -129,7 +129,7 @@ public enum CGClientTestingRowItem {
 // MARK: - CGClientTestingProtocol
 public protocol CGClientTestingProtocol: NSObjectProtocol {
     func updateTable(atIndexPath indexPath: IndexPath, forEvent event: CGClientTestingRowItem)
-    func showCallBackAlert(forEvent event: CGClientTestingRowItem)
+    func showCallBackAlert(forEvent event: CGClientTestingRowItem, isRetry: Bool)
     func testOneLinkDeeplink(withDeeplinkURL deeplinkURL: String)
 }
 
@@ -182,11 +182,11 @@ public class CGClientTestingViewModel: NSObject {
         }
     }
     
-    private func showCallBackAlert(forEvent event: CGClientTestingRowItem) {
+    private func showCallBackAlert(forEvent event: CGClientTestingRowItem, isRetry: Bool) {
         // Wait 5 seconds and than perform this action
         DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
             if let delegate = self.delegate {
-                delegate.showCallBackAlert(forEvent: event)
+                delegate.showCallBackAlert(forEvent: event, isRetry: isRetry)
             }
         }
     }
@@ -250,7 +250,7 @@ public class CGClientTestingViewModel: NSObject {
                 updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
 
                 // Wait 5 seconds and than perform this action & Next step NudgeHandling will happen on alert response Yes or No
-                self.showCallBackAlert(forEvent: eventsSectionsArray[index])
+                self.showCallBackAlert(forEvent: eventsSectionsArray[index], isRetry: isRetry)
             } catch {
                 // nothing
             }
@@ -272,7 +272,7 @@ public class CGClientTestingViewModel: NSObject {
             case .success(_):
                 let event: CGClientTestingRowItem = .nudgeHandling(status: .pending)
                 // Wait 5 seconds and than perform this action
-                self?.showCallBackAlert(forEvent: event)
+                self?.showCallBackAlert(forEvent: event, isRetry: isRetry)
             case .failure(_):
                 let event: CGClientTestingRowItem = .nudgeHandling(status: .failure)
                 self?.eventsSectionsArray[index] = event
@@ -294,7 +294,7 @@ public class CGClientTestingViewModel: NSObject {
             }
 
             // Wait 5 seconds and than perform this action
-            self.showCallBackAlert(forEvent: .onelinkHandling(status: .pending))
+            self.showCallBackAlert(forEvent: .onelinkHandling(status: .pending), isRetry: isRetry)
             
 //            CustomerGlu.getInstance.openDeepLink(deepurl: deepurl) {[weak self]
 //                success, string, deeplinkdata in

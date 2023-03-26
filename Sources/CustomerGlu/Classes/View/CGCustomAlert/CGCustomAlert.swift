@@ -28,6 +28,7 @@ class CGCustomAlert: UIViewController {
     var cancelButtonTitle = "NO"
     var alertTag = 0
     var isCancelButtonHidden = false
+    var isRetry = false
     
     weak var delegate: CGCustomAlertDelegate?
 

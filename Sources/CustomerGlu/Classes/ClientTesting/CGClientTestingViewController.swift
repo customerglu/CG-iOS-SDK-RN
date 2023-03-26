@@ -190,7 +190,7 @@ extension CGClientTestingViewController: CGClientTestingProtocol {
         }
     }
     
-    public func showCallBackAlert(forEvent event: CGClientTestingRowItem) {
+    public func showCallBackAlert(forEvent event: CGClientTestingRowItem, isRetry: Bool) {
         guard let data = event.getAlertTitleAndMessage() else { return }
         let customAlert = CGCustomAlert()
         customAlert.alertTitle = data.title
@@ -199,6 +199,7 @@ extension CGClientTestingViewController: CGClientTestingProtocol {
         customAlert.okButtonTitle = "Yes"
         customAlert.cancelButtonTitle = "No"
         customAlert.delegate = self
+        customAlert.isRetry = isRetry
         customAlert.showOnViewController(self)
     }
     
@@ -223,8 +224,10 @@ extension CGClientTestingViewController: CGCustomAlertDelegate {
             viewModel.eventsSectionsArray[index] = .callbackHanding(status: .success)
             self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
             
-            //Execute Next Step
-            viewModel.executeNudgeHandling()
+            if !alert.isRetry {
+                //Execute Next Step
+                viewModel.executeNudgeHandling()
+            }
         } else if alertTag == CGCustomAlertTag.nudgeHandlingTag.rawValue {
             let itemInfo = viewModel.getIndexOfItem(.nudgeHandling(status: .pending))
             guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
@@ -232,8 +235,10 @@ extension CGClientTestingViewController: CGCustomAlertDelegate {
             viewModel.eventsSectionsArray[index] = .nudgeHandling(status: .success)
             self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
 
-            //Execute Next Step
-            viewModel.executeOnelinkHandling()
+            if !alert.isRetry {
+                //Execute Next Step
+                viewModel.executeOnelinkHandling()
+            }
         } else if alertTag == CGCustomAlertTag.onelinkHandlingTag.rawValue {
             let itemInfo = viewModel.getIndexOfItem(.onelinkHandling(status: .pending))
             guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
@@ -241,8 +246,10 @@ extension CGClientTestingViewController: CGCustomAlertDelegate {
             viewModel.eventsSectionsArray[index] = .onelinkHandling(status: .success)
             self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
             
-            //Execute Next Step
-            viewModel.executeEntryPointSetup()
+            if !alert.isRetry {
+                //Execute Next Step
+                viewModel.executeEntryPointSetup()
+            }
         }
     }
     
@@ -254,8 +261,10 @@ extension CGClientTestingViewController: CGCustomAlertDelegate {
             viewModel.eventsSectionsArray[index] = .callbackHanding(status: .failure)
             self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
             
-            //Execute Next Step
-            viewModel.executeNudgeHandling()
+            if !alert.isRetry {
+                //Execute Next Step
+                viewModel.executeNudgeHandling()
+            }
         } else if alertTag == CGCustomAlertTag.nudgeHandlingTag.rawValue {
             let itemInfo = viewModel.getIndexOfItem(.nudgeHandling(status: .pending))
             guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
@@ -263,8 +272,10 @@ extension CGClientTestingViewController: CGCustomAlertDelegate {
             viewModel.eventsSectionsArray[index] = .nudgeHandling(status: .failure)
             self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
 
-            //Execute Next Step
-            viewModel.executeOnelinkHandling()
+            if !alert.isRetry {
+                //Execute Next Step
+                viewModel.executeOnelinkHandling()
+            }
         } else if alertTag == CGCustomAlertTag.onelinkHandlingTag.rawValue {
             let itemInfo = viewModel.getIndexOfItem(.onelinkHandling(status: .pending))
             guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
@@ -272,8 +283,10 @@ extension CGClientTestingViewController: CGCustomAlertDelegate {
             viewModel.eventsSectionsArray[index] = .onelinkHandling(status: .failure)
             self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
             
-            //Execute Next Step
-            viewModel.executeEntryPointSetup()
+            if !alert.isRetry {
+                //Execute Next Step
+                viewModel.executeEntryPointSetup()
+            }
         }
     }
 }
