@@ -67,17 +67,6 @@ public class CGClientTestingViewController: UIViewController {
             CustomerGlu.getInstance.showFloatingButtons()
         }
     }
-    
-    func showDeeplinkAlert() {
-        let customAlert = CGCustomAlert()
-        customAlert.alertTitle = "CustomerGlu"
-        customAlert.alertMessage = "Do you see a nudge?"
-        customAlert.alertTag = 1001
-        customAlert.okButtonTitle = "Yes"
-        customAlert.cancelButtonTitle = "No"
-        customAlert.delegate = self
-        customAlert.showOnViewController(self)
-    }
 }
 
 // MARK: - UITableViewDataSource, UITableViewDelegate
@@ -175,32 +164,90 @@ extension CGClientTestingViewController: CGClientTestingProtocol {
         }
     }
     
-    public func showCallBackAlert() {
-        showDeeplinkAlert()
+    public func showCallBackAlert(forEvent event: CGClientTestingRowItem) {
+        guard let data = event.getAlertTitleAndMessage() else { return }
+        let customAlert = CGCustomAlert()
+        customAlert.alertTitle = data.title
+        customAlert.alertMessage = data.message
+        customAlert.alertTag = data.tag
+        customAlert.okButtonTitle = "Yes"
+        customAlert.cancelButtonTitle = "No"
+        customAlert.delegate = self
+        customAlert.showOnViewController(self)
+    }
+    
+    public func testOneLinkDeeplink(withDeeplinkURL deeplinkURL: String) {
+        guard let url = URL(string: "http://assets.customerglu.com/deeplink-redirect/?redirect=\(deeplinkURL)") else { return}
+        
+        if #available(iOS 10.0, *) {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        } else {
+            UIApplication.shared.openURL(url)
+        }
     }
 }
 
 // MARK: - CGCustomAlertDelegate
 extension CGClientTestingViewController: CGCustomAlertDelegate {
     func okButtonPressed(_ alert: CGCustomAlert, alertTag: Int) {
-        let itemInfo = viewModel.getIndexOfItem(.callbackHanding(status: .pending))
-        guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+        if alertTag == CGCustomAlertTag.callbackHandingTag.rawValue {
+            let itemInfo = viewModel.getIndexOfItem(.callbackHanding(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
 
-        viewModel.eventsSectionsArray[index] = .callbackHanding(status: .success)
-        self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
-        
-        //Execute Next Step
-        viewModel.executeNudgeHandling()
+            viewModel.eventsSectionsArray[index] = .callbackHanding(status: .success)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+            
+            //Execute Next Step
+            viewModel.executeNudgeHandling()
+        } else if alertTag == CGCustomAlertTag.nudgeHandlingTag.rawValue {
+            let itemInfo = viewModel.getIndexOfItem(.nudgeHandling(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            
+            viewModel.eventsSectionsArray[index] = .nudgeHandling(status: .success)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+
+            //Execute Next Step
+            viewModel.executeOnelinkHandling()
+        } else if alertTag == CGCustomAlertTag.onelinkHandlingTag.rawValue {
+            let itemInfo = viewModel.getIndexOfItem(.onelinkHandling(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            
+            viewModel.eventsSectionsArray[index] = .onelinkHandling(status: .success)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+            
+            //Execute Next Step
+            viewModel.executeEntryPointSetup()
+        }
     }
     
     func cancelButtonPressed(_ alert: CGCustomAlert, alertTag: Int) {
-        let itemInfo = viewModel.getIndexOfItem(.callbackHanding(status: .pending))
-        guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+        if alertTag == CGCustomAlertTag.callbackHandingTag.rawValue {
+            let itemInfo = viewModel.getIndexOfItem(.callbackHanding(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
 
-        viewModel.eventsSectionsArray[index] = .callbackHanding(status: .failure)
-        self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
-        
-        //Execute Next Step
-        viewModel.executeNudgeHandling()
+            viewModel.eventsSectionsArray[index] = .callbackHanding(status: .failure)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+            
+            //Execute Next Step
+            viewModel.executeNudgeHandling()
+        } else if alertTag == CGCustomAlertTag.nudgeHandlingTag.rawValue {
+            let itemInfo = viewModel.getIndexOfItem(.nudgeHandling(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            
+            viewModel.eventsSectionsArray[index] = .nudgeHandling(status: .failure)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+
+            //Execute Next Step
+            viewModel.executeOnelinkHandling()
+        } else if alertTag == CGCustomAlertTag.onelinkHandlingTag.rawValue {
+            let itemInfo = viewModel.getIndexOfItem(.onelinkHandling(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            
+            viewModel.eventsSectionsArray[index] = .onelinkHandling(status: .failure)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+            
+            //Execute Next Step
+            viewModel.executeEntryPointSetup()
+        }
     }
 }

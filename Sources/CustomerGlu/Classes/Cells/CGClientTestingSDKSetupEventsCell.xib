@@ -42,11 +42,12 @@
                                     <constraint firstAttribute="height" constant="25" id="VUN-3t-rMv"/>
                                     <constraint firstAttribute="width" constant="120" id="hMz-0p-SD0"/>
                                 </constraints>
-                                <color key="tintColor" red="0.019607843140000001" green="0.83529411760000005" blue="0.52156862749999999" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="tintColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="filled" title="Check Doc">
+                                <buttonConfiguration key="configuration" style="filled" title="Retry">
                                     <fontDescription key="titleFontDescription" type="system" weight="medium" pointSize="9"/>
-                                    <color key="baseForegroundColor" red="0.035294117649999998" green="0.031372549020000001" blue="0.1019607843" alpha="1" colorSpace="calibratedRGB"/>
+                                    <color key="baseForegroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                    <color key="baseBackgroundColor" red="0.035294117649999998" green="0.031372549020000001" blue="0.1019607843" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                                 </buttonConfiguration>
                                 <connections>
                                     <action selector="didTapOnAction" destination="1g3-C1-Syg" eventType="touchUpInside" id="aWw-yv-b1P"/>
@@ -59,12 +60,12 @@
                             <constraint firstItem="V5g-eO-9be" firstAttribute="leading" secondItem="EPm-8k-VfK" secondAttribute="leading" constant="16" id="4cK-Wt-pyh"/>
                             <constraint firstItem="HEU-hR-LFD" firstAttribute="centerX" secondItem="V5g-eO-9be" secondAttribute="centerX" id="DQV-Ku-tZq"/>
                             <constraint firstAttribute="bottom" secondItem="oa9-eh-gLD" secondAttribute="bottom" constant="15.666666666666664" id="EPU-m3-d3Y"/>
-                            <constraint firstItem="oa9-eh-gLD" firstAttribute="leading" secondItem="V5g-eO-9be" secondAttribute="trailing" constant="12" id="GF7-oG-d0u"/>
                             <constraint firstAttribute="trailing" secondItem="Hzg-cj-vUb" secondAttribute="trailing" constant="30" id="IGh-lm-qFq"/>
                             <constraint firstItem="Hzg-cj-vUb" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="oa9-eh-gLD" secondAttribute="trailing" constant="12" id="PfN-hQ-lZs"/>
                             <constraint firstItem="Hzg-cj-vUb" firstAttribute="centerY" secondItem="EPm-8k-VfK" secondAttribute="centerY" id="aT5-hQ-FY3"/>
                             <constraint firstItem="V5g-eO-9be" firstAttribute="top" secondItem="EPm-8k-VfK" secondAttribute="top" constant="16" id="cVF-c4-Z12"/>
                             <constraint firstItem="oa9-eh-gLD" firstAttribute="centerY" secondItem="V5g-eO-9be" secondAttribute="centerY" id="ih0-bC-QBE"/>
+                            <constraint firstItem="oa9-eh-gLD" firstAttribute="leading" secondItem="EPm-8k-VfK" secondAttribute="leading" constant="48" id="xIL-Tv-MX0"/>
                         </constraints>
                     </view>
                 </subviews>
@@ -81,6 +82,7 @@
                 <outlet property="indicatorView" destination="V5g-eO-9be" id="YJO-Qm-4Bs"/>
                 <outlet property="tickImageView" destination="HEU-hR-LFD" id="3xu-aB-5BR"/>
                 <outlet property="titleLabel" destination="oa9-eh-gLD" id="b4n-DI-50i"/>
+                <outlet property="titleLabelLeadingConstraint" destination="xIL-Tv-MX0" id="QN3-A3-Z4O"/>
             </connections>
             <point key="canvasLocation" x="131" y="80"/>
         </tableViewCell>

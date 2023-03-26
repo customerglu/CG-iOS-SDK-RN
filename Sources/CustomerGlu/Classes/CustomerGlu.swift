@@ -1459,6 +1459,13 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func loadCampaignById(campaign_id: String, nudgeConfiguration : CGNudgeConfiguration? = nil , auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
+        
+        // Do Client Testing
+        if campaign_id.caseInsensitiveCompare("test-integration") == .orderedSame {
+            testIntegration()
+            return
+        }
+        
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: CGConstants.CUSTOMERGLU_TOKEN) == nil {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call loadCampaignById", isException: false, methodName: "CustomerGlu-loadCampaignById", posttoserver: true)
             return
