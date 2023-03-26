@@ -209,7 +209,7 @@ public class CGClientTestingViewModel: NSObject {
         }
     }
     
-    private func executeUserRegistered() {
+    func executeUserRegistered() {
         let itemInfo = getIndexOfItem(.userRegistered(status: .pending))
         guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
         
@@ -225,7 +225,7 @@ public class CGClientTestingViewModel: NSObject {
         }
     }
     
-    private func executecallbackHanding() {
+    func executecallbackHanding(isRetry: Bool = false) {
         let itemInfo = getIndexOfItem(.callbackHanding(status: .pending))
         guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
                         
@@ -257,7 +257,7 @@ public class CGClientTestingViewModel: NSObject {
         }
     }
     
-    func executeNudgeHandling() {
+    func executeNudgeHandling(isRetry: Bool = false) {
         let itemInfo = getIndexOfItem(.nudgeHandling(status: .pending))
         guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
 
@@ -284,7 +284,7 @@ public class CGClientTestingViewModel: NSObject {
         }
     }
     
-    @objc func executeOnelinkHandling() {
+    @objc func executeOnelinkHandling(isRetry: Bool = false) {
         let itemInfo = getIndexOfItem(.onelinkHandling(status: .pending))
         guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
         

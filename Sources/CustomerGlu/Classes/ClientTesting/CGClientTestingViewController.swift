@@ -149,9 +149,35 @@ extension CGClientTestingViewController: CGClientTestingSDKSetupEventsCellDelega
     func didTapOnAction(forEvent event: CGClientTestingRowItem) {
         print("Check Doc")
     }
-    
+
     func didTapRetry(forEvent event: CGClientTestingRowItem) {
-        print("Retry")
+        switch event {
+        case .callbackHanding:
+            let itemInfo = viewModel.getIndexOfItem(.callbackHanding(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            viewModel.eventsSectionsArray[index] = .callbackHanding(status: .pending)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+
+            viewModel.executecallbackHanding(isRetry: true)
+        case .nudgeHandling:
+            let itemInfo = viewModel.getIndexOfItem(.nudgeHandling(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            
+            viewModel.eventsSectionsArray[index] = .nudgeHandling(status: .pending)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+            
+            viewModel.executeNudgeHandling(isRetry: true)
+        case .onelinkHandling:
+            let itemInfo = viewModel.getIndexOfItem(.onelinkHandling(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            
+            viewModel.eventsSectionsArray[index] = .onelinkHandling(status: .pending)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+            
+            viewModel.executeOnelinkHandling(isRetry: true)
+        default:
+            break
+        }
     }
 }
 
