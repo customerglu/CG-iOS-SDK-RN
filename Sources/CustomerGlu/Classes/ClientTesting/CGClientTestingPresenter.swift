@@ -32,11 +32,10 @@ public enum CGClientTestingRowItem {
     case advanceIntegration(status: CGClientTestingStatus)
     case nudgeHandling(status: CGClientTestingStatus)
     case onelinkHandling(status: CGClientTestingStatus)
-    //case sendingEventsWorking(status: CGClientTestingStatus)
     case entryPointSetup(status: CGClientTestingStatus)
-    case sendNudge
-    case sendEvent
-    case triggerCallback
+    case entryPointScreeNameSetup(status: CGClientTestingStatus)
+    case entryPointBannerIDSetup(status: CGClientTestingStatus)
+    case entryPointEmbedIDSetup(status: CGClientTestingStatus)
     
     func getTitle() -> String {
         switch self {
@@ -54,16 +53,14 @@ public enum CGClientTestingRowItem {
             return "Nudge Handling"
         case .onelinkHandling:
             return "Onelink Handling"
-//        case .sendingEventsWorking:
-//            return "Sending Events Working"
         case .entryPointSetup:
-            return "Entry Point Setup"
-        case .sendNudge:
-            return "Send Nudge"
-        case .sendEvent:
-            return "Send Event"
-        case .triggerCallback:
-            return "Trigger Callback"
+            return "Entry Point Set up"
+        case .entryPointScreeNameSetup:
+            return "Entry Point Screen Name Set up"
+        case .entryPointBannerIDSetup:
+            return "Entry Point BannerId Set up"
+        case .entryPointEmbedIDSetup:
+            return "Entry Point EmbedId Set up"
         }
     }
     
@@ -83,16 +80,14 @@ public enum CGClientTestingRowItem {
             return status
         case .onelinkHandling(let status):
             return status
-//        case .sendingEventsWorking(let status):
-//            return status
         case .entryPointSetup(let status):
             return status
-        case .sendNudge:
-            return .pending
-        case .sendEvent:
-            return .pending
-        case .triggerCallback:
-            return .pending
+        case .entryPointScreeNameSetup(let status):
+            return status
+        case .entryPointBannerIDSetup(let status):
+            return status
+        case .entryPointEmbedIDSetup(let status):
+            return status
         }
     }
     
@@ -112,16 +107,41 @@ public enum CGClientTestingRowItem {
             return ("CustomerGlu", "Do you see a nudge?", CGCustomAlertTag.nudgeHandlingTag.rawValue)
         case .onelinkHandling:
             return ("CustomerGlu", "Has CG Deeplink successfully redirected?", CGCustomAlertTag.onelinkHandlingTag.rawValue)
-//        case .sendingEventsWorking:
-//            return "Sending Events Working"
         case .entryPointSetup:
             return nil
-        case .sendNudge:
+        case .entryPointScreeNameSetup:
             return nil
-        case .sendEvent:
+        case .entryPointBannerIDSetup:
             return nil
-        case .triggerCallback:
+        case .entryPointEmbedIDSetup:
             return nil
+        }
+    }
+    
+    func getDocumentationURL() -> URL? {
+        switch self {
+        case .basicIntegration:
+            return nil
+        case .sdkInitialised:
+            return URL(string: "https://docs.customerglu.com/sdk/mobile-sdks#initialise-sdk")
+        case .userRegistered:
+            return URL(string: "https://docs.customerglu.com/sdk/mobile-sdks#register-user-mandatory")
+        case .callbackHanding:
+            return URL(string: "https://docs.customerglu.com/sdk/mobile-sdks#handling-events")
+        case .advanceIntegration:
+            return nil
+        case .nudgeHandling:
+            return URL(string: "https://docs.customerglu.com/sdk/mobile-sdks#handle-customerglu-nudges")
+        case .onelinkHandling:
+            return URL(string: "https://docs.customerglu.com/sdk/mobile-sdks#handling-events")
+        case .entryPointSetup:
+            return URL(string: "https://docs.customerglu.com/sdk/mobile-sdks#enable-entry-points")
+        case .entryPointScreeNameSetup:
+            return URL(string: "https://docs.customerglu.com/sdk/mobile-sdks#setting-up-floating-buttons-and-popups")
+        case .entryPointBannerIDSetup:
+            return URL(string: "https://docs.customerglu.com/sdk/mobile-sdks#setting-up-banners")
+        case .entryPointEmbedIDSetup:
+            return URL(string: "https://docs.customerglu.com/sdk/mobile-sdks#setting-up-embed-view")
         }
     }
 }
@@ -137,8 +157,7 @@ public protocol CGClientTestingProtocol: NSObjectProtocol {
 public class CGClientTestingViewModel: NSObject {
     
     weak var delegate: CGClientTestingProtocol?
-    var eventsSectionsArray: [CGClientTestingRowItem] = [.basicIntegration(status: .header), .sdkInitialised(status: .pending), .userRegistered(status: .pending), .callbackHanding(status: .pending), .advanceIntegration(status: .header), .nudgeHandling(status: .pending), .onelinkHandling(status: .pending), .entryPointSetup(status: .pending)]
-    var actionsSectionArray: [CGClientTestingRowItem] = [.sendNudge]
+    var eventsSectionsArray: [CGClientTestingRowItem] = [.basicIntegration(status: .header), .sdkInitialised(status: .pending), .userRegistered(status: .pending), .callbackHanding(status: .pending), .advanceIntegration(status: .header), .nudgeHandling(status: .pending), .onelinkHandling(status: .pending), .entryPointSetup(status: .pending), .entryPointScreeNameSetup(status: .pending), .entryPointBannerIDSetup(status: .pending), .entryPointEmbedIDSetup(status: .pending)]
     
     func numberOfSections() -> Int {
         1
@@ -148,8 +167,6 @@ public class CGClientTestingViewModel: NSObject {
         switch section {
         case 0:
             return eventsSectionsArray.count
-        case 1:
-            return actionsSectionArray.count
         default:
             return 0
         }
@@ -157,10 +174,6 @@ public class CGClientTestingViewModel: NSObject {
     
     func getRowItemForEventsSection(withIndexPath indexPath: IndexPath) -> CGClientTestingRowItem {
         eventsSectionsArray[indexPath.row]
-    }
-    
-    func getRowItemForActionsSection(withIndexPath indexPath: IndexPath) -> CGClientTestingRowItem {
-        actionsSectionArray[indexPath.row]
     }
     
     func getIndexOfItem(_ item: CGClientTestingRowItem) -> (index: Int?, indexPath: IndexPath?) {
@@ -295,23 +308,6 @@ public class CGClientTestingViewModel: NSObject {
 
             // Wait 5 seconds and than perform this action
             self.showCallBackAlert(forEvent: .onelinkHandling(status: .pending), isRetry: isRetry)
-            
-//            CustomerGlu.getInstance.openDeepLink(deepurl: deepurl) {[weak self]
-//                success, string, deeplinkdata in
-//
-//                DispatchQueue.main.async {
-//                    if (success == .DEEPLINK_URL || success == .SUCCESS) && deeplinkdata != nil {
-//                        self?.eventsSectionsArray[index] = .onelinkHandling(status: .success)
-//                        self?.updateTableDelegate(atIndexPath: indexPath, forEvent: .onelinkHandling(status: .success))
-//                    } else {
-//                        self?.eventsSectionsArray[index] = .onelinkHandling(status: .failure)
-//                        self?.updateTableDelegate(atIndexPath: indexPath, forEvent: .onelinkHandling(status: .failure))
-//                    }
-//
-//                    // Execute next steps
-//                    self?.executeEntryPointSetup()
-//                }
-//            }
         } else {
             eventsSectionsArray[index] = .onelinkHandling(status: .failure)
             updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
@@ -320,23 +316,73 @@ public class CGClientTestingViewModel: NSObject {
             executeEntryPointSetup()
         }
     }
-    
-//    private func executeSendingEventsWorking() {
-//        let itemInfo = getIndexOfItem(.sendingEventsWorking(status: .pending))
-//        guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
-//
-//        eventsSectionsArray[index] = .sendingEventsWorking(status: .pending)
-//        updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
-//
-//        // Parallel execute next steps
-//        executeEntryPointSetup()
-//    }
-    
-    func executeEntryPointSetup() {
+
+    func executeEntryPointSetup(isRetry: Bool = false) {
         let itemInfo = getIndexOfItem(.entryPointSetup(status: .pending))
         guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
 
-        eventsSectionsArray[index] = .entryPointSetup(status: .success)
+        if let enableEntryPoints = CustomerGlu.getInstance.appconfigdata?.enableEntryPoints, enableEntryPoints {
+            eventsSectionsArray[index] = .entryPointSetup(status: .success)
+        } else {
+            eventsSectionsArray[index] = .entryPointSetup(status: .failure)
+        }
+        updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
+        
+        if !isRetry {
+            // Execute next steps +2 second to avoid app crash on reload table
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                self.executeEntryPointScreenNameSetup()
+            }
+        }
+    }
+    
+    func executeEntryPointScreenNameSetup(isRetry: Bool = false) {
+        let itemInfo = getIndexOfItem(.entryPointScreeNameSetup(status: .pending))
+        guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+
+        if let activityIdList = CustomerGlu.getInstance.appconfigdata?.activityIdList, let ios = activityIdList.ios, !ios.isEmpty {
+            eventsSectionsArray[index] = .entryPointScreeNameSetup(status: .success)
+        } else {
+            eventsSectionsArray[index] = .entryPointScreeNameSetup(status: .failure)
+        }
+        updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
+        
+        if !isRetry {
+            // Execute next steps +2 second to avoid app crash on reload table
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                self.executeEntryPointBannerIDSetup()
+            }
+        }
+    }
+    
+    func executeEntryPointBannerIDSetup(isRetry: Bool = false) {
+        let itemInfo = getIndexOfItem(.entryPointBannerIDSetup(status: .pending))
+        guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+
+        if let bannerIds = CustomerGlu.getInstance.appconfigdata?.bannerIds, let ios = bannerIds.ios, !ios.isEmpty {
+            eventsSectionsArray[index] = .entryPointBannerIDSetup(status: .success)
+        } else {
+            eventsSectionsArray[index] = .entryPointBannerIDSetup(status: .failure)
+        }
+        updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
+        
+        if !isRetry {
+            // Execute next steps +2 second to avoid app crash on reload table
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                self.executeEntryPointEmbedIDSetup()
+            }
+        }
+    }
+    
+    func executeEntryPointEmbedIDSetup(isRetry: Bool = false) {
+        let itemInfo = getIndexOfItem(.entryPointEmbedIDSetup(status: .pending))
+        guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+
+        if let embedIds = CustomerGlu.getInstance.appconfigdata?.embedIds, let ios = embedIds.ios, !ios.isEmpty {
+            eventsSectionsArray[index] = .entryPointEmbedIDSetup(status: .success)
+        } else {
+            eventsSectionsArray[index] = .entryPointEmbedIDSetup(status: .failure)
+        }
         updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
     }
 }

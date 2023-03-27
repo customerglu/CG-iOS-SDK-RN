@@ -25,6 +25,7 @@ public class CGClientTestingViewController: UIViewController {
     override public func viewDidLoad() {
         super.viewDidLoad()
 
+        view.backgroundColor = .white
         navigationController?.setNavigationBarHidden(true, animated: false)
         viewModel.delegate = self
         
@@ -81,16 +82,7 @@ extension CGClientTestingViewController: UITableViewDataSource, UITableViewDeleg
     }
     
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if indexPath.section == 0 {
-            return getCGClientTestingSDKSetupEventsCell(with: tableView, indexPath: indexPath)
-        } else {
-            return getCGClientTestingButtonCell(with: tableView, indexPath: indexPath)
-        }
-    }
-    
-    public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        print("Num: \(indexPath.row)")
-        
+        return getCGClientTestingSDKSetupEventsCell(with: tableView, indexPath: indexPath)
     }
     
     public func getCGClientTestingSDKSetupEventsCell(with tableView: UITableView, indexPath: IndexPath) -> CGClientTestingSDKSetupEventsCell {
@@ -117,39 +109,10 @@ extension CGClientTestingViewController: UITableViewDataSource, UITableViewDeleg
         
         return cell
     }
-    
-    public func getCGClientTestingButtonCell(with tableView: UITableView, indexPath: IndexPath) -> CGClientTestingButtonCell {
-        var nullableCell = tableView.dequeueReusableCell(withIdentifier: CGClientTestingButtonCell.reuseIdentifier) as? CGClientTestingButtonCell
-        
-        if nullableCell == nil {
-            tableView.register(UINib(nibName: CGClientTestingButtonCell.nibName, bundle: .module), forCellReuseIdentifier: CGClientTestingButtonCell.reuseIdentifier)
-            
-            nullableCell = tableView.dequeueReusableCell(withIdentifier: CGClientTestingButtonCell.reuseIdentifier, for: indexPath)  as? CGClientTestingButtonCell
-        }
-        
-        guard let cell = nullableCell else {
-            assert(true)
-            return CGClientTestingButtonCell()
-        }
-        
-        // Selection type
-        cell.selectionStyle = .none
-        cell.accessoryType = .none
-        
-        // Setup Cell
-        let rowItem = viewModel.getRowItemForActionsSection(withIndexPath: indexPath)
-        cell.setupCell(forRowItem: rowItem)
-        
-        return cell
-    }
 }
 
 // MARK: - CGClientTestingSDKSetupEventsCellDelegate
 extension CGClientTestingViewController: CGClientTestingSDKSetupEventsCellDelegate {
-    func didTapOnAction(forEvent event: CGClientTestingRowItem) {
-        print("Check Doc")
-    }
-
     func didTapRetry(forEvent event: CGClientTestingRowItem) {
         switch event {
         case .callbackHanding:
@@ -175,8 +138,54 @@ extension CGClientTestingViewController: CGClientTestingSDKSetupEventsCellDelega
             self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
             
             viewModel.executeOnelinkHandling(isRetry: true)
+            
+        case .entryPointSetup:
+            let itemInfo = viewModel.getIndexOfItem(.entryPointSetup(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            
+            viewModel.eventsSectionsArray[index] = .entryPointSetup(status: .pending)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+            
+            viewModel.executeEntryPointSetup(isRetry: true)
+            
+        case .entryPointScreeNameSetup:
+            let itemInfo = viewModel.getIndexOfItem(.entryPointScreeNameSetup(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            
+            viewModel.eventsSectionsArray[index] = .entryPointScreeNameSetup(status: .pending)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+            
+            viewModel.executeEntryPointScreenNameSetup(isRetry: true)
+            
+        case .entryPointBannerIDSetup:
+            let itemInfo = viewModel.getIndexOfItem(.entryPointBannerIDSetup(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            
+            viewModel.eventsSectionsArray[index] = .entryPointBannerIDSetup(status: .pending)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+            
+            viewModel.executeEntryPointBannerIDSetup(isRetry: true)
+            
+        case .entryPointEmbedIDSetup:
+            let itemInfo = viewModel.getIndexOfItem(.entryPointEmbedIDSetup(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            
+            viewModel.eventsSectionsArray[index] = .entryPointEmbedIDSetup(status: .pending)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+            
+            viewModel.executeEntryPointEmbedIDSetup(isRetry: true)
+            
         default:
             break
+        }
+    }
+    
+    func didTapCheckDoc(forEvent event: CGClientTestingRowItem) {
+        guard let url = event.getDocumentationURL() else { return }
+        if #available(iOS 10.0, *) {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        } else {
+            UIApplication.shared.openURL(url)
         }
     }
 }
