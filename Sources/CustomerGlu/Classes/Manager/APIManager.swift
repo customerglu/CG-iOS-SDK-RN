@@ -364,7 +364,7 @@ class APIManager {
         // Added Task into Queue
         blockOperation.addExecutionBlock {
             // Call Login API with API Router
-            performRequest(baseurl: "stage-api.customerglu.com/", methodandpath: MethodNameandPath.cgNudgeIntegration, parametersDict: queryParameters, completion: completion)
+            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.cgNudgeIntegration, parametersDict: queryParameters, completion: completion)
         }
         
         // Add dependency to finish previus task before starting new one
