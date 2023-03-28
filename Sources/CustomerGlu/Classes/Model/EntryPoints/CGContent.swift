@@ -18,7 +18,7 @@ public struct CGContent: Codable{
     var relativeHeight : Double? = 0.0
     var absoluteHeight : Double? = 0.0
     var closeOnDeepLink : Bool? = CustomerGlu.auto_close_webview!
-    
+    var cgAction: CGAction!
     
     /**
      * Instantiate the instance using the passed dictionary values to set the properties values
@@ -45,7 +45,9 @@ public struct CGContent: Codable{
         if dictionary["lightUrl"] != nil {
             lightUrl = dictionary["lightUrl"] as? String
         }
-
+        if let mobileData = dictionary["action"] as? [String:Any]{
+            cgAction = CGAction(fromDictionary: mobileData)
+        }
         
     }
     
@@ -85,6 +87,9 @@ public struct CGContent: Codable{
         }
         if darkUrl != nil {
             dictionary["darkUrl"] = darkUrl
+        }
+        if cgAction != nil {
+            dictionary["action"] = cgAction
         }
         return dictionary
     }
