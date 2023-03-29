@@ -77,6 +77,7 @@ struct CGDiagnosticConstants{
     static let CG_DIAGNOSTICS_MQTT_CONNECTION_FAILURE = "CGDiagnostics - MQTT Connection Failure"
     static let CG_DIAGNOSTICS_MQTT_SUBSCRIBE = "CGDiagnostics - MQTT Subscribe"
     static let CG_DIAGNOSTICS_MQTT_RECEIVING_MESSAGE = "CGDiagnostics - MQTT Receiving Message"
+    static let CG_DIAGNOSTICS_MQTT_DISCONNECT = "CGDiagnostics - MQTT Disconnect"
     
     static let CG_DIAGNOSTICS_WEBVIEW_DIDFINISH = "CGDiagnostics - WebView Did Finish"
     static let CG_DIAGNOSTICS_WEBVIEW_START_PROVISIONAL = "CGDiagnostics - WebView Start Provisional"
@@ -170,7 +171,7 @@ struct APIParameterKey {
     static let appSessionId = "appSessionId"
     static let userAgent = "userAgent"
     static let eventName = "eventName"
-    static let cgsdkversionvalue = "2.3.0"
+    static let cgsdkversionvalue = "2.3.1"
     static let analytics_version_value = "4.0.0"
     static let analytics_version = "analytics_version"
     static let dismiss_trigger = "dismiss_trigger"

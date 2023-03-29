@@ -98,6 +98,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var lightEmbedLoaderURL = ""
     public static var darkEmbedLoaderURL = ""
     @objc public var cgUserData = CGUser()
+    private var sdkInitialized: Bool = false
     
     private override init() {
         super.init()
@@ -579,31 +580,31 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     // MARK: - API Calls Methods
     
     @objc public func initializeSdk() {
-        //  ExampleEvents
-        var eventData: [String: Any] = [:]
-        
-        // Needs to be deleted. Just for reference.
-        let writekey = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String ?? ""
-        if !(writekey.isEmpty)
-        {
-            eventData["writeKeyPresent"] = "true"
-
-        }else {
-        eventData["writeKeyPresent"] = "fasle"
-        }
-        if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
-
-        eventData["userRegistered"] = "true"
-        }else{
-            eventData["userRegistered"] = "false"
-
-        }
-
-        
-        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_INIT_START, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData )
-       
-        self.getAppConfig { result in
+        if !sdkInitialized {
+            // So SDK is initialized
+            sdkInitialized = true
             
+            //  ExampleEvents
+            var eventData: [String: Any] = [:]
+            
+            // Needs to be deleted. Just for reference.
+            let writekey = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String ?? ""
+            if !(writekey.isEmpty) {
+                eventData["writeKeyPresent"] = "true"
+            } else {
+                eventData["writeKeyPresent"] = "fasle"
+            }
+            if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
+                eventData["userRegistered"] = "true"
+            } else {
+                eventData["userRegistered"] = "false"
+            }
+
+            CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_INIT_START, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData )
+           
+            // Get Config
+            self.getAppConfig { result in
+            }
         }
     }
     
@@ -841,6 +842,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     self.encryptUserDefaultKey(str: jsonString, userdefaultKey: CGConstants.CUSTOMERGLU_USERDATA)
                     
                     self.userDefaults.synchronize()
+                    
+                    if CGMqttClientHelper.shared.checkIsMQTTConnected(){
+                        CGMqttClientHelper.shared.disconnectMQTT()
+                        self.initializeMqtt()
+                    }
+                    
 
                     ApplicationManager.openWalletApi { success, _ in
                         if success {
