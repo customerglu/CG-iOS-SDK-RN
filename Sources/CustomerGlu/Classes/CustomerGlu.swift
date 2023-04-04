@@ -86,7 +86,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     internal var popupDisplayScreens = [String]()
     private var configScreens = [String]()
     private var popuptimer : Timer?
-    private var delaySeconds: Double = 5
+    private var delaySeconds: Double = 0
     public static var whiteListedDomains = [CGConstants.default_whitelist_doamin]
     public static var testUsers = [String]()
     public static var activityIdList = [String]()
