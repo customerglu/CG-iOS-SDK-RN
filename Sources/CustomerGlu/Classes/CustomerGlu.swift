@@ -86,6 +86,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     internal var popupDisplayScreens = [String]()
     private var configScreens = [String]()
     private var popuptimer : Timer?
+    private var delaySeconds: Double = 5
     public static var whiteListedDomains = [CGConstants.default_whitelist_doamin]
     public static var testUsers = [String]()
     public static var activityIdList = [String]()
@@ -476,6 +477,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         topController.present(customerWebViewVC, animated: true, completion: {
             self.hideFloatingButtons()
         })
+    }
+    
+    @objc public func setDelaySeconds(delaySeconds: Double) {
+        self.delaySeconds = delaySeconds
     }
     
     @objc public func displayBackgroundNotification(remoteMessage: [String: AnyHashable],auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
