@@ -545,6 +545,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func clearGluData() {
+        // So that SDK can be iniatilised again
+        sdkInitialized = .notInitialized
+        
         var eventData: [String: Any] = [:]
         
         // Needs to be deleted. Just for reference.
