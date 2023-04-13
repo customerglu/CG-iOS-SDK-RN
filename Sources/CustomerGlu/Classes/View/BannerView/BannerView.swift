@@ -256,25 +256,61 @@ public class BannerView: UIView, UIScrollViewDelegate {
         
         let dict = arrContent[sender?.view?.tag ?? 0]
         if dict.campaignId != nil {
+            if let actionData = dict.cgAction, let type = actionData.type {
+                if type == WebViewsKey.open_deeplink {
+                    
+                    //Incase of Handled by CG is true
+                    if actionData.isHandledByCG == true {
+                        guard let url = URL(string: "http://assets.customerglu.com/deeplink-redirect/?redirect=\(actionData.url)" as! String) else { return }
+                        if #available(iOS 10.0, *) {
+                            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                        } else {
+                            UIApplication.shared.openURL(url)
+                        }
+                    }
+                    
+                    // Converted data for NSNotification.
+                    var data: [String: Any]
+                    var postdata: [String:Any] = ["eventName":WebViewsKey.open_deeplink,
+                                                  "data": ["deepLink": actionData.url]]
+                
+                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_DEEPLINK_EVENT").rawValue), object: nil, userInfo: postdata)
+                    
+                } else {
+                    
+                    // Hyperlink logic
+                    let nudgeConfiguration = CGNudgeConfiguration()
+                    nudgeConfiguration.layout = dict.openLayout.lowercased() ?? CGConstants.FULL_SCREEN_NOTIFICATION
+                    nudgeConfiguration.opacity = condition?.backgroundOpacity ?? 0.5
+                    nudgeConfiguration.closeOnDeepLink = dict.closeOnDeepLink ?? CustomerGlu.auto_close_webview!
+                    nudgeConfiguration.relativeHeight = dict.relativeHeight ?? 0.0
+                    nudgeConfiguration.absoluteHeight = dict.absoluteHeight ?? 0.0
+                    
+                    CustomerGlu.getInstance.openURLWithNudgeConfig(url: actionData.url, nudgeConfiguration: nudgeConfiguration)
+                }
+                
+            } else {
+                
             
-            let nudgeConfiguration = CGNudgeConfiguration()
-            nudgeConfiguration.layout = dict.openLayout.lowercased()
-            nudgeConfiguration.opacity = condition?.backgroundOpacity ?? 0.5
-            nudgeConfiguration.closeOnDeepLink = dict.closeOnDeepLink ?? CustomerGlu.auto_close_webview!
-            nudgeConfiguration.relativeHeight = dict.relativeHeight ?? 0.0
-            nudgeConfiguration.absoluteHeight = dict.absoluteHeight ?? 0.0
-            
-            CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, nudgeConfiguration: nudgeConfiguration)
-            
-            let bannerViews = CustomerGlu.entryPointdata.filter {
-                $0.mobile.container.type == "BANNER" && $0.mobile.container.bannerId == self.bannerId ?? ""
+                let nudgeConfiguration = CGNudgeConfiguration()
+                nudgeConfiguration.layout = dict.openLayout.lowercased()
+                nudgeConfiguration.opacity = condition?.backgroundOpacity ?? 0.5
+                nudgeConfiguration.closeOnDeepLink = dict.closeOnDeepLink ?? CustomerGlu.auto_close_webview!
+                nudgeConfiguration.relativeHeight = dict.relativeHeight ?? 0.0
+                nudgeConfiguration.absoluteHeight = dict.absoluteHeight ?? 0.0
+                
+                CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, nudgeConfiguration: nudgeConfiguration)
+                
+                let bannerViews = CustomerGlu.entryPointdata.filter {
+                    $0.mobile.container.type == "BANNER" && $0.mobile.container.bannerId == self.bannerId ?? ""
+                }
+                
+                if bannerViews.count != 0 {
+                    let name = bannerViews[0].name ?? ""
+                    CustomerGlu.getInstance.postAnalyticsEventForEntryPoints(event_name: "ENTRY_POINT_CLICK", entry_point_id: dict._id, entry_point_name: name, entry_point_container: bannerViews[0].mobile.container.type, content_campaign_id: dict.url, open_container:dict.openLayout, action_c_campaign_id: dict.campaignId)
+                }
+                
             }
-            
-            if bannerViews.count != 0 {
-                let name = bannerViews[0].name ?? ""
-                CustomerGlu.getInstance.postAnalyticsEventForEntryPoints(event_name: "ENTRY_POINT_CLICK", entry_point_id: dict._id, entry_point_name: name, entry_point_container: bannerViews[0].mobile.container.type, content_campaign_id: dict.url, open_container:dict.openLayout, action_c_campaign_id: dict.campaignId)
-            }
-            
         }
     }
     

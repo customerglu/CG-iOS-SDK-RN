@@ -1203,6 +1203,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: url, page_type: CGConstants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview)
     }
     
+    @objc public func openURLWithNudgeConfig(url: String, nudgeConfiguration: CGNudgeConfiguration){
+        CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: url, page_type: nudgeConfiguration.layout, backgroundAlpha: nudgeConfiguration.opacity, auto_close_webview: nudgeConfiguration.closeOnDeepLink)
+    }
+    
     internal func openNudgeWithValidToken(nudgeId: String, layout: String = CGConstants.FULL_SCREEN_NOTIFICATION, bg_opacity: Double = 0.5, closeOnDeeplink : Bool = true, nudgeConfiguration : CGNudgeConfiguration? = nil) {
         if(nudgeId.count > 0 && CustomerGlu.sdk_disable == false){
             APIManager.getWalletRewards(queryParameters: [:]) { result in
