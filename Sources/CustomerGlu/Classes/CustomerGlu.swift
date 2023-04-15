@@ -245,32 +245,25 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 controller.view.isUserInteractionEnabled = false
                 
                 var path_key = ""
-                if(isembedview == true){
-                    
-                    if(true == checkIsDarkMode()){
+                if isembedview {
+                    if checkIsDarkMode() {
                         path_key = CGConstants.CUSTOMERGLU_DARK_EMBEDLOTTIE_FILE_PATH
-                    }else{
+                    } else {
                         path_key = CGConstants.CUSTOMERGLU_LIGHT_EMBEDLOTTIE_FILE_PATH
                     }
-                    
-                }else{
-                    
-                    if(true == checkIsDarkMode()){
+                } else {
+                    if checkIsDarkMode() {
                         path_key = CGConstants.CUSTOMERGLU_DARK_LOTTIE_FILE_PATH
-                    }else{
+                    } else {
                         path_key = CGConstants.CUSTOMERGLU_LIGHT_LOTTIE_FILE_PATH
                     }
-                    
                 }
-                
-                
-                //                path_key = CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH // line should be removed
+
                 let path = decryptUserDefaultKey(userdefaultKey: path_key)
-                
                 progressView.removeFromSuperview()
                 spinner.removeFromSuperview()
                 
-                if (path.count > 0 && URL(string: path) != nil){
+                if path.count > 0 && URL(string: path) != nil && path.hasSuffix(".json") {
                     progressView = LottieAnimationView(filePath: decryptUserDefaultKey(userdefaultKey: path_key))
                     
                     let size = (UIScreen.main.bounds.width <= UIScreen.main.bounds.height) ? UIScreen.main.bounds.width : UIScreen.main.bounds.height
@@ -281,13 +274,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     progressView.play()
                     controller.view.addSubview(progressView)
                     controller.view.bringSubviewToFront(progressView)
-                }else{
+                } else {
                     spinner = SpinnerView(frame: CGRect(x: x-30, y: y-30, width: 60, height: 60))
                     controller.view.addSubview(spinner)
                     controller.view.bringSubviewToFront(spinner)
                 }
-                
-                
             }
         }
     }
@@ -627,7 +618,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         APIManager.appConfig(queryParameters: eventInfo as NSDictionary) { result in
             switch result {
             case .success(let response):
-                if (response.data != nil && response.data?.mobile != nil){
+                if (response.data != nil && response.data?.mobile != nil) {
                     self.appconfigdata = (response.data?.mobile)!
                     self.updatedAllConfigParam()
                 }
@@ -642,9 +633,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
     }
     func updatedAllConfigParam() -> Void{
-        if(self.appconfigdata != nil)
-        {
-            
+        if(self.appconfigdata != nil) {
             if(self.appconfigdata!.disableSdk != nil){
                 CustomerGlu.getInstance.disableGluSdk(disable: (self.appconfigdata!.disableSdk ?? CustomerGlu.sdk_disable)!)
             }
@@ -732,25 +721,20 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 CustomerGlu.getInstance.configureWhiteListedDomains(domains: self.appconfigdata!.whiteListedDomains ?? CustomerGlu.whiteListedDomains)
             }
             
-            
-            if(self.appconfigdata!.loaderConfig?.loaderURL?.light != nil){
-                
-                CustomerGlu.getInstance.configureLightLoaderURL(locallottieLoaderURL: self.appconfigdata!.loaderConfig?.loaderURL?.light ?? "")
+            if let loaderURLLight = self.appconfigdata?.loaderConfig?.loaderURL?.light {
+                CustomerGlu.getInstance.configureLightLoaderURL(locallottieLoaderURL: loaderURLLight)
             }
             
-            if(self.appconfigdata!.loaderConfig?.loaderURL?.dark != nil){
-                
-                CustomerGlu.getInstance.configureDarkLoaderURL(locallottieLoaderURL: self.appconfigdata!.loaderConfig?.loaderURL?.dark ?? "")
+            if let loaderURLDark = self.appconfigdata?.loaderConfig?.loaderURL?.dark {
+                CustomerGlu.getInstance.configureDarkLoaderURL(locallottieLoaderURL: loaderURLDark)
             }
             
-            if(self.appconfigdata!.loaderConfig?.embedLoaderURL?.light != nil){
-                
-                CustomerGlu.getInstance.configureLightEmbedLoaderURL(locallottieLoaderURL: self.appconfigdata!.loaderConfig?.embedLoaderURL?.light ?? "")
+            if let embedLoaderURLLight = self.appconfigdata?.loaderConfig?.embedLoaderURL?.light {
+                CustomerGlu.getInstance.configureLightEmbedLoaderURL(locallottieLoaderURL: embedLoaderURLLight)
             }
             
-            if(self.appconfigdata!.loaderConfig?.embedLoaderURL?.dark != nil){
-                
-                CustomerGlu.getInstance.configureDarkEmbedLoaderURL(locallottieLoaderURL: self.appconfigdata!.loaderConfig?.embedLoaderURL?.dark ?? "")
+            if let embedLoaderURLDark = self.appconfigdata?.loaderConfig?.embedLoaderURL?.dark {
+                CustomerGlu.getInstance.configureDarkEmbedLoaderURL(locallottieLoaderURL: embedLoaderURLDark)
             }
             
             if(self.appconfigdata!.activityIdList != nil && self.appconfigdata!.activityIdList?.ios != nil){

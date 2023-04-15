@@ -740,25 +740,20 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     
     private func loaderShow(withcoordinate x: CGFloat, y: CGFloat) {
         DispatchQueue.main.async { [self] in
-            
             self.view.isUserInteractionEnabled = false
             
             var path_key = ""
-            
-            if(true == CustomerGlu.getInstance.checkIsDarkMode()){
+            if CustomerGlu.getInstance.checkIsDarkMode() {
                 path_key = CGConstants.CUSTOMERGLU_DARK_LOTTIE_FILE_PATH
-            }else{
+            } else {
                 path_key = CGConstants.CUSTOMERGLU_LIGHT_LOTTIE_FILE_PATH
             }
-            
-            
-            //            path_key = CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH // line should be removed
             let path = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key)
             
             progressView.removeFromSuperview()
             spinner.removeFromSuperview()
             
-            if (path.count > 0 && URL(string: path) != nil){
+            if path.count > 0 && URL(string: path) != nil && path.hasSuffix(".json") {
                 progressView = LottieAnimationView(filePath: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key))
                 
                 let size = (UIScreen.main.bounds.width <= UIScreen.main.bounds.height) ? UIScreen.main.bounds.width : UIScreen.main.bounds.height
@@ -769,17 +764,13 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 progressView.play()
                 self.view.addSubview(progressView)
                 self.view.bringSubviewToFront(progressView)
-            }else{
+            } else {
                 spinner = SpinnerView(frame: CGRect(x: x-30, y: y-30, width: 60, height: 60))
                 self.view.addSubview(spinner)
                 self.view.bringSubviewToFront(spinner)
             }
-            
         }
     }
-    
-    
-    
     
     private func loaderHide() {
         DispatchQueue.main.async { [self] in
@@ -788,5 +779,4 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             progressView.removeFromSuperview()
         }
     }
-    
 }

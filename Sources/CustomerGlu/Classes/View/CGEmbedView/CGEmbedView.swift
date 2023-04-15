@@ -447,20 +447,17 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
             self.view.isUserInteractionEnabled = false
             
             var path_key = ""
-            if(true == CustomerGlu.getInstance.checkIsDarkMode()){
+            if CustomerGlu.getInstance.checkIsDarkMode() {
                 path_key = CGConstants.CUSTOMERGLU_DARK_EMBEDLOTTIE_FILE_PATH
-            }else{
+            } else {
                 path_key = CGConstants.CUSTOMERGLU_LIGHT_EMBEDLOTTIE_FILE_PATH
             }
-            
-            
-            //            path_key = CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH // line should be removed
             let path = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key)
             
             progressView.removeFromSuperview()
             spinner.removeFromSuperview()
             
-            if (path.count > 0 && URL(string: path) != nil){
+            if path.count > 0 && URL(string: path) != nil && path.hasSuffix(".json") {
                 progressView = LottieAnimationView(filePath: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key))
                 
                 let size = (self.view.bounds.width <= self.view.bounds.height) ? self.view.bounds.width : self.view.bounds.height
@@ -471,17 +468,14 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
                 progressView.play()
                 self.view.addSubview(progressView)
                 self.view.bringSubviewToFront(progressView)
-            }else{
+            } else {
                 spinner = SpinnerView(frame: CGRect(x: self.view.frame.midX-30, y: self.view.frame.midY-30, width: 60, height: 60))
                 self.view.addSubview(spinner)
                 self.view.bringSubviewToFront(spinner)
             }
         }
     }
-    
-    
-    
-    
+
     private func loaderHide() {
         DispatchQueue.main.async { [self] in
             self.view.isUserInteractionEnabled = true
