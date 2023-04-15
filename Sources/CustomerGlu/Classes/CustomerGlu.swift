@@ -100,6 +100,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var darkEmbedLoaderURL = ""
     @objc public var cgUserData = CGUser()
     private var sdkInitialized: Bool = false
+    private static var isAnonymousFlowAllowed: Bool = false
     
     private override init() {
         super.init()
@@ -151,6 +152,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         if CustomerGlu.isEntryPointEnabled {
             getEntryPointData()
         }
+    }
+    
+    @objc public func allowAnonymousRegistration(enabled: Bool) {
+        CustomerGlu.isAnonymousFlowAllowed = enabled
+    }
+    
+    @objc public func allowAnonymousRegistration() -> Bool {
+        CustomerGlu.isAnonymousFlowAllowed
     }
     
     @objc public func customerGluDidCatchCrash(with model: CrashModel) {
@@ -749,6 +758,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             if(self.appconfigdata!.embedIds != nil && self.appconfigdata!.embedIds?.ios != nil){
                 CustomerGlu.embedIds = self.appconfigdata!.embedIds?.ios ?? []
             }
+            
+            if let allowAnonymousRegistration = self.appconfigdata?.allowAnonymousRegistration {
+                CustomerGlu.isAnonymousFlowAllowed = allowAnonymousRegistration
+            }
         }
     }
     
@@ -797,28 +810,39 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         let t_userid = userData[APIParameterKey.userId] as! String? ?? ""
         let t_anonymousIdP = userData[APIParameterKey.anonymousId] as! String? ?? ""
         let t_anonymousIdS = self.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_ANONYMOUSID) as String? ?? ""
-        
-        if(t_userid.count <= 0){
-            // Pass only anonymousId and removed UserID
-            if (t_anonymousIdP.count > 0){
-                userData[APIParameterKey.anonymousId] = t_anonymousIdP
-                
-                // Remove old user stored data
-                if(t_anonymousIdS.count > 0 && t_anonymousIdS != t_anonymousIdP){
-                    self.clearGluData()
+
+        if self.allowAnonymousRegistration() {
+            if (t_userid.count <= 0) {
+                // Pass only anonymousId and removed UserID
+                if (t_anonymousIdP.count > 0) {
+                    userData[APIParameterKey.anonymousId] = t_anonymousIdP
+                    
+                    // Remove old user stored data
+                    if(t_anonymousIdS.count > 0 && t_anonymousIdS != t_anonymousIdP){
+                        self.clearGluData()
+                    }
+                } else if (t_anonymousIdS.count > 0) {
+                    userData[APIParameterKey.anonymousId] = t_anonymousIdS
+                } else {
+                    userData[APIParameterKey.anonymousId] = UUID().uuidString
                 }
-            }else if(t_anonymousIdS.count > 0){
+                userData.removeValue(forKey: APIParameterKey.userId)
+            } else if (t_anonymousIdS.count > 0) {
+                // Pass anonymousId and UserID Both
                 userData[APIParameterKey.anonymousId] = t_anonymousIdS
-            }else{
-                userData[APIParameterKey.anonymousId] = UUID().uuidString
+            } else {
+                // Pass only UserID and removed anonymousId
+                userData.removeValue(forKey: APIParameterKey.anonymousId)
             }
-            userData.removeValue(forKey: APIParameterKey.userId)
-        }else if (t_anonymousIdS.count > 0){
-            // Pass anonymousId and UserID Both
-            userData[APIParameterKey.anonymousId] = t_anonymousIdS
-        }else{
+        } else {
             // Pass only UserID and removed anonymousId
             userData.removeValue(forKey: APIParameterKey.anonymousId)
+        }
+        
+        if userData[APIParameterKey.userId] == nil && userData[APIParameterKey.anonymousId] == nil {
+            print("UserId is either null or Empty")
+            completion(false)
+            return
         }
         
         APIManager.userRegister(queryParameters: userData as NSDictionary) { result in
