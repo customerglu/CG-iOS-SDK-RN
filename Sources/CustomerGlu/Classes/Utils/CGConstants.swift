@@ -37,7 +37,7 @@ struct CGConstants {
     static let CustomerGluPopupDict_OLD = "CustomerGluPopupDict"
     
     static let default_whitelist_doamin = "customerglu.com"
-    static var default_redirect_url = "https://end-user-ui.customerglu.com/error/?source=native-sdk&"
+    static var default_redirect_url = "https://constellation.customerglu.com/error.html"
     static let customerglu_encryptedKey = "customerglu_encryptedKey"
     static let CGOPENWALLET = "CG-OPEN-WALLET"
     static let CGSENTRYDSN = "https://d856e4a14b6d4c6eae1fc283d6ddbe8e@o4504440824856576.ingest.sentry.io/4504442660454400"
@@ -219,6 +219,7 @@ struct WebViewsKey {
     static let callback = "callback"
     static let close = "CLOSE"
     static let open_deeplink = "OPEN_DEEPLINK"
+    static let open_weblink = "OPEN_WEBLINK"
     static let analytics = "ANALYTICS"
     static let share = "SHARE"
     static let updateheight = "DIMENSIONS_UPDATE"

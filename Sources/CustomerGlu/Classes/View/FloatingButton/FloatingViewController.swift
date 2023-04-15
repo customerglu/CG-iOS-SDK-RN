@@ -203,7 +203,7 @@ class FloatingButtonController: UIViewController {
             
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_DEEPLINK_EVENT").rawValue), object: nil, userInfo: postdata)
                 
-            } else {
+            } else if type == WebViewsKey.open_weblink {
                 
                 // Hyperlink logic
                 let nudgeConfiguration = CGNudgeConfiguration()
@@ -212,8 +212,28 @@ class FloatingButtonController: UIViewController {
                 nudgeConfiguration.closeOnDeepLink = floatInfo?.mobile.content[0].closeOnDeepLink ?? CustomerGlu.auto_close_webview!
                 nudgeConfiguration.relativeHeight = floatInfo?.mobile.content[0].relativeHeight ?? 0.0
                 nudgeConfiguration.absoluteHeight = floatInfo?.mobile.content[0].absoluteHeight ?? 0.0
+                nudgeConfiguration.isHyperLink = true
                 
                 CustomerGlu.getInstance.openURLWithNudgeConfig(url: actionData.url, nudgeConfiguration: nudgeConfiguration)
+            } else {
+                //Incase of failure / API contract breach
+                
+                // Opening Campaign using CampaignId from payload
+                if let  campaignId = floatInfo?.mobile.content[0].campaignId {
+                    let nudgeConfiguration = CGNudgeConfiguration()
+                    nudgeConfiguration.layout = floatInfo?.mobile.content[0].openLayout.lowercased() ?? CGConstants.FULL_SCREEN_NOTIFICATION
+                    nudgeConfiguration.opacity = floatInfo?.mobile.conditions.backgroundOpacity ?? 0.5
+                    nudgeConfiguration.closeOnDeepLink = floatInfo?.mobile.content[0].closeOnDeepLink ?? CustomerGlu.auto_close_webview!
+                    nudgeConfiguration.relativeHeight = floatInfo?.mobile.content[0].relativeHeight ?? 0.0
+                    nudgeConfiguration.absoluteHeight = floatInfo?.mobile.content[0].absoluteHeight ?? 0.0
+                    
+                    CustomerGlu.getInstance.openCampaignById(campaign_id: campaignId, nudgeConfiguration: nudgeConfiguration)
+                } else {
+                    
+                    
+                    //Incase Campaign Id is nil / unavailable
+                    CustomerGlu.getInstance.openWallet()
+                }
             }
         } else {
             

@@ -276,8 +276,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 
                     NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_DEEPLINK_EVENT").rawValue), object: nil, userInfo: postdata)
                     
-                } else {
-                    
+                }else if type == WebViewsKey.open_weblink{
                     // Hyperlink logic
                     let nudgeConfiguration = CGNudgeConfiguration()
                     nudgeConfiguration.layout = dict.openLayout.lowercased() ?? CGConstants.FULL_SCREEN_NOTIFICATION
@@ -285,13 +284,30 @@ public class BannerView: UIView, UIScrollViewDelegate {
                     nudgeConfiguration.closeOnDeepLink = dict.closeOnDeepLink ?? CustomerGlu.auto_close_webview!
                     nudgeConfiguration.relativeHeight = dict.relativeHeight ?? 0.0
                     nudgeConfiguration.absoluteHeight = dict.absoluteHeight ?? 0.0
+                    nudgeConfiguration.isHyperLink = true
                     
                     CustomerGlu.getInstance.openURLWithNudgeConfig(url: actionData.url, nudgeConfiguration: nudgeConfiguration)
+                } else {
+                    //Incase of any data is missing
+                    
+                    //Load Campaign Id from the payload
+                    if let campaignId = dict.campaignId {
+                        let nudgeConfiguration = CGNudgeConfiguration()
+                        nudgeConfiguration.layout = dict.openLayout.lowercased()
+                        nudgeConfiguration.opacity = condition?.backgroundOpacity ?? 0.5
+                        nudgeConfiguration.closeOnDeepLink = dict.closeOnDeepLink ?? CustomerGlu.auto_close_webview!
+                        nudgeConfiguration.relativeHeight = dict.relativeHeight ?? 0.0
+                        nudgeConfiguration.absoluteHeight = dict.absoluteHeight ?? 0.0
+                        
+                        CustomerGlu.getInstance.openCampaignById(campaign_id: dict.campaignId, nudgeConfiguration: nudgeConfiguration)
+                    }else {
+                        // If Campaign id is unavailable open wallet condition.
+                        CustomerGlu.getInstance.openWallet()
+                    }
                 }
-                
             } else {
                 
-            
+                //Incase Action data is missing, normal flow open campaign using CampaignId from payload.
                 let nudgeConfiguration = CGNudgeConfiguration()
                 nudgeConfiguration.layout = dict.openLayout.lowercased()
                 nudgeConfiguration.opacity = condition?.backgroundOpacity ?? 0.5
