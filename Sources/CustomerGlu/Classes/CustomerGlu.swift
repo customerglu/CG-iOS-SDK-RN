@@ -101,6 +101,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     @objc public var cgUserData = CGUser()
     private var sdkInitialized: Bool = false
     private static var isAnonymousFlowAllowed: Bool = false
+    internal static var sdkWriteKey: String = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String ?? ""
     
     private override init() {
         super.init()
@@ -551,7 +552,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         var eventData: [String: Any] = [:]
         
         // Needs to be deleted. Just for reference.
-        let writekey = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String ?? ""
+        let writekey = CustomerGlu.sdkWriteKey
         if !(writekey.isEmpty){
             eventData["writeKeyPresent"] = "true"
 
@@ -599,7 +600,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             var eventData: [String: Any] = [:]
             
             // Needs to be deleted. Just for reference.
-            let writekey = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String ?? ""
+            let writekey = CustomerGlu.sdkWriteKey
             if !(writekey.isEmpty) {
                 eventData["writeKeyPresent"] = "true"
             } else {
@@ -617,6 +618,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             self.getAppConfig { result in
             }
         }
+    }
+    
+    @objc public func setWriteKey(_ writeKey: String) {
+        CustomerGlu.sdkWriteKey = writeKey
     }
     
     @objc internal func getAppConfig(completion: @escaping (Bool) -> Void) {
@@ -792,7 +797,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             userData[APIParameterKey.deviceId] = uuid
         }
         let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
-        let writekey = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String
+        let writekey = CustomerGlu.sdkWriteKey
         userData[APIParameterKey.deviceType] = "ios"
         userData[APIParameterKey.deviceName] = getDeviceName()
         userData[APIParameterKey.appVersion] = appVersion
@@ -953,7 +958,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         //user_id.count will always be > 0
         
         let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
-        let writekey = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String
+        let writekey = CustomerGlu.sdkWriteKey
         userData[APIParameterKey.deviceType] = "ios"
         userData[APIParameterKey.deviceName] = getDeviceName()
         userData[APIParameterKey.appVersion] = appVersion
@@ -1227,7 +1232,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             let scheme = url?.scheme
                             let host = url?.host
                             let userid = CustomerGlu.getInstance.cgUserData.userId
-                            let writekey = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String
+                            let writekey = CustomerGlu.sdkWriteKey
                             
                             var layout = layout
                             if(nudgeConfiguration != nil){
