@@ -144,7 +144,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         if notificationHandler {
             setupWebViewCustomFrame(url: urlStr)
         } else if iscampignId {
-            
+    
             self.loaderShow(withcoordinate: getframe().midX, y: getframe().midY)
             
             campaign_id = campaign_id.trimSpace()
@@ -273,7 +273,9 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             
             self.view.addSubview(webView)
             self.view.addSubview(coverview)
+            
             self.loaderShow(withcoordinate: getframe().midX, y: getframe().midY)
+            
             defaulttimer = Timer.scheduledTimer(timeInterval: 8, target: self, selector: #selector(timeoutforpageload(sender:)), userInfo: nil, repeats: false)
         } else {
             self.closePage(animated: false,dismissaction: CGDismissAction.UI_BUTTON)
@@ -739,54 +741,48 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     private func loaderShow(withcoordinate x: CGFloat, y: CGFloat) {
-        DispatchQueue.main.async { [self] in
-            
-            self.view.isUserInteractionEnabled = false
-            
-            var path_key = ""
-            
-            if(true == CustomerGlu.getInstance.checkIsDarkMode()){
-                path_key = CGConstants.CUSTOMERGLU_DARK_LOTTIE_FILE_PATH
-            }else{
-                path_key = CGConstants.CUSTOMERGLU_LIGHT_LOTTIE_FILE_PATH
-            }
-            
-            
-            //            path_key = CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH // line should be removed
-            let path = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key)
-            
-            progressView.removeFromSuperview()
-            spinner.removeFromSuperview()
-            
-            if (path.count > 0 && URL(string: path) != nil){
-                progressView = LottieAnimationView(filePath: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key))
+        if let nudgeConfiguration = nudgeConfiguration, !nudgeConfiguration.isHyperLink {
+            DispatchQueue.main.async { [self] in
+                self.view.isUserInteractionEnabled = false
                 
-                let size = (UIScreen.main.bounds.width <= UIScreen.main.bounds.height) ? UIScreen.main.bounds.width : UIScreen.main.bounds.height
+                var path_key = ""
+                if CustomerGlu.getInstance.checkIsDarkMode() {
+                    path_key = CGConstants.CUSTOMERGLU_DARK_LOTTIE_FILE_PATH
+                } else {
+                    path_key = CGConstants.CUSTOMERGLU_LIGHT_LOTTIE_FILE_PATH
+                }
+                let path = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key)
                 
-                progressView.frame = CGRect(x: x-(size/2), y: y-(size/2), width: size, height: size)
-                progressView.contentMode = .scaleAspectFit
-                progressView.loopMode = .loop
-                progressView.play()
-                self.view.addSubview(progressView)
-                self.view.bringSubviewToFront(progressView)
-            }else{
-                spinner = SpinnerView(frame: CGRect(x: x-30, y: y-30, width: 60, height: 60))
-                self.view.addSubview(spinner)
-                self.view.bringSubviewToFront(spinner)
+                progressView.removeFromSuperview()
+                spinner.removeFromSuperview()
+                
+                if path.count > 0 && URL(string: path) != nil && path.hasSuffix(".json") {
+                    progressView = LottieAnimationView(filePath: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key))
+                    
+                    let size = (UIScreen.main.bounds.width <= UIScreen.main.bounds.height) ? UIScreen.main.bounds.width : UIScreen.main.bounds.height
+                    
+                    progressView.frame = CGRect(x: x-(size/2), y: y-(size/2), width: size, height: size)
+                    progressView.contentMode = .scaleAspectFit
+                    progressView.loopMode = .loop
+                    progressView.play()
+                    self.view.addSubview(progressView)
+                    self.view.bringSubviewToFront(progressView)
+                } else {
+                    spinner = SpinnerView(frame: CGRect(x: x-30, y: y-30, width: 60, height: 60))
+                    self.view.addSubview(spinner)
+                    self.view.bringSubviewToFront(spinner)
+                }
             }
-            
         }
     }
-    
-    
-    
     
     private func loaderHide() {
-        DispatchQueue.main.async { [self] in
-            self.view.isUserInteractionEnabled = true
-            spinner.removeFromSuperview()
-            progressView.removeFromSuperview()
+        if let nudgeConfiguration = nudgeConfiguration, !nudgeConfiguration.isHyperLink {
+            DispatchQueue.main.async { [self] in
+                self.view.isUserInteractionEnabled = true
+                spinner.removeFromSuperview()
+                progressView.removeFromSuperview()
+            }
         }
     }
-    
 }
