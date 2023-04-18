@@ -58,6 +58,7 @@ private struct BaseUrls {
     static let baseurl = ApplicationManager.baseUrl
     static let devbaseurl = ApplicationManager.devbaseUrl
     static let streamurl = ApplicationManager.streamUrl
+    static let eventUrl = ApplicationManager.eventUrl
     static let diagnosticUrl = ApplicationManager.diagnosticUrl
     static let analyticsUrl = ApplicationManager.analyticsUrl
 }
@@ -210,7 +211,7 @@ class APIManager {
         // Added Task into Queue
         blockOperation.addExecutionBlock {
             // Call Get Wallet and Rewards List
-            performRequest(baseurl: BaseUrls.streamurl, methodandpath: MethodNameandPath.addToCart, parametersDict: queryParameters, completion: completion)
+            performRequest(baseurl: BaseUrls.eventUrl, methodandpath: MethodNameandPath.addToCart, parametersDict: queryParameters, completion: completion)
         }
         
         // Add dependency to finish previus task before starting new one
