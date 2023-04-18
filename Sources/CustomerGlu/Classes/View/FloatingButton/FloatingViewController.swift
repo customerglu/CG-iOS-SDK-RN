@@ -182,11 +182,11 @@ class FloatingButtonController: UIViewController {
     
     // Handle the Callback / Hyperlink logic - consume data from floatInfo.mo
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil) {
-        if let actionData = floatInfo?.mobile.content[0].cgAction, let type = actionData.type {
+        if let actionData = floatInfo?.mobile.content[0].action, let type = actionData.type {
             if type == WebViewsKey.open_deeplink {
                 
                 //Incase of Handled by CG is true
-                if actionData.isHandledByCG == true {
+                if actionData.isHandledBySDK == true {
                     guard let url = URL(string: "http://assets.customerglu.com/deeplink-redirect/?redirect=\(actionData.url)" as! String) else { return }
                     
                     if #available(iOS 10.0, *) {

@@ -1694,7 +1694,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
         }
         
-        return URL(string: ("\(CGConstants.default_redirect_url)&code=\(String(CustomerGlu.doamincode))&message=\(CustomerGlu.textMsg)"))!
+        return URL(string: ("\(CGConstants.default_redirect_url)?code=\(String(CustomerGlu.doamincode))&message=\(CustomerGlu.textMsg)"))!
     }
     
     @objc public func configureWhiteListedDomains(domains: [String]){

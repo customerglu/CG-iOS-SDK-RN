@@ -256,11 +256,11 @@ public class BannerView: UIView, UIScrollViewDelegate {
         
         let dict = arrContent[sender?.view?.tag ?? 0]
         if dict.campaignId != nil {
-            if let actionData = dict.cgAction, let type = actionData.type {
+            if let actionData = dict.action, let type = actionData.type {
                 if type == WebViewsKey.open_deeplink {
                     
                     //Incase of Handled by CG is true
-                    if actionData.isHandledByCG == true {
+                    if actionData.isHandledBySDK == true {
                         guard let url = URL(string: "http://assets.customerglu.com/deeplink-redirect/?redirect=\(actionData.url)" as! String) else { return }
                         if #available(iOS 10.0, *) {
                             UIApplication.shared.open(url, options: [:], completionHandler: nil)
