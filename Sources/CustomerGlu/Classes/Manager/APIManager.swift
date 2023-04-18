@@ -55,7 +55,7 @@ private struct MethodNameandPath {
 
 // Parameter Key's for all API's
 private struct BaseUrls {
-    static let baseurl = ApplicationManager.devbaseUrl
+    static let baseurl = ApplicationManager.baseUrl
     static let devbaseurl = ApplicationManager.devbaseUrl
     static let streamurl = ApplicationManager.streamUrl
     static let diagnosticUrl = ApplicationManager.diagnosticUrl
