@@ -771,7 +771,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func registerDevice(userdata: [String: AnyHashable], completion: @escaping (Bool) -> Void) {
-        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userdata[APIParameterKey.userId] == nil {
+        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || (userdata[APIParameterKey.userId] == nil && !allowAnonymousRegistration()){
             CustomerGlu.getInstance.printlog(cglog: "Fail to call registerDevice", isException: false, methodName: "CustomerGlu-registerDevice-1", posttoserver: true)
             CustomerGlu.bannersHeight = [String:Any]()
             CustomerGlu.embedsHeight = [String:Any]()
@@ -1402,6 +1402,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         if(response.success == true){
                             if (response.data != nil){
                                 if(response.data!.anonymous == true){
+                                    CustomerGlu.getInstance.allowAnonymousRegistration(enabled: true)
                                     if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil{
                                         self.excecuteDeepLink(firstpath: firstpath, cgdeeplink: response.data!, completion: completion)
                                     }else{
