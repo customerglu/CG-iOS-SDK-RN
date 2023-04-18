@@ -58,6 +58,7 @@ private struct BaseUrls {
     static let baseurl = ApplicationManager.baseUrl
     static let devbaseurl = ApplicationManager.devbaseUrl
     static let streamurl = ApplicationManager.streamUrl
+    static let eventUrl = ApplicationManager.eventUrl
     static let diagnosticUrl = ApplicationManager.diagnosticUrl
     static let analyticsUrl = ApplicationManager.analyticsUrl
 }
@@ -92,7 +93,7 @@ class APIManager {
         
         // Common Headers
         urlRequest.setValue(ContentType.json.rawValue, forHTTPHeaderField: HTTPHeaderField.contentType.rawValue)
-        urlRequest.setValue(Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String, forHTTPHeaderField: HTTPHeaderField.xapikey.rawValue)
+        urlRequest.setValue(CustomerGlu.sdkWriteKey, forHTTPHeaderField: HTTPHeaderField.xapikey.rawValue)
         urlRequest.setValue("ios", forHTTPHeaderField: HTTPHeaderField.platform.rawValue)
         urlRequest.setValue(CustomerGlu.isDebugingEnabled.description, forHTTPHeaderField: HTTPHeaderField.sandbox.rawValue)
         urlRequest.setValue(APIParameterKey.cgsdkversionvalue, forHTTPHeaderField: HTTPHeaderField.cgsdkversionkey.rawValue)
@@ -210,7 +211,7 @@ class APIManager {
         // Added Task into Queue
         blockOperation.addExecutionBlock {
             // Call Get Wallet and Rewards List
-            performRequest(baseurl: BaseUrls.streamurl, methodandpath: MethodNameandPath.addToCart, parametersDict: queryParameters, completion: completion)
+            performRequest(baseurl: BaseUrls.eventUrl, methodandpath: MethodNameandPath.addToCart, parametersDict: queryParameters, completion: completion)
         }
         
         // Add dependency to finish previus task before starting new one
