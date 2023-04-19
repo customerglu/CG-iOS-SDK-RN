@@ -37,7 +37,7 @@ struct CGConstants {
     static let CustomerGluPopupDict_OLD = "CustomerGluPopupDict"
     
     static let default_whitelist_doamin = "customerglu.com"
-    static var default_redirect_url = "https://end-user-ui.customerglu.com/error/?source=native-sdk&"
+    static var default_redirect_url = "https://constellation.customerglu.com/error.html"
     static let customerglu_encryptedKey = "customerglu_encryptedKey"
     static let CGOPENWALLET = "CG-OPEN-WALLET"
     static let CGSENTRYDSN = "https://d856e4a14b6d4c6eae1fc283d6ddbe8e@o4504440824856576.ingest.sentry.io/4504442660454400"
@@ -46,57 +46,71 @@ struct CGConstants {
 
 struct CGDiagnosticConstants{
     //Diagnostics constants
-    static let CG_DIAGNOSTICS_INIT_START = "CGDiagnostics - SDK Init Start";
-    static let CG_DIAGNOSTICS_INIT_END = "CGDiagnostics - SDK Init End";
-    static let CG_DIAGNOSTICS_USER_REGISTRATION_START = "CGDiagnostics - SDK User registration Start";
-    static let CG_DIAGNOSTICS_USER_REGISTRATION_END = "CGDiagnostics - SDK User registration End";
-    static let CG_DIAGNOSTICS_LOAD_CAMPAIGN_START = "CGDiagnostics - SDK User Load Campaign Start";
-    static let CG_DIAGNOSTICS_LOAD_CAMPAIGN_END = "CGDiagnostics - SDK Load Campaign End";
-    static let CG_DIAGNOSTICS_GET_ENTRY_POINT_START = "CGDiagnostics - SDK getEntryPoint  Start";
-    static let CG_DIAGNOSTICS_GET_ENTRY_POINT_END = "CGDiagnostics - SDK getEntryPoint End";
-    static let CG_DIAGNOSTICS_SEND_EVENT_START = "CGDiagnostics - SDK sendEventData Start";
-    static let CG_DIAGNOSTICS_SEND_EVENT_END = "CGDiagnostics - SDK sendEventData End";
-    static let CG_DIAGNOSTICS_OPEN_WALLET_CALLED = "CGDiagnostics - SDK OpenWallet Called";
-    static let CG_DIAGNOSTICS_OPEN_NUDGE_CALLED = "CGDiagnostics - SDK OpenNudge Called";
-    static let CG_DIAGNOSTICS_LOAD_CAMPAIGN_BY_ID_CALLED = "CGDiagnostics - SDK LoadCampaignByID Called";
-    static let CG_DIAGNOSTICS_CLEAR_GLU_DATA_CALLED = "CGDiagnostics - SDK clearGluData Called";
-    static let CG_DIAGNOSTICS_ENABLE_ANALYTICS_CALLED = "CGDiagnostics - SDK enableAnalyticsEvent Called";
-    static let CG_DIAGNOSTICS_SET_DARK_MODE_CALLED = "CGDiagnostics - SDK setDarkMode Called";
-    static let CG_DIAGNOSTICS_LISTEN_SYSTEM_DARK_MODE_CALLED = "CGDiagnostics - SDK listenToDarkMode Called";
-    static let CG_DIAGNOSTICS_LOADER_COLOR_CALLED = "CGDiagnostics - SDK configureLoaderColour Called";
-    static let CG_DIAGNOSTICS_CONFIGURE_SAFE_AREA_CALLED = "CGDiagnostics - SDK configureSafeArea Called";
-    static let CG_DIAGNOSTICS_GLU_SDK_DEBUGGING_MODE_CALLED = "CGDiagnostics - SDK gluSDKDebuggingMode Called";
-    static let CG_DIAGNOSTICS_DISABLE_SDK_CALLED = "CGDiagnostics - SDK disableGluSdk Called";
-    static let CG_DIAGNOSTICS_NOTIFICATION_CALLED = "CGDiagnostics - SDK Push notification Received ";
-    static let CG_DIAGNOSTICS_BACKGROUND_NOTIFICATION_CALLED = "CGDiagnostics - SDK background notification Received";
-
-
+    static let CG_DIAGNOSTICS_INIT_START = "CGDiagnostics - SDK Init Start"
+    static let CG_DIAGNOSTICS_INIT_END = "CGDiagnostics - SDK Init End"
+    static let CG_DIAGNOSTICS_USER_REGISTRATION_START = "CGDiagnostics - SDK User registration Start"
+    static let CG_DIAGNOSTICS_USER_REGISTRATION_END = "CGDiagnostics - SDK User registration End"
+    static let CG_DIAGNOSTICS_LOAD_CAMPAIGN_START = "CGDiagnostics - SDK User Load Campaign Start"
+    static let CG_DIAGNOSTICS_LOAD_CAMPAIGN_END = "CGDiagnostics - SDK Load Campaign End"
+    static let CG_DIAGNOSTICS_GET_ENTRY_POINT_START = "CGDiagnostics - SDK getEntryPoint  Start"
+    static let CG_DIAGNOSTICS_GET_ENTRY_POINT_END = "CGDiagnostics - SDK getEntryPoint End"
+    static let CG_DIAGNOSTICS_SEND_EVENT_START = "CGDiagnostics - SDK sendEventData Start"
+    static let CG_DIAGNOSTICS_SEND_EVENT_END = "CGDiagnostics - SDK sendEventData End"
+    static let CG_DIAGNOSTICS_OPEN_WALLET_CALLED = "CGDiagnostics - SDK OpenWallet Called"
+    static let CG_DIAGNOSTICS_OPEN_NUDGE_CALLED = "CGDiagnostics - SDK OpenNudge Called"
+    static let CG_DIAGNOSTICS_LOAD_CAMPAIGN_BY_ID_CALLED = "CGDiagnostics - SDK LoadCampaignByID Called"
+    static let CG_DIAGNOSTICS_CLEAR_GLU_DATA_CALLED = "CGDiagnostics - SDK clearGluData Called"
+    static let CG_DIAGNOSTICS_ENABLE_ANALYTICS_CALLED = "CGDiagnostics - SDK enableAnalyticsEvent Called"
+    static let CG_DIAGNOSTICS_SET_DARK_MODE_CALLED = "CGDiagnostics - SDK setDarkMode Called"
+    static let CG_DIAGNOSTICS_LISTEN_SYSTEM_DARK_MODE_CALLED = "CGDiagnostics - SDK listenToDarkMode Called"
+    static let CG_DIAGNOSTICS_LOADER_COLOR_CALLED = "CGDiagnostics - SDK configureLoaderColour Called"
+    static let CG_DIAGNOSTICS_CONFIGURE_SAFE_AREA_CALLED = "CGDiagnostics - SDK configureSafeArea Called"
+    static let CG_DIAGNOSTICS_GLU_SDK_DEBUGGING_MODE_CALLED = "CGDiagnostics - SDK gluSDKDebuggingMode Called"
+    static let CG_DIAGNOSTICS_DISABLE_SDK_CALLED = "CGDiagnostics - SDK disableGluSdk Called"
+    static let CG_DIAGNOSTICS_NOTIFICATION_CALLED = "CGDiagnostics - SDK Push notification Received "
+    static let CG_DIAGNOSTICS_BACKGROUND_NOTIFICATION_CALLED = "CGDiagnostics - SDK background notification Received"
+    
+    static let CG_DIAGNOSTICS_MQTT_ENABLED = "CGDiagnostics - MQTT Enabled"
+    static let CG_DIAGNOSTICS_MQTT_DISABLED = "CGDiagnostics - MQTT Disabled"
+    static let CG_DIAGNOSTICS_MQTT_INITIALIZE = "CGDiagnostics - MQTT Initialize"
+    static let CG_DIAGNOSTICS_MQTT_CONNECTION_SUCCESS = "CGDiagnostics - MQTT Connection Success"
+    static let CG_DIAGNOSTICS_MQTT_CONNECTION_FAILURE = "CGDiagnostics - MQTT Connection Failure"
+    static let CG_DIAGNOSTICS_MQTT_SUBSCRIBE = "CGDiagnostics - MQTT Subscribe"
+    static let CG_DIAGNOSTICS_MQTT_RECEIVING_MESSAGE = "CGDiagnostics - MQTT Receiving Message"
+    static let CG_DIAGNOSTICS_MQTT_DISCONNECT = "CGDiagnostics - MQTT Disconnect"
+    
+    static let CG_DIAGNOSTICS_WEBVIEW_DIDFINISH = "CGDiagnostics - WebView Did Finish"
+    static let CG_DIAGNOSTICS_WEBVIEW_START_PROVISIONAL = "CGDiagnostics - WebView Start Provisional"
+    static let CG_DIAGNOSTICS_WEBVIEW_FAILED_PROVISIONAL = "CGDiagnostics - WebView Failed Provisional"
+    static let CG_DIAGNOSTICS_WEBVIEW_RECEIVE_MESSAGE_FROM_WEBVIEW = "CGDiagnostics - WebView Receive Message from Webview"
+    static let CG_DIAGNOSTICS_WEBVIEW_HANDLE_DEEPLINK = "CGDiagnostics - WebView Handle Deeplink"
+    
     // Metrics Event
-    static let CG_METRICS_SDK_READY = "CGMetrics - SDK Ready ";
-    static let CG_METRICS_SDK_CONFIG_CALLED = "CGMetrics - SDK Config Called";
-    static let CG_METRICS_SDK_CONFIG_RESPONSE = "CGMetrics - SDK Config Response";
-    static let CG_METRICS_SDK_CONFIG_SUCCESS = "CGMetrics - SDK Config Success";
-    static let CG_METRICS_SDK_CONFIG_FAILURE = "CGMetrics - SDK Config Failure";
-    static let CG_METRICS_SDK_REGISTER_CALLED = "CGMetrics - SDK Register Called ";
-    static let CG_METRICS_SDK_REGISTER_RESPONSE = "CGMetrics - SDK Register Response";
-    static let CG_METRICS_SDK_REGISTER_SUCCESS = "CGMetrics - SDK Register Success";
-    static let CG_METRICS_SDK_REGISTER_FAILURE = "CGMetrics - SDK Register Failure";
-    static let CG_METRICS_SDK_LOAD_CAMPAIGN_CALLED = "CGMetrics - SDK Load campaign Called";
-    static let CG_METRICS_SDK_LOAD_CAMPAIGN_RESPONSE = "CGMetrics - SDK Load campaign Response";
-    static let CG_METRICS_SDK_LOAD_CAMPAIGN_SUCCESS = "CGMetrics - SDK Load campaign Success";
-    static let CG_METRICS_SDK_LOAD_CAMPAIGN_FAILURE = "CGMetrics - SDK Load campaign Failure";
-    static let CG_METRICS_SDK_ENTRY_POINTS_CALLED = "CGMetrics - SDK EntryPoints Called ";
-    static let CG_METRICS_SDK_ENTRY_POINTS_RESPONSE = "CGMetrics - SDK EntryPoints Response";
-    static let CG_METRICS_SDK_ENTRY_POINTS_SUCCESS = "CGMetrics - SDK EntryPoints Success";
-    static let CG_METRICS_SDK_ENTRY_POINTS_FAILURE = "CGMetrics - SDK EntryPoints Failure";
-    static let CG_METRICS_SDK_SERVER_EVENTS_CALLED = "CGMetrics - SDK Server Events Called";
-    static let CG_METRICS_SDK_SERVER_EVENTS_RESPONSE = "CGMetrics - SDK Server Events Response";
-    static let CG_METRICS_SDK_SERVER_EVENTS_SUCCESS = "CGMetrics - SDK Server Events Success";
-    static let CG_METRICS_SDK_SERVER_EVENTS_FAILURE = "CGMetrics - SDK Server Events Failure";
-    static let CG_METRICS_SDK_WORMHOLE_CALLED = "CGMetrics - SDK Wormhole Called ";
-    static let CG_METRICS_SDK_WORMHOLE_RESPONSE = "CGMetrics - SDK Wormhole Response ";
-    static let CG_METRICS_SDK_WORMHOLE_SUCCESS = "CGMetrics - SDK Wormhole Success";
-    static let CG_METRICS_SDK_WORMHOLE_FAILURE = "CGMetrics - SDK Wormhole Failure";
+    static let CG_METRICS_SDK_READY = "CGMetrics - SDK Ready "
+    static let CG_METRICS_SDK_CONFIG_CALLED = "CGMetrics - SDK Config Called"
+    static let CG_METRICS_SDK_CONFIG_RESPONSE = "CGMetrics - SDK Config Response"
+    static let CG_METRICS_SDK_CONFIG_SUCCESS = "CGMetrics - SDK Config Success"
+    static let CG_METRICS_SDK_CONFIG_FAILURE = "CGMetrics - SDK Config Failure"
+    static let CG_METRICS_SDK_REGISTER_CALLED = "CGMetrics - SDK Register Called "
+    static let CG_METRICS_SDK_REGISTER_RESPONSE = "CGMetrics - SDK Register Response"
+    static let CG_METRICS_SDK_REGISTER_SUCCESS = "CGMetrics - SDK Register Success"
+    static let CG_METRICS_SDK_REGISTER_FAILURE = "CGMetrics - SDK Register Failure"
+    static let CG_METRICS_SDK_LOAD_CAMPAIGN_CALLED = "CGMetrics - SDK Load campaign Called"
+    static let CG_METRICS_SDK_LOAD_CAMPAIGN_RESPONSE = "CGMetrics - SDK Load campaign Response"
+    static let CG_METRICS_SDK_LOAD_CAMPAIGN_SUCCESS = "CGMetrics - SDK Load campaign Success"
+    static let CG_METRICS_SDK_LOAD_CAMPAIGN_FAILURE = "CGMetrics - SDK Load campaign Failure"
+    static let CG_METRICS_SDK_ENTRY_POINTS_CALLED = "CGMetrics - SDK EntryPoints Called "
+    static let CG_METRICS_SDK_ENTRY_POINTS_RESPONSE = "CGMetrics - SDK EntryPoints Response"
+    static let CG_METRICS_SDK_ENTRY_POINTS_SUCCESS = "CGMetrics - SDK EntryPoints Success"
+    static let CG_METRICS_SDK_ENTRY_POINTS_FAILURE = "CGMetrics - SDK EntryPoints Failure"
+    static let CG_METRICS_SDK_SERVER_EVENTS_CALLED = "CGMetrics - SDK Server Events Called"
+    static let CG_METRICS_SDK_SERVER_EVENTS_RESPONSE = "CGMetrics - SDK Server Events Response"
+    static let CG_METRICS_SDK_SERVER_EVENTS_SUCCESS = "CGMetrics - SDK Server Events Success"
+    static let CG_METRICS_SDK_SERVER_EVENTS_FAILURE = "CGMetrics - SDK Server Events Failure"
+    static let CG_METRICS_SDK_WORMHOLE_CALLED = "CGMetrics - SDK Wormhole Called "
+    static let CG_METRICS_SDK_WORMHOLE_RESPONSE = "CGMetrics - SDK Wormhole Response "
+    static let CG_METRICS_SDK_WORMHOLE_SUCCESS = "CGMetrics - SDK Wormhole Success"
+    static let CG_METRICS_SDK_WORMHOLE_FAILURE = "CGMetrics - SDK Wormhole Failure"
     
     
     static let CG_TYPE_DIAGNOSTICS = "DIAGNOSTICS"
@@ -157,7 +171,7 @@ struct APIParameterKey {
     static let appSessionId = "appSessionId"
     static let userAgent = "userAgent"
     static let eventName = "eventName"
-    static let cgsdkversionvalue = "1.1.2"
+    static let cgsdkversionvalue = "1.1.3"
     static let analytics_version_value = "4.0.0"
     static let analytics_version = "analytics_version"
     static let dismiss_trigger = "dismiss_trigger"
@@ -205,6 +219,7 @@ struct WebViewsKey {
     static let callback = "callback"
     static let close = "CLOSE"
     static let open_deeplink = "OPEN_DEEPLINK"
+    static let open_weblink = "OPEN_WEBLINK"
     static let analytics = "ANALYTICS"
     static let share = "SHARE"
     static let updateheight = "DIMENSIONS_UPDATE"

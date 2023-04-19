@@ -13,7 +13,6 @@ public class CGEventsDiagnosticsHelper {
     
     /***
         Sending DIagnostics events 
-     
      */
     func sendDiagnosticsReport(eventName: String, eventType: String, eventMeta:[String:Any]){
         
@@ -41,8 +40,12 @@ public class CGEventsDiagnosticsHelper {
         }
     }
     
-    
-    
-    
-    
+    /***
+        Sending Multiple Diagnostics event types
+     */
+    func sendMultipleDiagnosticsReport(eventName: String, eventTypes: [String], eventMeta:[String:Any]) {
+        for eventType in eventTypes {
+            sendDiagnosticsReport(eventName: eventName, eventType: eventType, eventMeta: eventMeta)
+        }
+    }
 }

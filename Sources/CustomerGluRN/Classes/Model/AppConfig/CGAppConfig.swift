@@ -68,7 +68,9 @@ public class CGMobileData: Codable {
     public var bannerIds: PlatformList?
     public var embedIds: PlatformList?
     public var enableMqtt: Bool?
-
+    public var allowedRetryCount: Int = 1
+    public var allowAnonymousRegistration: Bool?
+    
     required public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
@@ -80,7 +82,11 @@ public class CGMobileData: Codable {
         self.iosSafeArea = try container.decodeIfPresent(CGIosSafeArea.self, forKey: .iosSafeArea) ?? CGIosSafeArea()
         self.loadScreenColor = try container.decodeIfPresent(String.self, forKey: .loadScreenColor) ?? CustomerGlu.defaultBGCollor.hexString
         self.loaderColor = try container.decodeIfPresent(String.self, forKey: .loaderColor) ?? CustomerGlu.arrColor[0].hexString
-        self.whiteListedDomains = try container.decodeIfPresent([String].self, forKey: .whiteListedDomains) ?? CustomerGlu.whiteListedDomains
+        if let whiteListedDomains = try? container.decodeIfPresent([String].self, forKey: .whiteListedDomains) {
+            self.whiteListedDomains = whiteListedDomains
+        } else {
+            self.whiteListedDomains = CustomerGlu.whiteListedDomains
+        }
         self.secretKey = try container.decodeIfPresent(String.self, forKey: .secretKey) ?? ""
         self.enableSentry = try container.decodeIfPresent(Bool.self, forKey: .enableSentry) ?? false
         self.forceUserRegistration = try container.decodeIfPresent(Bool.self, forKey: .forceUserRegistration) ?? false
@@ -98,11 +104,17 @@ public class CGMobileData: Codable {
         self.sentryDsn = try container.decodeIfPresent(CGSentryDSN.self, forKey: .sentryDsn) ?? CGSentryDSN()
         self.deeplinkUrl = try container.decodeIfPresent(String.self, forKey: .deeplinkUrl) ?? ""
         self.callbackConfigurationUrl = try container.decodeIfPresent(String.self, forKey: .callbackConfigurationUrl) ?? ""
-        self.testUserIds = try container.decodeIfPresent([String].self, forKey: .testUserIds) ?? CustomerGlu.testUsers
+        if let testUserIds = try? container.decodeIfPresent([String].self, forKey: .testUserIds) {
+            self.testUserIds = testUserIds
+        } else {
+            self.testUserIds = CustomerGlu.testUsers
+        }
         self.activityIdList = try container.decodeIfPresent(PlatformList.self, forKey: .activityIdList) ?? PlatformList()
         self.bannerIds = try container.decodeIfPresent(PlatformList.self, forKey: .bannerIds) ?? PlatformList()
         self.embedIds = try container.decodeIfPresent(PlatformList.self, forKey: .embedIds) ?? PlatformList()
         self.enableMqtt = try container.decodeIfPresent(Bool.self, forKey: .enableMqtt) ?? false
+        self.allowedRetryCount = try container.decodeIfPresent(Int.self, forKey: .allowedRetryCount) ?? 1
+        self.allowAnonymousRegistration = try container.decodeIfPresent(Bool.self, forKey: .allowAnonymousRegistration) ?? false
     }
     
     required public init() {
@@ -202,12 +214,4 @@ public class PlatformList: Codable {
     required public init(){
         
     }
-    
 }
-
-//public class CGWeb: Codable {
-//}
-
-
-
-

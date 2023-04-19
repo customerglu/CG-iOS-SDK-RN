@@ -16,6 +16,7 @@ public class CGNudgeConfiguration:NSObject {
     public var url = ""
     public var absoluteHeight = 0.0
     public var relativeHeight = 0.0
+    public var isHyperLink = false
     //    public var notificationHandler = false
     
     public override init() {
@@ -31,6 +32,21 @@ public class CGNudgeConfiguration:NSObject {
         self.absoluteHeight = absoluteHeight
         self.relativeHeight = relativeHeight
         //        self.notificationHandler = notificationHandler
+    }
+    
+    
+    /***
+       Added isHyperlink support  for Entrypoint s
+     */
+    public init(closeOnDeepLink : Bool = CustomerGlu.auto_close_webview!, opacity : Double = 0.5, layout : String = "",url : String = "", absoluteHeight : Double = 0.0, relativeHeight : Double = 0.0,isHyperLink: Bool) {
+        
+        self.closeOnDeepLink = closeOnDeepLink
+        self.opacity = opacity
+        self.layout = layout
+        self.url = url
+        self.absoluteHeight = absoluteHeight
+        self.relativeHeight = relativeHeight
+        self.isHyperLink = isHyperLink
     }
     
 }
