@@ -71,7 +71,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         
     }
     public override var shouldAutorotate: Bool{
-        return false;
+        return false
     }
     
     func getframe()->CGRect{
@@ -144,7 +144,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         if notificationHandler {
             setupWebViewCustomFrame(url: urlStr)
         } else if iscampignId {
-            
+    
             self.loaderShow(withcoordinate: getframe().midX, y: getframe().midY)
             
             campaign_id = campaign_id.trimSpace()
@@ -263,7 +263,11 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CG_INVALID_CAMPAIGN_ID").rawValue), object: nil, userInfo: eventInfo)
             }
             webView.backgroundColor = CustomerGlu.getInstance.checkIsDarkMode() ? CustomerGlu.darkBackground: CustomerGlu.lightBackground
-            let darkUrl = url + "&darkMode=" + (CustomerGlu.getInstance.checkIsDarkMode() ? "true" : "false")
+            var darkUrl = url
+            if let nudgeConfiguration = nudgeConfiguration, !nudgeConfiguration.isHyperLink {
+                darkUrl = url + "&darkMode=" + (CustomerGlu.getInstance.checkIsDarkMode() ? "true" : "false")
+            }
+            
             webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: darkUrl)!)))
             webView.isHidden = true
             
@@ -273,7 +277,9 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             
             self.view.addSubview(webView)
             self.view.addSubview(coverview)
+            
             self.loaderShow(withcoordinate: getframe().midX, y: getframe().midY)
+            
             defaulttimer = Timer.scheduledTimer(timeInterval: 8, target: self, selector: #selector(timeoutforpageload(sender:)), userInfo: nil, repeats: false)
         } else {
             self.closePage(animated: false,dismissaction: CGDismissAction.UI_BUTTON)
@@ -295,14 +301,22 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+        // DIAGNOSTICS
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_WEBVIEW_START_PROVISIONAL, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta: [:])
     }
     
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        // DIAGNOSTICS
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_WEBVIEW_DIDFINISH, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta: [:])
+        
         postAnalyticsEventForWebView(isopenevent: true, dismissaction: CGDismissAction.UI_BUTTON)
     }
     
     public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-        
+        // DIAGNOSTICS
+        let eventData: [String: Any] = ["Error": error.localizedDescription]
+        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_WEBVIEW_FAILED_PROVISIONAL, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta: eventData)
+
         CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "didFailProvisionalNavigation", posttoserver: true)
         
         hideLoaderNShowWebview()
@@ -314,6 +328,16 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             if  let deep_link = deeplink?.data?.deepLink {
                 CustomerGlu.getInstance.printlog(cglog: String(deep_link), isException: false, methodName: "WebViewVC-WebViewsKey.open_deeplink", posttoserver: false)
                 postdata = OtherUtils.shared.convertToDictionary(text: (message.body as? String) ?? "") ?? [String:Any]()
+                
+                // DIAGNOSTICS
+                let eventData: [String: Any] = ["eventName": eventName,
+                                                "deeplink": deep_link,
+                                                "auto_close_webview": auto_close_webview ?? false,
+                                                "postdata": postdata,
+                                                "notificationHandler": notificationHandler,
+                                                "iscampignId": iscampignId]
+                CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_WEBVIEW_HANDLE_DEEPLINK, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta: eventData)
+
                 self.canpost = true
                 if self.auto_close_webview == true {
                     // Posted a notification in viewDidDisappear method
@@ -333,9 +357,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     // receive message from wkwebview
-    public func userContentController(
-        _ userContentController: WKUserContentController, didReceive message: WKScriptMessage
-    ) {
+    public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         
         if message.name == WebViewsKey.callback {
             guard let bodyString = message.body as? String,
@@ -343,7 +365,14 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             
             let bodyStruct = try? JSONDecoder().decode(CGEventModel.self, from: bodyData)
             
+            // DIAGNOSTICS
+            var diagnosticsEventData: [String: Any] = ["eventName": bodyStruct?.eventName ?? "",
+                                            "Name": WebViewsKey.callback]
+
             if bodyStruct?.eventName == WebViewsKey.close {
+                diagnosticsEventData["notificationHandler"] = notificationHandler
+                diagnosticsEventData["iscampignId"] = iscampignId
+                
                 if notificationHandler || iscampignId {
                     self.closePage(animated: true,dismissaction: CGDismissAction.UI_BUTTON)
                 } else {
@@ -354,14 +383,24 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             if bodyStruct?.eventName == WebViewsKey.open_deeplink {
                 let deeplink = try? JSONDecoder().decode(CGDeepLinkModel.self, from: bodyData)
                 if  let deep_link = deeplink?.data?.deepLink {
+                    diagnosticsEventData["Data Deeplink"] = deep_link
+                    
                     CustomerGlu.getInstance.printlog(cglog: String(deep_link), isException: false, methodName: "WebViewVC-WebViewsKey.open_deeplink", posttoserver: false)
                     postdata = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!) ?? [String:Any]()
                     self.canpost = true
                    
+                    diagnosticsEventData["postdata"] = postdata
+                    diagnosticsEventData["isDeeplinkHandledByCG"] = "NA"
+                    
                         // Post notification
                         if let eventData = postdata["data"] as? [String:Any], let isDeeplinkHandledByCG = eventData["isHandledByCG"], let deeplink = eventData["deepLink"]{
                             
+                            diagnosticsEventData["isDeeplinkHandledByCG"] = isDeeplinkHandledByCG
+                            diagnosticsEventData["eventData deeplink"] = deeplink
+                            
                             if let closeOnDeeplink =  eventData["closeOnDeeplink"] {
+                                diagnosticsEventData["closeOnDeeplink"] = closeOnDeeplink
+
                                 auto_close_webview = closeOnDeeplink as? String == "true" ? true : false
                             }
                            
@@ -377,6 +416,9 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                             }
                         
                        if self.auto_close_webview == true {
+                           diagnosticsEventData["notificationHandler"] = notificationHandler
+                           diagnosticsEventData["iscampignId"] = iscampignId
+                           
                            // Posted a notification in viewDidDisappear method
                            if notificationHandler || iscampignId {
                                self.closePage(animated: true,dismissaction: CGDismissAction.CTA_REDIRECT)
@@ -400,6 +442,10 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 let text = share?.data?.text
                 let channelName = share?.data?.channelName
                 if let imageurl = share?.data?.image {
+                    diagnosticsEventData["imageurl"] = imageurl
+                    diagnosticsEventData["channelName"] = channelName
+                    diagnosticsEventData["text"] = text ?? ""
+                    
                     if imageurl == "" {
                         if channelName == "WHATSAPP" {
                             sendToWhatsapp(shareText: text!)
@@ -417,6 +463,8 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }
             
             if bodyStruct?.eventName == WebViewsKey.analytics {
+                diagnosticsEventData["analyticsEvent"] = CustomerGlu.analyticsEvent
+                
                 if (true == CustomerGlu.analyticsEvent) {
                     let dict = OtherUtils.shared.convertToDictionary(text: (message.body as? String)!)
                     if(dict != nil && dict!.count>0 && dict?["data"] != nil){
@@ -481,6 +529,14 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                         opencgwebview_nudgeConfiguration?.url = contenturl
                     }
                     
+                    diagnosticsEventData["contenttype"] = contenttype
+                    diagnosticsEventData["contenturl"] = contenturl
+                    diagnosticsEventData["contentcampaignId"] = contentcampaignId
+                    diagnosticsEventData["containertype"] = containertype
+                    diagnosticsEventData["containerabsoluteHeight"] = containerabsoluteHeight
+                    diagnosticsEventData["containerrelativeHeight"] = containerrelativeHeight
+                    diagnosticsEventData["hidePrevious"] = hidePrevious
+                    
                     if(true == hidePrevious){
                         canopencgwebview = true
                         if notificationHandler || iscampignId {
@@ -496,8 +552,11 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 }
             }
             
+            // DIAGNOSTICS
+            CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_WEBVIEW_RECEIVE_MESSAGE_FROM_WEBVIEW, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta: diagnosticsEventData)
         }
     }
+    
     private func openCGWebView(){
         if(opencgwebview_nudgeConfiguration != nil){
             
@@ -686,54 +745,49 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     private func loaderShow(withcoordinate x: CGFloat, y: CGFloat) {
-        DispatchQueue.main.async { [self] in
-            
-            self.view.isUserInteractionEnabled = false
-            
-            var path_key = ""
-            
-            if(true == CustomerGlu.getInstance.checkIsDarkMode()){
-                path_key = CGConstants.CUSTOMERGLU_DARK_LOTTIE_FILE_PATH
-            }else{
-                path_key = CGConstants.CUSTOMERGLU_LIGHT_LOTTIE_FILE_PATH
-            }
-            
-            
-            //            path_key = CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH // line should be removed
-            let path = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key)
-            
-            progressView.removeFromSuperview()
-            spinner.removeFromSuperview()
-            
-            if (path.count > 0 && URL(string: path) != nil){
-                progressView = AnimationView(filePath: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key))
+
+        if let nudgeConfiguration = nudgeConfiguration, !nudgeConfiguration.isHyperLink {
+            DispatchQueue.main.async { [self] in
+                self.view.isUserInteractionEnabled = false
                 
-                let size = (UIScreen.main.bounds.width <= UIScreen.main.bounds.height) ? UIScreen.main.bounds.width : UIScreen.main.bounds.height
+                var path_key = ""
+                if CustomerGlu.getInstance.checkIsDarkMode() {
+                    path_key = CGConstants.CUSTOMERGLU_DARK_LOTTIE_FILE_PATH
+                } else {
+                    path_key = CGConstants.CUSTOMERGLU_LIGHT_LOTTIE_FILE_PATH
+                }
+                let path = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key)
                 
-                progressView.frame = CGRect(x: x-(size/2), y: y-(size/2), width: size, height: size)
-                progressView.contentMode = .scaleAspectFit
-                progressView.loopMode = .loop
-                progressView.play()
-                self.view.addSubview(progressView)
-                self.view.bringSubviewToFront(progressView)
-            }else{
-                spinner = SpinnerView(frame: CGRect(x: x-30, y: y-30, width: 60, height: 60))
-                self.view.addSubview(spinner)
-                self.view.bringSubviewToFront(spinner)
+                progressView.removeFromSuperview()
+                spinner.removeFromSuperview()
+                
+                if path.count > 0 && URL(string: path) != nil && path.hasSuffix(".json") {
+                    progressView = LottieAnimationView(filePath: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key))
+                    
+                    let size = (UIScreen.main.bounds.width <= UIScreen.main.bounds.height) ? UIScreen.main.bounds.width : UIScreen.main.bounds.height
+                    
+                    progressView.frame = CGRect(x: x-(size/2), y: y-(size/2), width: size, height: size)
+                    progressView.contentMode = .scaleAspectFit
+                    progressView.loopMode = .loop
+                    progressView.play()
+                    self.view.addSubview(progressView)
+                    self.view.bringSubviewToFront(progressView)
+                } else {
+                    spinner = SpinnerView(frame: CGRect(x: x-30, y: y-30, width: 60, height: 60))
+                    self.view.addSubview(spinner)
+                    self.view.bringSubviewToFront(spinner)
+                }
             }
-            
         }
     }
-    
-    
-    
     
     private func loaderHide() {
-        DispatchQueue.main.async { [self] in
-            self.view.isUserInteractionEnabled = true
-            spinner.removeFromSuperview()
-            progressView.removeFromSuperview()
+        if let nudgeConfiguration = nudgeConfiguration, !nudgeConfiguration.isHyperLink {
+            DispatchQueue.main.async { [self] in
+                self.view.isUserInteractionEnabled = true
+                spinner.removeFromSuperview()
+                progressView.removeFromSuperview()
+            }
         }
     }
-    
 }

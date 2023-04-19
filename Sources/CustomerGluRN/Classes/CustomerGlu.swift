@@ -86,6 +86,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     internal var popupDisplayScreens = [String]()
     private var configScreens = [String]()
     private var popuptimer : Timer?
+    private var delaySeconds: Double = 0
     public static var whiteListedDomains = [CGConstants.default_whitelist_doamin]
     public static var testUsers = [String]()
     public static var activityIdList = [String]()
@@ -98,6 +99,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     public static var lightEmbedLoaderURL = ""
     public static var darkEmbedLoaderURL = ""
     @objc public var cgUserData = CGUser()
+    private var sdkInitialized: Bool = false
+    private static var isAnonymousFlowAllowed: Bool = false
+    internal static var sdkWriteKey: String = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String ?? ""
     
     private override init() {
         super.init()
@@ -149,6 +153,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         if CustomerGlu.isEntryPointEnabled {
             getEntryPointData()
         }
+    }
+    
+    @objc public func allowAnonymousRegistration(enabled: Bool) {
+        CustomerGlu.isAnonymousFlowAllowed = enabled
+    }
+    
+    @objc public func allowAnonymousRegistration() -> Bool {
+        CustomerGlu.isAnonymousFlowAllowed
     }
     
     @objc public func customerGluDidCatchCrash(with model: CrashModel) {
@@ -243,33 +255,27 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 controller.view.isUserInteractionEnabled = false
                 
                 var path_key = ""
-                if(isembedview == true){
-                    
-                    if(true == checkIsDarkMode()){
+                if isembedview {
+                    if checkIsDarkMode() {
                         path_key = CGConstants.CUSTOMERGLU_DARK_EMBEDLOTTIE_FILE_PATH
-                    }else{
+                    } else {
                         path_key = CGConstants.CUSTOMERGLU_LIGHT_EMBEDLOTTIE_FILE_PATH
                     }
-                    
-                }else{
-                    
-                    if(true == checkIsDarkMode()){
+                } else {
+                    if checkIsDarkMode() {
                         path_key = CGConstants.CUSTOMERGLU_DARK_LOTTIE_FILE_PATH
-                    }else{
+                    } else {
                         path_key = CGConstants.CUSTOMERGLU_LIGHT_LOTTIE_FILE_PATH
                     }
-                    
                 }
-                
-                
-                //                path_key = CGConstants.CUSTOMERGLU_LOTTIE_FILE_PATH // line should be removed
+
                 let path = decryptUserDefaultKey(userdefaultKey: path_key)
-                
                 progressView.removeFromSuperview()
                 spinner.removeFromSuperview()
                 
-                if (path.count > 0 && URL(string: path) != nil){
-                    progressView = AnimationView(filePath: decryptUserDefaultKey(userdefaultKey: path_key))
+
+                if path.count > 0 && URL(string: path) != nil && path.hasSuffix(".json") {
+                    progressView = LottieAnimationView(filePath: decryptUserDefaultKey(userdefaultKey: path_key))
                     
                     let size = (UIScreen.main.bounds.width <= UIScreen.main.bounds.height) ? UIScreen.main.bounds.width : UIScreen.main.bounds.height
                     
@@ -279,13 +285,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     progressView.play()
                     controller.view.addSubview(progressView)
                     controller.view.bringSubviewToFront(progressView)
-                }else{
+                } else {
                     spinner = SpinnerView(frame: CGRect(x: x-30, y: y-30, width: 60, height: 60))
                     controller.view.addSubview(spinner)
                     controller.view.bringSubviewToFront(spinner)
                 }
-                
-                
             }
         }
     }
@@ -477,6 +481,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         })
     }
     
+    @objc public func setDelaySeconds(delaySeconds: Double) {
+        self.delaySeconds = delaySeconds
+    }
+    
     @objc public func displayBackgroundNotification(remoteMessage: [String: AnyHashable],auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
         if CustomerGlu.sdk_disable! == true {
             CustomerGlu.getInstance.printlog(cglog: "", isException: false, methodName: "CustomerGlu-displayBackgroundNotification", posttoserver: false)
@@ -511,14 +519,17 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             if(true == CustomerGlu.isDebugingEnabled){
                 print(page_type as Any)
             }
-            if page_type as? String == CGConstants.BOTTOM_SHEET_NOTIFICATION {
-                presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview, nudgeConfiguration: nudgeConfiguration)
-            } else if ((page_type as? String == CGConstants.BOTTOM_DEFAULT_NOTIFICATION) || (page_type as? String == CGConstants.BOTTOM_DEFAULT_NOTIFICATION_POPUP)) {
-                presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview, nudgeConfiguration: nudgeConfiguration)
-            } else if((page_type as? String == CGConstants.MIDDLE_NOTIFICATIONS) || (page_type as? String == CGConstants.MIDDLE_NOTIFICATIONS_POPUP)) {
-                presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.MIDDLE_NOTIFICATIONS, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview, nudgeConfiguration: nudgeConfiguration)
-            } else {
-                presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview, nudgeConfiguration: nudgeConfiguration)
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + delaySeconds) { [self] in
+                if page_type as? String == CGConstants.BOTTOM_SHEET_NOTIFICATION {
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.BOTTOM_SHEET_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview, nudgeConfiguration: nudgeConfiguration)
+                } else if ((page_type as? String == CGConstants.BOTTOM_DEFAULT_NOTIFICATION) || (page_type as? String == CGConstants.BOTTOM_DEFAULT_NOTIFICATION_POPUP)) {
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.BOTTOM_DEFAULT_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview, nudgeConfiguration: nudgeConfiguration)
+                } else if((page_type as? String == CGConstants.MIDDLE_NOTIFICATIONS) || (page_type as? String == CGConstants.MIDDLE_NOTIFICATIONS_POPUP)) {
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.MIDDLE_NOTIFICATIONS, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview, nudgeConfiguration: nudgeConfiguration)
+                } else {
+                    presentToCustomerWebViewController(nudge_url: (nudge_url as? String)!, page_type: CGConstants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview, nudgeConfiguration: nudgeConfiguration)
+                }
             }
             
             self.postAnalyticsEventForNotification(userInfo: remoteMessage)
@@ -536,10 +547,13 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func clearGluData() {
+        // So that SDK can be iniatilised again
+        sdkInitialized = false
+        
         var eventData: [String: Any] = [:]
         
         // Needs to be deleted. Just for reference.
-        let writekey = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String ?? ""
+        let writekey = CustomerGlu.sdkWriteKey
         if !(writekey.isEmpty){
             eventData["writeKeyPresent"] = "true"
 
@@ -579,32 +593,36 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     // MARK: - API Calls Methods
     
     @objc public func initializeSdk() {
-        //  ExampleEvents
-        var eventData: [String: Any] = [:]
-        
-        // Needs to be deleted. Just for reference.
-        let writekey = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String ?? ""
-        if !(writekey.isEmpty)
-        {
-            eventData["writeKeyPresent"] = "true"
-
-        }else {
-        eventData["writeKeyPresent"] = "fasle"
-        }
-        if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
-
-        eventData["userRegistered"] = "true"
-        }else{
-            eventData["userRegistered"] = "false"
-
-        }
-
-        
-        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_INIT_START, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData )
-       
-        self.getAppConfig { result in
+        if !sdkInitialized {
+            // So SDK is initialized
+            sdkInitialized = true
             
+            //  ExampleEvents
+            var eventData: [String: Any] = [:]
+            
+            // Needs to be deleted. Just for reference.
+            let writekey = CustomerGlu.sdkWriteKey
+            if !(writekey.isEmpty) {
+                eventData["writeKeyPresent"] = "true"
+            } else {
+                eventData["writeKeyPresent"] = "fasle"
+            }
+            if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
+                eventData["userRegistered"] = "true"
+            } else {
+                eventData["userRegistered"] = "false"
+            }
+
+            CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_INIT_START, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData )
+           
+            // Get Config
+            self.getAppConfig { result in
+            }
         }
+    }
+    
+    @objc public func setWriteKey(_ writeKey: String) {
+        CustomerGlu.sdkWriteKey = writeKey
     }
     
     @objc internal func getAppConfig(completion: @escaping (Bool) -> Void) {
@@ -615,7 +633,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         APIManager.appConfig(queryParameters: eventInfo as NSDictionary) { result in
             switch result {
             case .success(let response):
-                if (response.data != nil && response.data?.mobile != nil){
+                if (response.data != nil && response.data?.mobile != nil) {
                     self.appconfigdata = (response.data?.mobile)!
                     self.updatedAllConfigParam()
                 }
@@ -630,9 +648,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
     }
     func updatedAllConfigParam() -> Void{
-        if(self.appconfigdata != nil)
-        {
-            
+        if(self.appconfigdata != nil) {
             if(self.appconfigdata!.disableSdk != nil){
                 CustomerGlu.getInstance.disableGluSdk(disable: (self.appconfigdata!.disableSdk ?? CustomerGlu.sdk_disable)!)
             }
@@ -662,9 +678,18 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 CGSentryHelper.shared.setupSentry()
             }
             
-            if self.appconfigdata?.enableMqtt != nil  {
+            if let enableMqtt = self.appconfigdata?.enableMqtt, enableMqtt {
+                var eventData: [String: Any] = [:]
+                eventData["enableMqtt"] = enableMqtt
+                
+                CGEventsDiagnosticsHelper.shared.sendMultipleDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_ENABLED, eventTypes: [CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, CGDiagnosticConstants.CG_TYPE_METRICS], eventMeta:eventData)
+                
                 // Initialize Mqtt
                 initializeMqtt()
+            } else {
+                var eventData: [String: Any] = [:]
+                eventData["enableMqtt"] = false
+                CGEventsDiagnosticsHelper.shared.sendMultipleDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_DISABLED, eventTypes: [CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, CGDiagnosticConstants.CG_TYPE_METRICS], eventMeta:eventData)
             }
             
             if(self.appconfigdata!.enableEntryPoints != nil){
@@ -711,25 +736,20 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 CustomerGlu.getInstance.configureWhiteListedDomains(domains: self.appconfigdata!.whiteListedDomains ?? CustomerGlu.whiteListedDomains)
             }
             
-            
-            if(self.appconfigdata!.loaderConfig?.loaderURL?.light != nil){
-                
-                CustomerGlu.getInstance.configureLightLoaderURL(locallottieLoaderURL: self.appconfigdata!.loaderConfig?.loaderURL?.light ?? "")
+            if let loaderURLLight = self.appconfigdata?.loaderConfig?.loaderURL?.light {
+                CustomerGlu.getInstance.configureLightLoaderURL(locallottieLoaderURL: loaderURLLight)
             }
             
-            if(self.appconfigdata!.loaderConfig?.loaderURL?.dark != nil){
-                
-                CustomerGlu.getInstance.configureDarkLoaderURL(locallottieLoaderURL: self.appconfigdata!.loaderConfig?.loaderURL?.dark ?? "")
+            if let loaderURLDark = self.appconfigdata?.loaderConfig?.loaderURL?.dark {
+                CustomerGlu.getInstance.configureDarkLoaderURL(locallottieLoaderURL: loaderURLDark)
             }
             
-            if(self.appconfigdata!.loaderConfig?.embedLoaderURL?.light != nil){
-                
-                CustomerGlu.getInstance.configureLightEmbedLoaderURL(locallottieLoaderURL: self.appconfigdata!.loaderConfig?.embedLoaderURL?.light ?? "")
+            if let embedLoaderURLLight = self.appconfigdata?.loaderConfig?.embedLoaderURL?.light {
+                CustomerGlu.getInstance.configureLightEmbedLoaderURL(locallottieLoaderURL: embedLoaderURLLight)
             }
             
-            if(self.appconfigdata!.loaderConfig?.embedLoaderURL?.dark != nil){
-                
-                CustomerGlu.getInstance.configureDarkEmbedLoaderURL(locallottieLoaderURL: self.appconfigdata!.loaderConfig?.embedLoaderURL?.dark ?? "")
+            if let embedLoaderURLDark = self.appconfigdata?.loaderConfig?.embedLoaderURL?.dark {
+                CustomerGlu.getInstance.configureDarkEmbedLoaderURL(locallottieLoaderURL: embedLoaderURLDark)
             }
             
             if(self.appconfigdata!.activityIdList != nil && self.appconfigdata!.activityIdList?.ios != nil){
@@ -744,11 +764,15 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             if(self.appconfigdata!.embedIds != nil && self.appconfigdata!.embedIds?.ios != nil){
                 CustomerGlu.embedIds = self.appconfigdata!.embedIds?.ios ?? []
             }
+            
+            if let allowAnonymousRegistration = self.appconfigdata?.allowAnonymousRegistration {
+                CustomerGlu.isAnonymousFlowAllowed = allowAnonymousRegistration
+            }
         }
     }
     
     @objc public func registerDevice(userdata: [String: AnyHashable], completion: @escaping (Bool) -> Void) {
-        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userdata[APIParameterKey.userId] == nil {
+        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || (userdata[APIParameterKey.userId] == nil && !allowAnonymousRegistration()){
             CustomerGlu.getInstance.printlog(cglog: "Fail to call registerDevice", isException: false, methodName: "CustomerGlu-registerDevice-1", posttoserver: true)
             CustomerGlu.bannersHeight = [String:Any]()
             CustomerGlu.embedsHeight = [String:Any]()
@@ -774,7 +798,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             userData[APIParameterKey.deviceId] = uuid
         }
         let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
-        let writekey = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String
+        let writekey = CustomerGlu.sdkWriteKey
         userData[APIParameterKey.deviceType] = "ios"
         userData[APIParameterKey.deviceName] = getDeviceName()
         userData[APIParameterKey.appVersion] = appVersion
@@ -792,28 +816,39 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         let t_userid = userData[APIParameterKey.userId] as! String? ?? ""
         let t_anonymousIdP = userData[APIParameterKey.anonymousId] as! String? ?? ""
         let t_anonymousIdS = self.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_ANONYMOUSID) as String? ?? ""
-        
-        if(t_userid.count <= 0){
-            // Pass only anonymousId and removed UserID
-            if (t_anonymousIdP.count > 0){
-                userData[APIParameterKey.anonymousId] = t_anonymousIdP
-                
-                // Remove old user stored data
-                if(t_anonymousIdS.count > 0 && t_anonymousIdS != t_anonymousIdP){
-                    self.clearGluData()
+
+        if self.allowAnonymousRegistration() {
+            if (t_userid.count <= 0) {
+                // Pass only anonymousId and removed UserID
+                if (t_anonymousIdP.count > 0) {
+                    userData[APIParameterKey.anonymousId] = t_anonymousIdP
+                    
+                    // Remove old user stored data
+                    if(t_anonymousIdS.count > 0 && t_anonymousIdS != t_anonymousIdP){
+                        self.clearGluData()
+                    }
+                } else if (t_anonymousIdS.count > 0) {
+                    userData[APIParameterKey.anonymousId] = t_anonymousIdS
+                } else {
+                    userData[APIParameterKey.anonymousId] = UUID().uuidString
                 }
-            }else if(t_anonymousIdS.count > 0){
+                userData.removeValue(forKey: APIParameterKey.userId)
+            } else if (t_anonymousIdS.count > 0) {
+                // Pass anonymousId and UserID Both
                 userData[APIParameterKey.anonymousId] = t_anonymousIdS
-            }else{
-                userData[APIParameterKey.anonymousId] = UUID().uuidString
+            } else {
+                // Pass only UserID and removed anonymousId
+                userData.removeValue(forKey: APIParameterKey.anonymousId)
             }
-            userData.removeValue(forKey: APIParameterKey.userId)
-        }else if (t_anonymousIdS.count > 0){
-            // Pass anonymousId and UserID Both
-            userData[APIParameterKey.anonymousId] = t_anonymousIdS
-        }else{
+        } else {
             // Pass only UserID and removed anonymousId
             userData.removeValue(forKey: APIParameterKey.anonymousId)
+        }
+        
+        if userData[APIParameterKey.userId] == nil && userData[APIParameterKey.anonymousId] == nil {
+            print("UserId is either null or Empty")
+            completion(false)
+            return
         }
         
         APIManager.userRegister(queryParameters: userData as NSDictionary) { result in
@@ -832,6 +867,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     self.encryptUserDefaultKey(str: jsonString, userdefaultKey: CGConstants.CUSTOMERGLU_USERDATA)
                     
                     self.userDefaults.synchronize()
+                    
+                    if CGMqttClientHelper.shared.checkIsMQTTConnected(){
+                        CGMqttClientHelper.shared.disconnectMQTT()
+                        self.initializeMqtt()
+                    }
+                    
 
                     ApplicationManager.openWalletApi { success, _ in
                         if success {
@@ -918,7 +959,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         //user_id.count will always be > 0
         
         let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
-        let writekey = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String
+        let writekey = CustomerGlu.sdkWriteKey
         userData[APIParameterKey.deviceType] = "ios"
         userData[APIParameterKey.deviceName] = getDeviceName()
         userData[APIParameterKey.appVersion] = appVersion
@@ -1020,7 +1061,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             return
         }
         var eventData: [String: Any] = [:]
-        var token: String? = "";
+        var token: String? = ""
         if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
             token = self.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN)
             eventData["token"] = token
@@ -1176,8 +1217,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: url, page_type: CGConstants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview)
     }
     
-    @objc public func openNudgeWithURL(nudgeConfiguration: CGNudgeConfiguration, nudgeURL: String) {
-        CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: nudgeURL, page_type: nudgeConfiguration.layout, backgroundAlpha: nudgeConfiguration.opacity,auto_close_webview: nudgeConfiguration.closeOnDeepLink)
+
+    @objc public func openURLWithNudgeConfig(url: String, nudgeConfiguration: CGNudgeConfiguration){
+        CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: url, page_type: nudgeConfiguration.layout, backgroundAlpha: nudgeConfiguration.opacity, auto_close_webview: nudgeConfiguration.closeOnDeepLink)
     }
     
     internal func openNudgeWithValidToken(nudgeId: String, layout: String = CGConstants.FULL_SCREEN_NOTIFICATION, bg_opacity: Double = 0.5, closeOnDeeplink : Bool = true, nudgeConfiguration : CGNudgeConfiguration? = nil) {
@@ -1192,7 +1234,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             let scheme = url?.scheme
                             let host = url?.host
                             let userid = CustomerGlu.getInstance.cgUserData.userId
-                            let writekey = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String
+                            let writekey = CustomerGlu.sdkWriteKey
                             
                             var layout = layout
                             if(nudgeConfiguration != nil){
@@ -1362,6 +1404,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         if(response.success == true){
                             if (response.data != nil){
                                 if(response.data!.anonymous == true){
+                                    CustomerGlu.getInstance.allowAnonymousRegistration(enabled: true)
                                     if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil{
                                         self.excecuteDeepLink(firstpath: firstpath, cgdeeplink: response.data!, completion: completion)
                                     }else{
@@ -1568,7 +1611,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             return
         }
         var eventData: [String: Any] = [:]
-        var token: String? = "";
+        var token: String? = ""
         if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
             token = UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) as! String
             eventData["token"] = token
@@ -1645,7 +1688,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     internal func validateURL(url: URL) -> URL {
-        // return url;
         let host = url.host
         if(host != nil && host!.count > 0){
             for str_url in CustomerGlu.whiteListedDomains {
@@ -1655,7 +1697,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
         }
         
-        return URL(string: ("\(CGConstants.default_redirect_url)code=\(String(CustomerGlu.doamincode))&message=\(CustomerGlu.textMsg)"))!
+        return URL(string: ("\(CGConstants.default_redirect_url)?code=\(String(CustomerGlu.doamincode))&message=\(CustomerGlu.textMsg)"))!
     }
     
     @objc public func configureWhiteListedDomains(domains: [String]){

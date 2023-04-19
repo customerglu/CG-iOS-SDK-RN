@@ -12,6 +12,7 @@ class ApplicationManager {
     public static var baseUrl = "api.customerglu.com/"
     public static var devbaseUrl = "dev-api.customerglu.com/"
     public static var streamUrl = "stream.customerglu.com/"
+    public static var eventUrl = "events.customerglu.com/"
     public static var analyticsUrl = "analytics.customerglu.com/"
     public static var diagnosticUrl = "diagnostics.customerglu.com/"
     public static var accessToken: String?
@@ -23,7 +24,7 @@ class ApplicationManager {
             return
         }
         var eventData: [String: Any] = [:]
-        var token: String? = "";
+        var token: String? = ""
         if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
             token = UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) as! String ?? ""
             eventData["token"] = token
