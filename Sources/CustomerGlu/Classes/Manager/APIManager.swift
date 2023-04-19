@@ -51,6 +51,8 @@ private struct MethodNameandPath {
     static let cgdeeplink = MethodandPath(method: "GET", path: "api/v1/wormhole/sdk/url")
     static let cgMetricDiagnostics = MethodandPath(method: "POST", path:"sdk/v4")
     static let cgNudgeIntegration = MethodandPath(method: "POST", path:"integrations/v1/nudge/sdk/test")
+    static let cgOnboardingSDKNotificationConfig = MethodandPath(method: "POST", path:"integrations/v1/onboarding/sdk/notification-config")
+    static let cgOnboardingSDKTestSteps = MethodandPath(method: "POST", path:"integrations/v1/onboarding/sdk/test-steps")
 }
 
 // Parameter Key's for all API's
@@ -366,6 +368,44 @@ class APIManager {
         blockOperation.addExecutionBlock {
             // Call Login API with API Router
             performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.cgNudgeIntegration, parametersDict: queryParameters, completion: completion)
+        }
+        
+        // Add dependency to finish previus task before starting new one
+        if(ApplicationManager.operationQueue.operations.count > 0){
+            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
+        }
+        
+        //Added task into Queue
+        ApplicationManager.operationQueue.addOperation(blockOperation)
+    }
+    
+    static func onboardingSDKNotificationConfig(queryParameters: NSDictionary, completion: @escaping (Result<CGNudgeIntegrationModel, Error>) -> Void) {
+        // create a blockOperation for avoiding miltiple API call at same time
+        let blockOperation = BlockOperation()
+        
+        // Added Task into Queue
+        blockOperation.addExecutionBlock {
+            // Call Login API with API Router
+            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.cgOnboardingSDKNotificationConfig, parametersDict: queryParameters, completion: completion)
+        }
+        
+        // Add dependency to finish previus task before starting new one
+        if(ApplicationManager.operationQueue.operations.count > 0){
+            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
+        }
+        
+        //Added task into Queue
+        ApplicationManager.operationQueue.addOperation(blockOperation)
+    }
+    
+    static func onboardingSDKTestSteps(queryParameters: NSDictionary, completion: @escaping (Result<CGNudgeIntegrationModel, Error>) -> Void) {
+        // create a blockOperation for avoiding miltiple API call at same time
+        let blockOperation = BlockOperation()
+        
+        // Added Task into Queue
+        blockOperation.addExecutionBlock {
+            // Call Login API with API Router
+            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.cgOnboardingSDKTestSteps, parametersDict: queryParameters, completion: completion)
         }
         
         // Add dependency to finish previus task before starting new one
