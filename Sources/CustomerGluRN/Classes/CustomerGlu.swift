@@ -273,7 +273,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 progressView.removeFromSuperview()
                 spinner.removeFromSuperview()
                 
-
                 if path.count > 0 && URL(string: path) != nil && path.hasSuffix(".json") {
                     progressView = LottieAnimationView(filePath: decryptUserDefaultKey(userdefaultKey: path_key))
                     
