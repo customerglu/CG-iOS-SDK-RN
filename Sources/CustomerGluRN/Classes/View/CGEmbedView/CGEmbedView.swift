@@ -459,7 +459,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
             
 
             if path.count > 0 && URL(string: path) != nil && path.hasSuffix(".json") {
-                progressView = LottieAnimationView(filePath: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key))
+                progressView = AnimationView(filePath: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key))
                 
                 let size = (self.view.bounds.width <= self.view.bounds.height) ? self.view.bounds.width : self.view.bounds.height
                 

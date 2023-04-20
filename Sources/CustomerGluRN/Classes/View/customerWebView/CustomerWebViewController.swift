@@ -762,7 +762,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 spinner.removeFromSuperview()
                 
                 if path.count > 0 && URL(string: path) != nil && path.hasSuffix(".json") {
-                    progressView = LottieAnimationView(filePath: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key))
+                    progressView = AnimationView(filePath: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key))
                     
                     let size = (UIScreen.main.bounds.width <= UIScreen.main.bounds.height) ? UIScreen.main.bounds.width : UIScreen.main.bounds.height
                     
