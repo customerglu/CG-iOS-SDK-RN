@@ -7,7 +7,12 @@
 
 import Foundation
 
-class CGOnboardingSDKNotificationConfig: Codable {
+public class CGClientTestingModel: Codable {
     var success: Bool?
-    var error: CGNudgeErrorModel?
+    var data: String?
+    var error: CGClientTestingErrorModel?
+}
+
+public class CGClientTestingErrorModel: Codable {
+    var message: String?
 }

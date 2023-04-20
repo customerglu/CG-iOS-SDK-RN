@@ -14,6 +14,15 @@ public enum CGClientTestingStatus: Int {
     case pending
     case success
     case failure
+    
+    func getStatusForSDKTestStepsAPI() -> String {
+        switch self {
+        case .success:
+            return "SUCCESS"
+        default:
+            return "FAILURE"
+        }
+    }
 }
 
 // MARK: - CGCustomAlertTag
@@ -21,6 +30,25 @@ public enum CGCustomAlertTag: Int {
     case callbackHandingTag = 1001
     case nudgeHandlingTag = 1002
     case onelinkHandlingTag = 1003
+}
+
+// MARK: - CGSDKTestStepsModel
+struct CGSDKTestStepsModel {
+    var name: CGClientTestingRowItem?
+    var status: CGClientTestingStatus? // Should hold only success or failure
+    var timestamp: Date = Date() // Whenever model is initialised the timestamp will be recorded.
+    
+    func asDictionary() -> [String: Any] {
+        var data: [String: Any] = [:]
+        if let name {
+            data["name"] = name.getSDKTestStepName()
+        }
+        if let status {
+            data["status"] = status.getStatusForSDKTestStepsAPI()
+        }
+        data["timestamp"] = timestamp.timeIntervalSince1970
+        return data
+    }
 }
 
 // MARK: - CGClientTestingRowItem
@@ -144,6 +172,33 @@ public enum CGClientTestingRowItem {
             return URL(string: "https://docs.customerglu.com/sdk/mobile-sdks#setting-up-embed-view")
         }
     }
+    
+    func getSDKTestStepName() -> String {
+        switch self {
+        case .basicIntegration:
+            return ""
+        case .sdkInitialised:
+            return "SDK_INITIALISED"
+        case .userRegistered:
+            return "USER_RESGISTERED"
+        case .callbackHanding:
+            return "CALLBACK_HANDLING"
+        case .advanceIntegration:
+            return ""
+        case .nudgeHandling:
+            return "NUDGE_HANDLING"
+        case .onelinkHandling:
+            return "ONELINK_HANDLING"
+        case .entryPointSetup:
+            return "ENTRY_POINT_SETUP"
+        case .entryPointScreeNameSetup:
+            return "ENTRY_POINT_SCREEN_NAME_SETUP"
+        case .entryPointBannerIDSetup:
+            return "ENTRY_POINT_BANNER_ID_SETUP"
+        case .entryPointEmbedIDSetup:
+            return "ENTRY_POINT_EMBED_ID_SETUP"
+        }
+    }
 }
 
 // MARK: - CGClientTestingProtocol
@@ -158,6 +213,14 @@ public class CGClientTestingViewModel: NSObject {
     
     weak var delegate: CGClientTestingProtocol?
     var eventsSectionsArray: [CGClientTestingRowItem] = [.basicIntegration(status: .header), .sdkInitialised(status: .pending), .userRegistered(status: .pending), .callbackHanding(status: .pending), .advanceIntegration(status: .header), .nudgeHandling(status: .pending), .onelinkHandling(status: .pending), .entryPointSetup(status: .pending), .entryPointScreeNameSetup(status: .pending), .entryPointBannerIDSetup(status: .pending), .entryPointEmbedIDSetup(status: .pending)]
+    private var sdkTestStepsArray: [CGSDKTestStepsModel] = []
+    
+    public override init() {
+        self.sdkTestStepsArray = []
+        
+        // Make the API call
+        onboardingSDKNotificationConfig()
+    }
     
     func numberOfSections() -> Int {
         1
@@ -214,11 +277,17 @@ public class CGClientTestingViewModel: NSObject {
             eventsSectionsArray[index] = .sdkInitialised(status: .success)
             updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
             
+            // Record Test Steps
+            updateSdkTestStepsArray(withModel: CGSDKTestStepsModel(name: eventsSectionsArray[index], status: .success))
+            
             // Execute next event
             executeUserRegistered()
         } else {
             eventsSectionsArray[index] = .sdkInitialised(status: .failure)
             updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
+            
+            // Record Test Steps
+            updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: eventsSectionsArray[index], status: .failure))
         }
     }
     
@@ -232,9 +301,15 @@ public class CGClientTestingViewModel: NSObject {
 
             // Execute all event
             executecallbackHanding()
+            
+            // Record Test Steps
+            updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: eventsSectionsArray[index], status: .success))
         } else {
             eventsSectionsArray[index] = .userRegistered(status: .failure)
             updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
+            
+            // Record Test Steps
+            updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: eventsSectionsArray[index], status: .failure))
         }
     }
     
@@ -262,10 +337,15 @@ public class CGClientTestingViewModel: NSObject {
                 eventsSectionsArray[index] = .callbackHanding(status: .pending)
                 updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
 
+                // Record Test Steps
+                updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: eventsSectionsArray[index], status: .success))
+
                 // Wait 5 seconds and than perform this action & Next step NudgeHandling will happen on alert response Yes or No
                 self.showCallBackAlert(forEvent: eventsSectionsArray[index], isRetry: isRetry)
             } catch {
                 // nothing
+                // Record Test Steps
+                updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: .callbackHanding(status: .failure), status: .failure))
             }
         }
     }
@@ -284,12 +364,19 @@ public class CGClientTestingViewModel: NSObject {
             switch result {
             case .success(_):
                 let event: CGClientTestingRowItem = .nudgeHandling(status: .pending)
+                
+                // Record Test Steps
+                self?.updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: event, status: .success))
+                
                 // Wait 5 seconds and than perform this action
                 self?.showCallBackAlert(forEvent: event, isRetry: isRetry)
             case .failure(_):
                 let event: CGClientTestingRowItem = .nudgeHandling(status: .failure)
                 self?.eventsSectionsArray[index] = event
                 self?.updateTableDelegate(atIndexPath: indexPath, forEvent: event)
+                
+                // Record Test Steps
+                self?.updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: event, status: .success))
                 
                 // Execute next steps
                 self?.executeOnelinkHandling()
@@ -306,11 +393,20 @@ public class CGClientTestingViewModel: NSObject {
                 delegate.testOneLinkDeeplink(withDeeplinkURL: callbackConfigurationUrl)
             }
 
+            let event: CGClientTestingRowItem = .onelinkHandling(status: .pending)
+
+            // Record Test Steps
+            updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: event, status: .success))
+
             // Wait 5 seconds and than perform this action
-            self.showCallBackAlert(forEvent: .onelinkHandling(status: .pending), isRetry: isRetry)
+            self.showCallBackAlert(forEvent: event, isRetry: isRetry)
         } else {
-            eventsSectionsArray[index] = .onelinkHandling(status: .failure)
-            updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
+            let event: CGClientTestingRowItem = .onelinkHandling(status: .failure)
+            eventsSectionsArray[index] = event
+            updateTableDelegate(atIndexPath: indexPath, forEvent: event)
+            
+            // Record Test Steps
+            updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: event, status: .failure))
             
             // Execute next steps
             executeEntryPointSetup()
@@ -322,9 +418,17 @@ public class CGClientTestingViewModel: NSObject {
         guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
 
         if let enableEntryPoints = CustomerGlu.getInstance.appconfigdata?.enableEntryPoints, enableEntryPoints {
-            eventsSectionsArray[index] = .entryPointSetup(status: .success)
+            let event: CGClientTestingRowItem = .entryPointSetup(status: .success)
+            eventsSectionsArray[index] = event
+            
+            // Record Test Steps
+            updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: event, status: .success))
         } else {
-            eventsSectionsArray[index] = .entryPointSetup(status: .failure)
+            let event: CGClientTestingRowItem = .entryPointSetup(status: .failure)
+            eventsSectionsArray[index] = event
+            
+            // Record Test Steps
+            updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: event, status: .failure))
         }
         updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
         
@@ -341,9 +445,17 @@ public class CGClientTestingViewModel: NSObject {
         guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
 
         if let activityIdList = CustomerGlu.getInstance.appconfigdata?.activityIdList, let ios = activityIdList.ios, !ios.isEmpty {
-            eventsSectionsArray[index] = .entryPointScreeNameSetup(status: .success)
+            let event: CGClientTestingRowItem = .entryPointScreeNameSetup(status: .success)
+            eventsSectionsArray[index] = event
+            
+            // Record Test Steps
+            updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: event, status: .success))
         } else {
-            eventsSectionsArray[index] = .entryPointScreeNameSetup(status: .failure)
+            let event: CGClientTestingRowItem = .entryPointScreeNameSetup(status: .failure)
+            eventsSectionsArray[index] = event
+
+            // Record Test Steps
+            updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: event, status: .failure))
         }
         updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
         
@@ -360,9 +472,17 @@ public class CGClientTestingViewModel: NSObject {
         guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
 
         if let bannerIds = CustomerGlu.getInstance.appconfigdata?.bannerIds, let ios = bannerIds.ios, !ios.isEmpty {
-            eventsSectionsArray[index] = .entryPointBannerIDSetup(status: .success)
+            let event: CGClientTestingRowItem = .entryPointBannerIDSetup(status: .success)
+            eventsSectionsArray[index] = event
+            
+            // Record Test Steps
+            updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: event, status: .success))
         } else {
-            eventsSectionsArray[index] = .entryPointBannerIDSetup(status: .failure)
+            let event: CGClientTestingRowItem = .entryPointBannerIDSetup(status: .failure)
+            eventsSectionsArray[index] = event
+            
+            // Record Test Steps
+            updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: event, status: .failure))
         }
         updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
         
@@ -379,10 +499,86 @@ public class CGClientTestingViewModel: NSObject {
         guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
 
         if let embedIds = CustomerGlu.getInstance.appconfigdata?.embedIds, let ios = embedIds.ios, !ios.isEmpty {
-            eventsSectionsArray[index] = .entryPointEmbedIDSetup(status: .success)
+            let event: CGClientTestingRowItem = .entryPointEmbedIDSetup(status: .success)
+            eventsSectionsArray[index] = event
+
+            // Record Test Steps
+            updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: event, status: .failure))
         } else {
-            eventsSectionsArray[index] = .entryPointEmbedIDSetup(status: .failure)
+            let event: CGClientTestingRowItem = .entryPointEmbedIDSetup(status: .failure)
+            eventsSectionsArray[index] = event
+            
+            // Record Test Steps
+            updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: event, status: .failure))
         }
         updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
+        
+        // Make the SDK Test Steps API Call
+        onboardingSDKTestSteps()
+    }
+    
+    private func updateSdkTestStepsArray(withModel model: CGSDKTestStepsModel) {
+        if let index = sdkTestStepsArray.firstIndex(where: { result in
+            result.name?.getSDKTestStepName() == model.name?.getSDKTestStepName()
+        }) {
+            // if already exist replace it
+            sdkTestStepsArray[index] = model
+        } else {
+            // Else add it to array
+            sdkTestStepsArray.append(model)
+        }
+    }
+    
+    // MARK: - API Calls
+    func onboardingSDKNotificationConfig() {
+        guard let userId = CustomerGlu.getInstance.cgUserData.userId else { return }
+        let queryParameters: [String: Any] = [APIParameterKey.userId: userId]
+        
+        APIManager.onboardingSDKNotificationConfig(queryParameters: queryParameters as NSDictionary) { result in
+            switch result {
+            case .success(_):
+                print("**Onboarding SDK Notification Config API :: Success **")
+                break
+            case .failure(_):
+                print("**Onboarding SDK Notification Config API :: Failure **")
+                break
+            }
+        }
+    }
+    
+    func onboardingSDKTestSteps() {
+        guard let userId = CustomerGlu.getInstance.cgUserData.userId else { return }
+        
+        let shortVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") ?? ""
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") ?? ""
+        let deviceModel = UIDevice.current.model
+        let systemVersion = UIDevice.current.systemVersion
+
+        var queryParameters: [String: Any] = [:]
+        queryParameters[APIParameterKey.userId] = userId
+        queryParameters["platform"] = "ios"
+        queryParameters["cg_sdk_platform"] = "cg-native-ios"
+        queryParameters["cg_sdk_version"] = APIParameterKey.cgsdkversionvalue
+        queryParameters[APIParameterKey.app_version] = "\(shortVersion)(\(version))"
+        queryParameters["manufacturer"] = "Apple"
+        queryParameters["model"] = deviceModel
+        queryParameters["os_version"] = systemVersion
+
+        var dataArray: [[String: Any]] = []
+        for model in sdkTestStepsArray {
+            dataArray.append(model.asDictionary())
+        }
+        queryParameters["data"] = dataArray
+        
+        APIManager.onboardingSDKTestSteps(queryParameters: queryParameters as NSDictionary) { result in
+            switch result {
+            case .success(_):
+                print("**Onboarding SDK Notification Config API :: Success **")
+                break
+            case .failure(_):
+                print("**Onboarding SDK Notification Config API :: Failure **")
+                break
+            }
+        }
     }
 }

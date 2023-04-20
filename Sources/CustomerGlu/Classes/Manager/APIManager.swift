@@ -379,7 +379,7 @@ class APIManager {
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
-    static func onboardingSDKNotificationConfig(queryParameters: NSDictionary, completion: @escaping (Result<CGNudgeIntegrationModel, Error>) -> Void) {
+    static func onboardingSDKNotificationConfig(queryParameters: NSDictionary, completion: @escaping (Result<CGClientTestingModel, Error>) -> Void) {
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
         
@@ -398,7 +398,7 @@ class APIManager {
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
-    static func onboardingSDKTestSteps(queryParameters: NSDictionary, completion: @escaping (Result<CGNudgeIntegrationModel, Error>) -> Void) {
+    static func onboardingSDKTestSteps(queryParameters: NSDictionary, completion: @escaping (Result<CGClientTestingModel, Error>) -> Void) {
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
         
