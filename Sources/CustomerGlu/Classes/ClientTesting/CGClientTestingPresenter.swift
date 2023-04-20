@@ -216,10 +216,12 @@ public class CGClientTestingViewModel: NSObject {
     private var sdkTestStepsArray: [CGSDKTestStepsModel] = []
     
     public override init() {
+        super.init()
+        
         self.sdkTestStepsArray = []
         
         // Make the API call
-        onboardingSDKNotificationConfig()
+        self.onboardingSDKNotificationConfig()
     }
     
     func numberOfSections() -> Int {
