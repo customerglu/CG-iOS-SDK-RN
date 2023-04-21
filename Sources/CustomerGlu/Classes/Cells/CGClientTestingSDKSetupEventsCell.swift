@@ -20,6 +20,10 @@ public class CGClientTestingSDKSetupEventsCell: UITableViewCell {
     @IBOutlet weak var tickImageView: UIImageView! // Hidden by default
     @IBOutlet weak var indicatorView: UIActivityIndicatorView!
     
+    @IBOutlet weak var stackView: UIStackView! // To show sub task inside - for example for Nudge Handling else hidden for all types
+    @IBOutlet weak var stackViewTopConstraint: NSLayoutConstraint! // 16px by default
+    @IBOutlet weak var stackViewBottomConstraint: NSLayoutConstraint! // 16px by default
+    
     @IBOutlet weak var checkDocLabel: UILabel! // Hidden by default
     @IBOutlet weak var retryLabel: UILabel! // Hidden by default
     @IBOutlet weak var titleLabelLeadingConstraint: NSLayoutConstraint! // 48px by default
@@ -32,7 +36,7 @@ public class CGClientTestingSDKSetupEventsCell: UITableViewCell {
         titleLabel.textColor = .blue
     }
     
-    func setupCell(forRowItem rowItem: CGClientTestingRowItem, delegate: CGClientTestingSDKSetupEventsCellDelegate?) {
+    func setupCell(forRowItem rowItem: CGClientTestingRowItem, delegate: CGClientTestingSDKSetupEventsCellDelegate?, clientTestingDataModel: CGClientTestingDataModel?) {
         // Setup Theme
         setupTheme()
         self.delegate = delegate
@@ -55,9 +59,36 @@ public class CGClientTestingSDKSetupEventsCell: UITableViewCell {
         retryLabel.layer.cornerRadius = 12
         
         titleLabel.text = rowItem.getTitle()
+        
+        // Remove anything if already added in stack view
+        for subview in stackView.subviews {
+            subview.removeFromSuperview()
+        }
+        
+        // Doing title comparision for nudge handling because the status can be anything like pending, failure, success
+        if rowItem.getTitle() == CGClientTestingRowItem.nudgeHandling(status: .success).getTitle(), let clientTestingDataModel {
+            // Constraints
+            stackViewTopConstraint.constant = 16
+            stackViewBottomConstraint.constant = 16
+            
+            let nudgeSubtaskArray = clientTestingDataModel.getNudgeHandlingSubTypeArray()
+            for subtaskType in nudgeSubtaskArray {
+                if let view = CGClientTestingNudgeSetupView.instanceFromNib() {
+                    view.setupView(withNudgeType: subtaskType)
+                    stackView.addArrangedSubview(view)
+                }
+            }
+        } else {
+            // Constraints
+            stackViewTopConstraint.constant = 16
+            stackViewBottomConstraint.constant = 0
+        }
 
         switch rowItem.getStatus() {
         case .header:
+            // To reduce the unnessary space for header
+            stackViewTopConstraint.constant = 0
+
             titleLabel.font = .boldSystemFont(ofSize: 14)
             titleLabelLeadingConstraint.constant = 16
             tickImageView.isHidden = false

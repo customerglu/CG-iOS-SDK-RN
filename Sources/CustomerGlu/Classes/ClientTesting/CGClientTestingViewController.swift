@@ -105,7 +105,7 @@ extension CGClientTestingViewController: UITableViewDataSource, UITableViewDeleg
         
         // Setup Cell
         let rowItem = viewModel.getRowItemForEventsSection(withIndexPath: indexPath)
-        cell.setupCell(forRowItem: rowItem, delegate: self)
+        cell.setupCell(forRowItem: rowItem, delegate: self, clientTestingDataModel: viewModel.clientTestingModel?.data)
         
         return cell
     }

@@ -76,7 +76,7 @@ class APIManager {
     // Singleton Instance
     static let shared = APIManager()
     
-    private static func performRequest<T: Decodable>(baseurl: String, methodandpath: MethodandPath, parametersDict: NSDictionary?,dispatchGroup:DispatchGroup = DispatchGroup() ,completion: @escaping (Result<T, Error>) -> Void) {
+    private static func performRequest<T: Decodable>(baseurl: String, methodandpath: MethodandPath, parametersDict: NSDictionary?,dispatchGroup:DispatchGroup = DispatchGroup() ,completion: @escaping (Result<T, Error>) -> Void, isClientTesting: Bool? = false) {
         
         //Grouped compelete API-call work flow into a DispatchGroup so that it can maintanted the oprational queue for task completion
         // Enter into DispatchGroup
@@ -94,17 +94,24 @@ class APIManager {
         urlRequest.httpMethod = methodandpath.method//method.rawValue
         
         // Common Headers
-        urlRequest.setValue(ContentType.json.rawValue, forHTTPHeaderField: HTTPHeaderField.contentType.rawValue)
-        urlRequest.setValue(CustomerGlu.sdkWriteKey, forHTTPHeaderField: HTTPHeaderField.xapikey.rawValue)
-        urlRequest.setValue("ios", forHTTPHeaderField: HTTPHeaderField.platform.rawValue)
-        urlRequest.setValue(CustomerGlu.isDebugingEnabled.description, forHTTPHeaderField: HTTPHeaderField.sandbox.rawValue)
-        urlRequest.setValue(APIParameterKey.cgsdkversionvalue, forHTTPHeaderField: HTTPHeaderField.cgsdkversionkey.rawValue)
         
-        if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
-            urlRequest.setValue("\(APIParameterKey.bearer) " + CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN), forHTTPHeaderField: HTTPHeaderField.authorization.rawValue)
-            urlRequest.setValue("\(APIParameterKey.bearer) " + CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN), forHTTPHeaderField: HTTPHeaderField.xgluauth.rawValue)
+        // TODO: Kausthubh Sir to check the logic
+        if isClientTesting ?? false {
+            urlRequest.setValue(ContentType.json.rawValue, forHTTPHeaderField: HTTPHeaderField.contentType.rawValue)
+            urlRequest.setValue(CustomerGlu.sdkWriteKey, forHTTPHeaderField: HTTPHeaderField.xapikey.rawValue)
+        } else {
+            urlRequest.setValue(ContentType.json.rawValue, forHTTPHeaderField: HTTPHeaderField.contentType.rawValue)
+            urlRequest.setValue(CustomerGlu.sdkWriteKey, forHTTPHeaderField: HTTPHeaderField.xapikey.rawValue)
+            urlRequest.setValue("ios", forHTTPHeaderField: HTTPHeaderField.platform.rawValue)
+            urlRequest.setValue(CustomerGlu.isDebugingEnabled.description, forHTTPHeaderField: HTTPHeaderField.sandbox.rawValue)
+            urlRequest.setValue(APIParameterKey.cgsdkversionvalue, forHTTPHeaderField: HTTPHeaderField.cgsdkversionkey.rawValue)
+            
+            if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
+                urlRequest.setValue("\(APIParameterKey.bearer) " + CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN), forHTTPHeaderField: HTTPHeaderField.authorization.rawValue)
+                urlRequest.setValue("\(APIParameterKey.bearer) " + CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN), forHTTPHeaderField: HTTPHeaderField.xgluauth.rawValue)
+            }
         }
-        
+
         if parametersDict!.count > 0 { // Check Parameters & Move Accordingly
             
             if(true == CustomerGlu.isDebugingEnabled){
@@ -386,7 +393,7 @@ class APIManager {
         // Added Task into Queue
         blockOperation.addExecutionBlock {
             // Call Login API with API Router
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.cgOnboardingSDKNotificationConfig, parametersDict: queryParameters, completion: completion)
+            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.cgOnboardingSDKNotificationConfig, parametersDict: queryParameters, completion: completion, isClientTesting: true)
         }
         
         // Add dependency to finish previus task before starting new one
@@ -405,7 +412,7 @@ class APIManager {
         // Added Task into Queue
         blockOperation.addExecutionBlock {
             // Call Login API with API Router
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.cgOnboardingSDKTestSteps, parametersDict: queryParameters, completion: completion)
+            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.cgOnboardingSDKTestSteps, parametersDict: queryParameters, completion: completion, isClientTesting: true)
         }
         
         // Add dependency to finish previus task before starting new one
