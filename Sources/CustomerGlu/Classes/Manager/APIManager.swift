@@ -69,14 +69,24 @@ private struct CGRequestData {
     var methodandpath: MethodandPath
     var parametersDict: NSDictionary
     var dispatchGroup:DispatchGroup = DispatchGroup()
-    var redirectCount: Int = CGAPIConstant.maxRetries
+    var retryCount: Int = 1
+    var completionBlock: ((Result<CGRegistrationModel, CGNetworkError>) -> Void)?
 }
 
-private struct CGAPIConstant {
-    static let maxRetries: Int = 3
+// MARK: - CGNetworkError
+enum CGNetworkError: Error, LocalizedError {
+    case badURLRetry
+
+    public var errorDescription: String? {
+        switch self {
+        case .badURLRetry:
+            return NSLocalizedString("Bad URL Type, please retry", comment: "CGNetworkError")
+        }
+    }
 }
 
 // Class contain Helper Methods Used in Overall Application Related to API Calls
+// MARK: - APIManager
 class APIManager {
     
     public var session: URLSession
@@ -87,17 +97,21 @@ class APIManager {
     // Singleton Instance
     static let shared = APIManager()
     
-    private static func registrationPerformRequest(requestData: CGRequestData, completion: @escaping (Result<CGRegistrationModel, Error>) -> Void) {
+    private static func registrationPerformRequest(requestData: CGRequestData, completion: @escaping (Result<CGRegistrationModel, CGNetworkError>) -> Void) {
         performRequest(baseurl: requestData.baseurl, methodandpath: requestData.methodandpath, parametersDict: requestData.parametersDict, completion: completion)
     }
     
-    private static func performRequest<T: Decodable>(baseurl: String, methodandpath: MethodandPath, parametersDict: NSDictionary?,dispatchGroup:DispatchGroup = DispatchGroup() ,completion: @escaping (Result<T, Error>) -> Void) {
+    private static func performRequest<T: Decodable>(baseurl: String, methodandpath: MethodandPath, parametersDict: NSDictionary?,dispatchGroup:DispatchGroup = DispatchGroup() ,completion: @escaping (Result<T, CGNetworkError>) -> Void) {
         
         //Grouped compelete API-call work flow into a DispatchGroup so that it can maintanted the oprational queue for task completion
         // Enter into DispatchGroup
         //   if(MethodNameandPath.getWalletRewards.path == methodandpath.path){
         dispatchGroup.enter()
         //    }
+        
+        if methodandpath.path.caseInsensitiveCompare("bad-gateway") == .orderedSame {
+            print("performRequest :: Inside Bad URL Call")
+        }
         
         var urlRequest: URLRequest!
         var url: URL!
@@ -152,10 +166,13 @@ class APIManager {
             dispatchGroup.leave()
             //  }
             
+            var isRetry = false
             if let httpResponse = response as? HTTPURLResponse {
                 if httpResponse.statusCode == 401 {
                     CustomerGlu.getInstance.clearGluData()
                     return
+                } else if httpResponse.statusCode == 429 || httpResponse.statusCode == 502 || httpResponse.statusCode == 408 {
+                    isRetry = true
                 }
             }
             guard let data = data, error == nil else { return }
@@ -165,12 +182,17 @@ class APIManager {
                 let JSON = json
                 JSON?.printJson()
                 let cleanedJSON = cleanJSON(json: JSON!, isReturn: true)
-                dictToObject(dict: cleanedJSON, type: T.self, completion: completion)
+                dictToObject(dict: cleanedJSON, isRetry: isRetry, type: T.self, completion: completion)
             } catch let error {
                 if(true == CustomerGlu.isDebugingEnabled){
                     print(error)
                 }
-                completion(.failure(error))
+                
+                if isRetry {
+                    completion(.failure(CGNetworkError.badURLRetry))
+                } else {
+                    completion(.failure(error as! CGNetworkError))
+                }
             }
         }
         task.resume()
@@ -181,21 +203,81 @@ class APIManager {
         //   }
     }
     
-    static func userRegister(queryParameters: NSDictionary, completion: @escaping (Result<CGRegistrationModel, Error>) -> Void) {
+    private static func retrytBadUrlPerformRequest(requestData: CGRequestData) {
+        print("*** ANKIT :: MAKING RETY BAD URL API CALL  ***")
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
-        let requestData = CGRequestData(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.userRegister, parametersDict: queryParameters)
+        
+        // Added Task into Queue
+        blockOperation.addExecutionBlock {
+            if let completionBlock = requestData.completionBlock {
+                performRequest(baseurl: requestData.baseurl, methodandpath: requestData.methodandpath, parametersDict: requestData.parametersDict, completion: completionBlock)
+            }
+        }
+        
+        // Add dependency to finish previus task before starting new one
+        if(ApplicationManager.operationQueue.operations.count > 0){
+            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
+        }
+        
+        //Added task into Queue
+        ApplicationManager.operationQueue.addOperation(blockOperation)
+    }
+    
+    static func retrytBadUrl(queryParameters: NSDictionary, completion: @escaping (Result<CGRegistrationModel, CGNetworkError>) -> Void) {
+        print("*** ANKIT JAIN  ***")
+        // create a blockOperation for avoiding miltiple API call at same time
+        let badGateway = MethodandPath(method: "GET", path:"bad-gateway")
+        var requestData = CGRequestData(baseurl: "cg-test.free.beeceptor.com/", methodandpath: badGateway, parametersDict: queryParameters, retryCount: CustomerGlu.getInstance.appconfigdata?.allowedRetryCount ?? 1)
+        
+        // Call Login API with API Router
+        let block: (Result<CGRegistrationModel, CGNetworkError>) -> Void = { result in
+            switch result {
+            case .success(let response):
+                if !(response.success ?? true) {
+                    requestData.retryCount = requestData.retryCount - 1
+                    if requestData.retryCount > 1 {
+                        print("*** ANKIT :: Retry Again :: Count \(requestData.retryCount)  ***")
+                        retrytBadUrlPerformRequest(requestData: requestData)
+                    } else {
+                        print("*** ANKIT :: Retry Success 1 ***")
+                        completion(.success(response))
+                    }
+                } else {
+                    print("*** ANKIT :: Retry Success 2 ***")
+                    completion(.success(response))
+                }
+                
+            case .failure(let error):
+                requestData.retryCount = requestData.retryCount - 1
+                if requestData.retryCount >= 1 {
+                    print("*** ANKIT :: Retry Failed :: :: Count \(requestData.retryCount) ***")
+                    retrytBadUrlPerformRequest(requestData: requestData)
+                } else {
+                    print("*** ANKIT :: Retry Failed ***")
+                    completion(.failure(error))
+                }
+            }
+        }
+                    
+        requestData.completionBlock = block
+        retrytBadUrlPerformRequest(requestData: requestData)
+    }
+    
+    static func userRegister(queryParameters: NSDictionary, completion: @escaping (Result<CGRegistrationModel, CGNetworkError>) -> Void) {
+        // create a blockOperation for avoiding miltiple API call at same time
+        let blockOperation = BlockOperation()
+        var requestData = CGRequestData(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.userRegister, parametersDict: queryParameters, retryCount: CustomerGlu.getInstance.appconfigdata?.allowedRetryCount ?? 1)
         
         // Added Task into Queue
         blockOperation.addExecutionBlock {
             // Call Login API with API Router
-            var retriesCount = CGAPIConstant.maxRetries
-            let block: (Result<CGRegistrationModel, Error>) -> Void = { result in
+            let block: (Result<CGRegistrationModel, CGNetworkError>) -> Void = { result in
                 switch result {
                 case .success(let response):
                     if !(response.success ?? true) {
-                        retriesCount = retriesCount - 1 
-                        if retriesCount > 1 {
+                        requestData.retryCount = requestData.retryCount - 1
+                        if requestData.retryCount > 1 {
                             registrationPerformRequest(requestData: requestData, completion: completion)
                         } else {
                             completion(.success(response))
@@ -205,8 +287,8 @@ class APIManager {
                     }
                     
                 case .failure(let error):
-                    retriesCount = retriesCount - 1
-                    if retriesCount > 1 {
+                    requestData.retryCount = requestData.retryCount - 1
+                    if requestData.retryCount > 1 {
                         registrationPerformRequest(requestData: requestData, completion: completion)
                     } else {
                         completion(.failure(error))
@@ -226,7 +308,7 @@ class APIManager {
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
-    static func getWalletRewards(queryParameters: NSDictionary, completion: @escaping (Result<CGCampaignsModel, Error>) -> Void) {
+    static func getWalletRewards(queryParameters: NSDictionary, completion: @escaping (Result<CGCampaignsModel, CGNetworkError>) -> Void) {
         // Call Get Wallet and Rewards List
         
         // create a blockOperation for avoiding miltiple API call at same time
@@ -246,7 +328,7 @@ class APIManager {
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
-    static func addToCart(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, Error>) -> Void) {
+    static func addToCart(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, CGNetworkError>) -> Void) {
         
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
@@ -266,7 +348,7 @@ class APIManager {
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
-    static func crashReport(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, Error>) -> Void) {
+    static func crashReport(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, CGNetworkError>) -> Void) {
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
         
@@ -285,7 +367,7 @@ class APIManager {
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
-    static func getEntryPointdata(queryParameters: NSDictionary, completion: @escaping (Result<CGEntryPoint, Error>) -> Void) {
+    static func getEntryPointdata(queryParameters: NSDictionary, completion: @escaping (Result<CGEntryPoint, CGNetworkError>) -> Void) {
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
         
@@ -304,7 +386,7 @@ class APIManager {
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
-    static func entrypoints_config(queryParameters: NSDictionary, completion: @escaping (Result<EntryConfig, Error>) -> Void) {
+    static func entrypoints_config(queryParameters: NSDictionary, completion: @escaping (Result<EntryConfig, CGNetworkError>) -> Void) {
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
         
@@ -323,7 +405,7 @@ class APIManager {
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
-    static func sendAnalyticsEvent(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, Error>) -> Void) {
+    static func sendAnalyticsEvent(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, CGNetworkError>) -> Void) {
         
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
@@ -348,7 +430,7 @@ class APIManager {
     /**
         Event and Diagnostics Send.
      **/
-    static func sendEventsDiagnostics(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, Error>) -> Void) {
+    static func sendEventsDiagnostics(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, CGNetworkError>) -> Void) {
         
         let blockOperation = BlockOperation()
         
@@ -363,7 +445,7 @@ class APIManager {
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
-    static func getCGDeeplinkData(queryParameters: NSDictionary, completion: @escaping (Result<CGDeeplink, Error>) -> Void) {
+    static func getCGDeeplinkData(queryParameters: NSDictionary, completion: @escaping (Result<CGDeeplink, CGNetworkError>) -> Void) {
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
         
@@ -382,7 +464,7 @@ class APIManager {
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
-    static func appConfig(queryParameters: NSDictionary, completion: @escaping (Result<CGAppConfig, Error>) -> Void) {
+    static func appConfig(queryParameters: NSDictionary, completion: @escaping (Result<CGAppConfig, CGNetworkError>) -> Void) {
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
         
@@ -401,7 +483,7 @@ class APIManager {
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
-    static func nudgeIntegration(queryParameters: NSDictionary, completion: @escaping (Result<CGNudgeIntegrationModel, Error>) -> Void) {
+    static func nudgeIntegration(queryParameters: NSDictionary, completion: @escaping (Result<CGNudgeIntegrationModel, CGNetworkError>) -> Void) {
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
         
@@ -464,7 +546,7 @@ class APIManager {
         }
     }
     
-    static private func dictToObject <T: Decodable>(dict: Dictionary<String, Any>, type: T.Type, completion: @escaping (Result<T, Error>) -> Void) {
+    static private func dictToObject <T: Decodable>(dict: Dictionary<String, Any>, isRetry: Bool, type: T.Type, completion: @escaping (Result<T, CGNetworkError>) -> Void) {
         do {
             // Convert Dictionary to JSON Data
             let jsonData = try JSONSerialization.data(withJSONObject: dict, options: .prettyPrinted)
@@ -473,10 +555,19 @@ class APIManager {
             let jsonDecoder = JSONDecoder()
             let object = try jsonDecoder.decode(type, from: jsonData)
             // response with model object
-            completion(.success(object))
+            
+            if isRetry {
+                completion(.failure(CGNetworkError.badURLRetry))
+            } else {
+                completion(.success(object))
+            }
         } catch let error { // response with error
             print("JSON decode failed: \(error.localizedDescription)")
-            completion(.failure(error))
+            if isRetry {
+                completion(.failure(CGNetworkError.badURLRetry))
+            } else {
+                completion(.failure(error as! CGNetworkError))
+            }
         }
     }
 }
