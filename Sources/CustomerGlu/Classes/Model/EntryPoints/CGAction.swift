@@ -9,13 +9,13 @@ import Foundation
 
 public struct CGAction : Codable {
     
-    var isHandledByCG: Bool!
+    var isHandledBySDK: Bool!
     var type: String!
     var url: String!
     
     
     init(fromDictionary dictionary: [String:Any]){
-        isHandledByCG = dictionary["isHandledBySDK"] as? Bool
+        isHandledBySDK = dictionary["isHandledBySDK"] as? Bool
         type = dictionary["type"] as? String
         url = dictionary["url"] as? String
     }
@@ -23,8 +23,8 @@ public struct CGAction : Codable {
     
     func toDictionary() -> [String:Any]{
         var dictionary = [String:Any]()
-        if isHandledByCG != nil {
-            dictionary["isHandledBySDK"] = isHandledByCG
+        if isHandledBySDK != nil {
+            dictionary["isHandledBySDK"] = isHandledBySDK
         }
         if type != nil {
             dictionary["type"] = type
