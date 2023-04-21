@@ -88,7 +88,6 @@ enum CGNetworkError: Error, LocalizedError {
 // Class contain Helper Methods Used in Overall Application Related to API Calls
 // MARK: - APIManager
 class APIManager {
-    
     public var session: URLSession
     init(session: URLSession = .shared) {
         self.session = session
@@ -96,10 +95,6 @@ class APIManager {
     
     // Singleton Instance
     static let shared = APIManager()
-    
-    private static func registrationPerformRequest(requestData: CGRequestData, completion: @escaping (Result<CGRegistrationModel, CGNetworkError>) -> Void) {
-        performRequest(baseurl: requestData.baseurl, methodandpath: requestData.methodandpath, parametersDict: requestData.parametersDict, completion: completion)
-    }
     
     private static func performRequest<T: Decodable>(baseurl: String, methodandpath: MethodandPath, parametersDict: NSDictionary?,dispatchGroup:DispatchGroup = DispatchGroup() ,completion: @escaping (Result<T, CGNetworkError>) -> Void) {
         
@@ -267,36 +262,10 @@ class APIManager {
     static func userRegister(queryParameters: NSDictionary, completion: @escaping (Result<CGRegistrationModel, CGNetworkError>) -> Void) {
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
-        var requestData = CGRequestData(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.userRegister, parametersDict: queryParameters, retryCount: CustomerGlu.getInstance.appconfigdata?.allowedRetryCount ?? 1)
         
         // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Login API with API Router
-            let block: (Result<CGRegistrationModel, CGNetworkError>) -> Void = { result in
-                switch result {
-                case .success(let response):
-                    if !(response.success ?? true) {
-                        requestData.retryCount = requestData.retryCount - 1
-                        if requestData.retryCount > 1 {
-                            registrationPerformRequest(requestData: requestData, completion: completion)
-                        } else {
-                            completion(.success(response))
-                        }
-                    } else {
-                        completion(.success(response))
-                    }
-                    
-                case .failure(let error):
-                    requestData.retryCount = requestData.retryCount - 1
-                    if requestData.retryCount > 1 {
-                        registrationPerformRequest(requestData: requestData, completion: completion)
-                    } else {
-                        completion(.failure(error))
-                    }
-                }
-            }
-                        
-            registrationPerformRequest(requestData: requestData, completion: block)
+        blockOperation.addExecutionBlock  {
+            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.userRegister, parametersDict: queryParameters,completion: completion)
         }
         
         // Add dependency to finish previus task before starting new one
