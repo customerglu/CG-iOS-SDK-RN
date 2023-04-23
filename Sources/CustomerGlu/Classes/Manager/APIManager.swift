@@ -70,17 +70,32 @@ private struct CGRequestData {
     var parametersDict: NSDictionary
     var dispatchGroup:DispatchGroup = DispatchGroup()
     var retryCount: Int = 1
-    var completionBlock: ((Result<CGRegistrationModel, CGNetworkError>) -> Void)?
+    var completionBlock: ((_ status: CGAPIStatus, _ data: [String: Any]?, _ error: CGNetworkError?) -> Void)?
+}
+
+// MARK: - CGAPIStatus
+enum CGAPIStatus {
+    case success
+    case failure
 }
 
 // MARK: - CGNetworkError
 enum CGNetworkError: Error, LocalizedError {
     case badURLRetry
+    case unauthorized
+    case bindingFailed
+    case other
 
     public var errorDescription: String? {
         switch self {
         case .badURLRetry:
             return NSLocalizedString("Bad URL Type, please retry", comment: "CGNetworkError")
+        case .unauthorized:
+            return NSLocalizedString("Unauthorized user logout", comment: "CGNetworkError")
+        case .bindingFailed:
+            return NSLocalizedString("Data binding failed", comment: "CGNetworkError")
+        case .other:
+            return NSLocalizedString("Other Error", comment: "CGNetworkError")
         }
     }
 }
@@ -96,7 +111,7 @@ class APIManager {
     // Singleton Instance
     static let shared = APIManager()
     
-    private static func performRequest<T: Decodable>(baseurl: String, methodandpath: MethodandPath, parametersDict: NSDictionary?,dispatchGroup:DispatchGroup = DispatchGroup() ,completion: @escaping (Result<T, CGNetworkError>) -> Void) {
+    private static func performRequest<T: Decodable>(baseurl: String, methodandpath: MethodandPath, parametersDict: NSDictionary?,dispatchGroup:DispatchGroup = DispatchGroup(), completion: @escaping (Result<T, CGNetworkError>) -> Void) {
         
         //Grouped compelete API-call work flow into a DispatchGroup so that it can maintanted the oprational queue for task completion
         // Enter into DispatchGroup
@@ -198,16 +213,117 @@ class APIManager {
         //   }
     }
     
-    private static func retrytBadUrlPerformRequest(requestData: CGRequestData) {
+    private static func performRequest(withData requestData: CGRequestData) {
+        
+        //Grouped compelete API-call work flow into a DispatchGroup so that it can maintanted the oprational queue for task completion
+        // Enter into DispatchGroup
+        //   if(MethodNameandPath.getWalletRewards.path == methodandpath.path){
+        requestData.dispatchGroup.enter()
+        //    }
+        
+        if requestData.methodandpath.path.caseInsensitiveCompare("bad-gateway") == .orderedSame {
+            print("performRequest :: Inside Bad URL Call")
+        }
+        
+        var urlRequest: URLRequest!
+        var url: URL!
+        let strUrl = "https://" + requestData.baseurl
+        url = URL(string: strUrl + requestData.methodandpath.path)!
+        urlRequest = URLRequest(url: url)
+        
+        // HTTP Method
+        urlRequest.httpMethod = requestData.methodandpath.method//method.rawValue
+        
+        // Common Headers
+        urlRequest.setValue(ContentType.json.rawValue, forHTTPHeaderField: HTTPHeaderField.contentType.rawValue)
+        urlRequest.setValue(CustomerGlu.sdkWriteKey, forHTTPHeaderField: HTTPHeaderField.xapikey.rawValue)
+        urlRequest.setValue("ios", forHTTPHeaderField: HTTPHeaderField.platform.rawValue)
+        urlRequest.setValue(CustomerGlu.isDebugingEnabled.description, forHTTPHeaderField: HTTPHeaderField.sandbox.rawValue)
+        urlRequest.setValue(APIParameterKey.cgsdkversionvalue, forHTTPHeaderField: HTTPHeaderField.cgsdkversionkey.rawValue)
+        
+        if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
+            urlRequest.setValue("\(APIParameterKey.bearer) " + CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN), forHTTPHeaderField: HTTPHeaderField.authorization.rawValue)
+            urlRequest.setValue("\(APIParameterKey.bearer) " + CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN), forHTTPHeaderField: HTTPHeaderField.xgluauth.rawValue)
+        }
+        
+        if requestData.parametersDict.count > 0 { // Check Parameters & Move Accordingly
+            
+            if(true == CustomerGlu.isDebugingEnabled){
+                print(requestData.parametersDict as Any)
+            }
+            if requestData.methodandpath.method == "GET" {
+                var urlString = ""
+                for (i, (keys, values)) in requestData.parametersDict.enumerated() {
+                    urlString += i == 0 ? "?\(keys)=\(values)" : "&\(keys)=\(values)"
+                }
+                // Append GET Parameters to URL
+                var absoluteStr = url.absoluteString
+                absoluteStr += urlString
+                absoluteStr = absoluteStr.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
+                urlRequest.url = URL(string: absoluteStr)!
+            } else {
+                urlRequest.httpBody = try? JSONSerialization.data(withJSONObject: requestData.parametersDict as Any, options: .fragmentsAllowed)
+            }
+        }
+        
+        if(true == CustomerGlu.isDebugingEnabled) {
+            print(urlRequest!)
+        }
+        
+        let task = shared.session.dataTask(with: urlRequest) { data, response, error in
+            
+            // Leave from dispachgroup
+            requestData.dispatchGroup.leave()
+            
+            
+            
+            var isRetry = false
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode == 401 {
+                    CustomerGlu.getInstance.clearGluData()
+                    return
+                } else if httpResponse.statusCode == 429 || httpResponse.statusCode == 502 || httpResponse.statusCode == 408 {
+                    isRetry = true
+                }
+            }
+            guard let data = data, error == nil else { return }
+            do {
+                let json = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any]
+                // Get JSON, Clean it and Convert to Object
+                let JSON = json
+                JSON?.printJson()
+                let cleanedJSON = cleanJSON(json: JSON!, isReturn: true)
+                if isRetry {
+                    requestData.completionBlock?(.success, cleanedJSON, CGNetworkError.badURLRetry)
+                } else {
+                    requestData.completionBlock?(.success, cleanedJSON, nil)
+                }
+            } catch let error {
+                if(true == CustomerGlu.isDebugingEnabled){
+                    print(error)
+                }
+                
+                if isRetry {
+                    requestData.completionBlock?(.failure, nil, CGNetworkError.badURLRetry)
+                } else {
+                    requestData.completionBlock?(.failure, nil, error as? CGNetworkError)
+                }
+            }
+        }
+        task.resume()
+        
+        // wait untill dispatchGroup.leave() not called
+        requestData.dispatchGroup.wait()
+    }
+    
+    private static func makeAPICall(withRequestData requestData: CGRequestData) {
         print("*** ANKIT :: MAKING RETY BAD URL API CALL  ***")
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
         
         // Added Task into Queue
         blockOperation.addExecutionBlock {
-            if let completionBlock = requestData.completionBlock {
-                performRequest(baseurl: requestData.baseurl, methodandpath: requestData.methodandpath, parametersDict: requestData.parametersDict, completion: completionBlock)
-            }
+            performRequest(withData: requestData)
         }
         
         // Add dependency to finish previus task before starting new one
@@ -217,181 +333,81 @@ class APIManager {
         
         //Added task into Queue
         ApplicationManager.operationQueue.addOperation(blockOperation)
+    }
+    
+    private static func performRetryAPICallWithRequestData<T: Decodable>(baseurl: String, methodandpath: MethodandPath, parametersDict: NSDictionary, dispatchGroup: DispatchGroup = DispatchGroup(), completion: @escaping (Result<T, CGNetworkError>) -> Void) {
+        var requestData = CGRequestData(baseurl: baseurl, methodandpath: methodandpath, parametersDict: parametersDict, dispatchGroup: dispatchGroup, retryCount: CustomerGlu.getInstance.appconfigdata?.allowedRetryCount ?? 1)
+        
+        // Call Login API with API Router
+        let block: (_ status: CGAPIStatus, _ data: [String: Any]?, _ error: CGNetworkError?) -> Void = { (status, data, error) in
+            switch status {
+            case .success:
+                if let data {
+                    requestData.retryCount = requestData.retryCount - 1
+                    if let error, error == .badURLRetry, requestData.retryCount >= 1 {
+                        print("*** ANKIT :: Retry Again :: Count \(requestData.retryCount)  ***")
+                        makeAPICall(withRequestData: requestData)
+                    } else {
+                        print("*** ANKIT :: Retry Success 1 ***")
+                        if let error, error == .badURLRetry {
+                            completion(.failure(CGNetworkError.badURLRetry))
+                        } else if let object = dictToObject(dict: data, type: T.self) {
+                            completion(.success(object))
+                        } else {
+                            completion(.failure(CGNetworkError.other))
+                        }
+                    }
+                } else {
+                    print("*** ANKIT :: Retry Success 3 ***")
+                    completion(.failure(CGNetworkError.bindingFailed))
+                }
+                
+            case .failure:
+                requestData.retryCount = requestData.retryCount - 1
+                if let error, error == .badURLRetry, requestData.retryCount >= 1 {
+                    print("*** ANKIT :: Retry Failed :: :: Count \(requestData.retryCount) ***")
+                    makeAPICall(withRequestData: requestData)
+                } else {
+                    print("*** ANKIT :: Retry Failed ***")
+                    completion(.failure(CGNetworkError.other))
+                }
+            }
+        }
+        
+        requestData.completionBlock = block
+        makeAPICall(withRequestData: requestData)
     }
     
     static func retrytBadUrl(queryParameters: NSDictionary, completion: @escaping (Result<CGRegistrationModel, CGNetworkError>) -> Void) {
-        print("*** ANKIT JAIN  ***")
-        // create a blockOperation for avoiding miltiple API call at same time
-        let badGateway = MethodandPath(method: "GET", path:"bad-gateway")
-        var requestData = CGRequestData(baseurl: "cg-test.free.beeceptor.com/", methodandpath: badGateway, parametersDict: queryParameters, retryCount: CustomerGlu.getInstance.appconfigdata?.allowedRetryCount ?? 1)
-        
-        // Call Login API with API Router
-        let block: (Result<CGRegistrationModel, CGNetworkError>) -> Void = { result in
-            switch result {
-            case .success(let response):
-                if !(response.success ?? true) {
-                    requestData.retryCount = requestData.retryCount - 1
-                    if requestData.retryCount > 1 {
-                        print("*** ANKIT :: Retry Again :: Count \(requestData.retryCount)  ***")
-                        retrytBadUrlPerformRequest(requestData: requestData)
-                    } else {
-                        print("*** ANKIT :: Retry Success 1 ***")
-                        completion(.success(response))
-                    }
-                } else {
-                    print("*** ANKIT :: Retry Success 2 ***")
-                    completion(.success(response))
-                }
-                
-            case .failure(let error):
-                requestData.retryCount = requestData.retryCount - 1
-                if requestData.retryCount >= 1 {
-                    print("*** ANKIT :: Retry Failed :: :: Count \(requestData.retryCount) ***")
-                    retrytBadUrlPerformRequest(requestData: requestData)
-                } else {
-                    print("*** ANKIT :: Retry Failed ***")
-                    completion(.failure(error))
-                }
-            }
-        }
-                    
-        requestData.completionBlock = block
-        retrytBadUrlPerformRequest(requestData: requestData)
+        performRetryAPICallWithRequestData(baseurl: "cg-test.free.beeceptor.com/", methodandpath: MethodandPath(method: "GET", path:"bad-gateway"), parametersDict: queryParameters, completion: completion)
     }
     
     static func userRegister(queryParameters: NSDictionary, completion: @escaping (Result<CGRegistrationModel, CGNetworkError>) -> Void) {
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock  {
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.userRegister, parametersDict: queryParameters,completion: completion)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
+        performRetryAPICallWithRequestData(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.userRegister, parametersDict: queryParameters,completion: completion)
     }
     
     static func getWalletRewards(queryParameters: NSDictionary, completion: @escaping (Result<CGCampaignsModel, CGNetworkError>) -> Void) {
-        // Call Get Wallet and Rewards List
-        
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.getWalletRewards, parametersDict: queryParameters,completion: completion)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
+        performRetryAPICallWithRequestData(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.getWalletRewards, parametersDict: queryParameters,completion: completion)
     }
     
     static func addToCart(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, CGNetworkError>) -> Void) {
-        
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Get Wallet and Rewards List
-            performRequest(baseurl: BaseUrls.eventUrl, methodandpath: MethodNameandPath.addToCart, parametersDict: queryParameters, completion: completion)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
+        performRetryAPICallWithRequestData(baseurl: BaseUrls.eventUrl, methodandpath: MethodNameandPath.addToCart, parametersDict: queryParameters, completion: completion)
     }
     
     static func crashReport(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, CGNetworkError>) -> Void) {
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Get Wallet and Rewards List
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.crashReport, parametersDict: queryParameters, completion: completion)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
+        performRetryAPICallWithRequestData(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.crashReport, parametersDict: queryParameters, completion: completion)
     }
     
     static func getEntryPointdata(queryParameters: NSDictionary, completion: @escaping (Result<CGEntryPoint, CGNetworkError>) -> Void) {
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Get Wallet and Rewards List
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.entryPointdata, parametersDict: queryParameters, completion: completion)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
+        performRetryAPICallWithRequestData(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.entryPointdata, parametersDict: queryParameters, completion: completion)
     }
     
     static func entrypoints_config(queryParameters: NSDictionary, completion: @escaping (Result<EntryConfig, CGNetworkError>) -> Void) {
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Put EntryPoints_Config
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.entrypoints_config, parametersDict: queryParameters, completion: completion)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
+        performRetryAPICallWithRequestData(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.entrypoints_config, parametersDict: queryParameters, completion: completion)
     }
     
     static func sendAnalyticsEvent(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, CGNetworkError>) -> Void) {
-        
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Get Wallet and Rewards List
-            performRequest(baseurl: BaseUrls.streamurl, methodandpath: MethodNameandPath.send_analytics_event, parametersDict: queryParameters, completion: completion)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
+        performRetryAPICallWithRequestData(baseurl: BaseUrls.streamurl, methodandpath: MethodNameandPath.send_analytics_event, parametersDict: queryParameters, completion: completion)
     }
     
     
@@ -400,75 +416,19 @@ class APIManager {
         Event and Diagnostics Send.
      **/
     static func sendEventsDiagnostics(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, CGNetworkError>) -> Void) {
-        
-        let blockOperation = BlockOperation()
-        
-        blockOperation.addExecutionBlock {
-            performRequest(baseurl: BaseUrls.diagnosticUrl, methodandpath: MethodNameandPath.cgMetricDiagnostics, parametersDict: queryParameters, completion: completion)
-        }
-        
-        if ApplicationManager.operationQueue.operations.count > 0 {
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        ApplicationManager.operationQueue.addOperation(blockOperation)
+        performRetryAPICallWithRequestData(baseurl: BaseUrls.diagnosticUrl, methodandpath: MethodNameandPath.cgMetricDiagnostics, parametersDict: queryParameters, completion: completion)
     }
     
     static func getCGDeeplinkData(queryParameters: NSDictionary, completion: @escaping (Result<CGDeeplink, CGNetworkError>) -> Void) {
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Login API with API Router
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.cgdeeplink, parametersDict: queryParameters, completion: completion)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
+        performRetryAPICallWithRequestData(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.cgdeeplink, parametersDict: queryParameters, completion: completion)
     }
     
     static func appConfig(queryParameters: NSDictionary, completion: @escaping (Result<CGAppConfig, CGNetworkError>) -> Void) {
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Login API with API Router
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.appconfig, parametersDict: queryParameters, completion: completion)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
+        performRetryAPICallWithRequestData(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.appconfig, parametersDict: queryParameters, completion: completion)
     }
     
     static func nudgeIntegration(queryParameters: NSDictionary, completion: @escaping (Result<CGNudgeIntegrationModel, CGNetworkError>) -> Void) {
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Login API with API Router
-            performRequest(baseurl: "stage-api.customerglu.com/", methodandpath: MethodNameandPath.cgNudgeIntegration, parametersDict: queryParameters, completion: completion)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
+        performRetryAPICallWithRequestData(baseurl: "stage-api.customerglu.com/", methodandpath: MethodNameandPath.cgNudgeIntegration, parametersDict: queryParameters, completion: completion)
     }
     
     // MARK: - Private Class Methods
@@ -537,6 +497,20 @@ class APIManager {
             } else {
                 completion(.failure(error as! CGNetworkError))
             }
+        }
+    }
+    
+    static private func dictToObject <T: Decodable>(dict: Dictionary<String, Any>, type: T.Type) -> T? {
+        do {
+            // Convert Dictionary to JSON Data
+            let jsonData = try JSONSerialization.data(withJSONObject: dict, options: .prettyPrinted)
+            // Decode data to model object
+            let jsonDecoder = JSONDecoder()
+            let object = try jsonDecoder.decode(type, from: jsonData)
+            return object
+        } catch let error { // response with error
+            print("JSON decode failed: \(error.localizedDescription)")
+            return nil
         }
     }
 }
