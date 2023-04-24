@@ -25,32 +25,77 @@ private enum ContentType: String {
     case json = "application/json"
 }
 
-// MARK: - ProfileEndPoint Model
+// MARK: - MethodandPath
 internal class MethodandPath: Codable {
     
     // MARK: - Variables
     internal var method: String
     internal var path: String
+    internal var baseurl: String
     
-    init(method: String?, path: String?) {
-        self.method = method!
-        self.path = path!
+    init(serviceType: CGService) {
+        // Default value else change it in respective enum case.
+        self.baseurl = BaseUrls.baseurl
+        
+        switch serviceType {
+        case .userRegister:
+            self.method = "POST"
+            self.path = "user/v1/user/sdk?token=true"
+        case .getWalletRewards:
+            self.method = "GET"
+            self.path = "reward/v1.1/user"
+        case .addToCart:
+            self.method = "POST"
+            self.path = "server/v4"
+            self.baseurl = BaseUrls.eventUrl
+        case .crashReport:
+            self.method = "PUT"
+            self.path = "api/v1/report"
+        case .entryPointdata:
+            self.method = "GET"
+            self.path = "entrypoints/v1/list"
+        case .entrypoints_config:
+            self.method = "POST"
+            self.path = "entrypoints/v1/config"
+        case .send_analytics_event:
+            self.method = "POST"
+            self.path = "v4/sdk"
+            self.baseurl = BaseUrls.streamurl
+        case .appconfig:
+            self.method = "GET"
+            self.path = "client/v1/sdk/config"
+        case .cgdeeplink:
+            self.method = "GET"
+            self.path = "api/v1/wormhole/sdk/url"
+        case .cgMetricDiagnostics:
+            self.method = "POST"
+            self.path = "sdk/v4"
+            self.baseurl = BaseUrls.diagnosticUrl
+        case .cgNudgeIntegration:
+            self.method = "POST"
+            self.path = "integrations/v1/nudge/sdk/test"
+            self.baseurl = "stage-api.customerglu.com/"
+        case .badGateway:
+            self.method = "GET"
+            self.path = "bad-gateway"
+            self.baseurl = "cg-test.free.beeceptor.com/"
+        }
     }
 }
 
-// Parameter Key's for all API's
-private struct MethodNameandPath {
-    static let userRegister = MethodandPath(method: "POST", path: "user/v1/user/sdk?token=true")
-    static let getWalletRewards = MethodandPath(method: "GET", path: "reward/v1.1/user")
-    static let addToCart = MethodandPath(method: "POST", path: "server/v4")
-    static let crashReport = MethodandPath(method: "PUT", path: "api/v1/report")
-    static let entryPointdata = MethodandPath(method: "GET", path: "entrypoints/v1/list")
-    static let entrypoints_config = MethodandPath(method: "POST", path: "entrypoints/v1/config")
-    static let send_analytics_event = MethodandPath(method: "POST", path: "v4/sdk")
-    static let appconfig = MethodandPath(method: "GET", path: "client/v1/sdk/config")
-    static let cgdeeplink = MethodandPath(method: "GET", path: "api/v1/wormhole/sdk/url")
-    static let cgMetricDiagnostics = MethodandPath(method: "POST", path:"sdk/v4")
-    static let cgNudgeIntegration = MethodandPath(method: "POST", path:"integrations/v1/nudge/sdk/test")
+enum CGService {
+    case userRegister
+    case getWalletRewards
+    case addToCart
+    case crashReport
+    case entryPointdata
+    case entrypoints_config
+    case send_analytics_event
+    case appconfig
+    case cgdeeplink
+    case cgMetricDiagnostics
+    case cgNudgeIntegration
+    case badGateway
 }
 
 // Parameter Key's for all API's
@@ -110,108 +155,6 @@ class APIManager {
     
     // Singleton Instance
     static let shared = APIManager()
-    
-    private static func performRequest<T: Decodable>(baseurl: String, methodandpath: MethodandPath, parametersDict: NSDictionary?,dispatchGroup:DispatchGroup = DispatchGroup(), completion: @escaping (Result<T, CGNetworkError>) -> Void) {
-        
-        //Grouped compelete API-call work flow into a DispatchGroup so that it can maintanted the oprational queue for task completion
-        // Enter into DispatchGroup
-        //   if(MethodNameandPath.getWalletRewards.path == methodandpath.path){
-        dispatchGroup.enter()
-        //    }
-        
-        if methodandpath.path.caseInsensitiveCompare("bad-gateway") == .orderedSame {
-            print("performRequest :: Inside Bad URL Call")
-        }
-        
-        var urlRequest: URLRequest!
-        var url: URL!
-        let strUrl = "https://" + baseurl
-        url = URL(string: strUrl + methodandpath.path)!
-        urlRequest = URLRequest(url: url)
-        
-        // HTTP Method
-        urlRequest.httpMethod = methodandpath.method//method.rawValue
-        
-        // Common Headers
-        urlRequest.setValue(ContentType.json.rawValue, forHTTPHeaderField: HTTPHeaderField.contentType.rawValue)
-        urlRequest.setValue(CustomerGlu.sdkWriteKey, forHTTPHeaderField: HTTPHeaderField.xapikey.rawValue)
-        urlRequest.setValue("ios", forHTTPHeaderField: HTTPHeaderField.platform.rawValue)
-        urlRequest.setValue(CustomerGlu.isDebugingEnabled.description, forHTTPHeaderField: HTTPHeaderField.sandbox.rawValue)
-        urlRequest.setValue(APIParameterKey.cgsdkversionvalue, forHTTPHeaderField: HTTPHeaderField.cgsdkversionkey.rawValue)
-        
-        if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
-            urlRequest.setValue("\(APIParameterKey.bearer) " + CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN), forHTTPHeaderField: HTTPHeaderField.authorization.rawValue)
-            urlRequest.setValue("\(APIParameterKey.bearer) " + CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN), forHTTPHeaderField: HTTPHeaderField.xgluauth.rawValue)
-        }
-        
-        if parametersDict!.count > 0 { // Check Parameters & Move Accordingly
-            
-            if(true == CustomerGlu.isDebugingEnabled){
-                print(parametersDict as Any)
-            }
-            if methodandpath.method == "GET" {
-                var urlString = ""
-                for (i, (keys, values)) in parametersDict!.enumerated() {
-                    urlString += i == 0 ? "?\(keys)=\(values)" : "&\(keys)=\(values)"
-                }
-                // Append GET Parameters to URL
-                var absoluteStr = url.absoluteString
-                absoluteStr += urlString
-                absoluteStr = absoluteStr.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
-                urlRequest.url = URL(string: absoluteStr)!
-            } else {
-                urlRequest.httpBody = try? JSONSerialization.data(withJSONObject: parametersDict as Any, options: .fragmentsAllowed)
-            }
-        }
-        
-        if(true == CustomerGlu.isDebugingEnabled) {
-            print(urlRequest!)
-        }
-        
-        let task = shared.session.dataTask(with: urlRequest) { data, response, error in
-            
-            // Leave from dispachgroup
-            // wait untill dispatchGroup.leave() not called
-            // if(MethodNameandPath.getWalletRewards.path == methodandpath.path){
-            dispatchGroup.leave()
-            //  }
-            
-            var isRetry = false
-            if let httpResponse = response as? HTTPURLResponse {
-                if httpResponse.statusCode == 401 {
-                    CustomerGlu.getInstance.clearGluData()
-                    return
-                } else if httpResponse.statusCode == 429 || httpResponse.statusCode == 502 || httpResponse.statusCode == 408 {
-                    isRetry = true
-                }
-            }
-            guard let data = data, error == nil else { return }
-            do {
-                let json = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any]
-                // Get JSON, Clean it and Convert to Object
-                let JSON = json
-                JSON?.printJson()
-                let cleanedJSON = cleanJSON(json: JSON!, isReturn: true)
-                dictToObject(dict: cleanedJSON, isRetry: isRetry, type: T.self, completion: completion)
-            } catch let error {
-                if(true == CustomerGlu.isDebugingEnabled){
-                    print(error)
-                }
-                
-                if isRetry {
-                    completion(.failure(CGNetworkError.badURLRetry))
-                } else {
-                    completion(.failure(error as! CGNetworkError))
-                }
-            }
-        }
-        task.resume()
-        
-        // wait untill dispatchGroup.leave() not called
-        //  if(MethodNameandPath.getWalletRewards.path == methodandpath.path){
-        dispatchGroup.wait()
-        //   }
-    }
     
     private static func performRequest(withData requestData: CGRequestData) {
         
@@ -316,7 +259,7 @@ class APIManager {
         requestData.dispatchGroup.wait()
     }
     
-    private static func makeAPICall(withRequestData requestData: CGRequestData) {
+    private static func blockOperationForService(withRequestData requestData: CGRequestData) {
         print("*** ANKIT :: MAKING RETY BAD URL API CALL  ***")
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
@@ -335,8 +278,9 @@ class APIManager {
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
-    private static func performRetryAPICallWithRequestData<T: Decodable>(baseurl: String, methodandpath: MethodandPath, parametersDict: NSDictionary, dispatchGroup: DispatchGroup = DispatchGroup(), completion: @escaping (Result<T, CGNetworkError>) -> Void) {
-        var requestData = CGRequestData(baseurl: baseurl, methodandpath: methodandpath, parametersDict: parametersDict, dispatchGroup: dispatchGroup, retryCount: CustomerGlu.getInstance.appconfigdata?.allowedRetryCount ?? 1)
+    private static func serviceCall<T: Decodable>(for type: CGService, parametersDict: NSDictionary, dispatchGroup: DispatchGroup = DispatchGroup(), completion: @escaping (Result<T, CGNetworkError>) -> Void) {
+        let methodandpath = MethodandPath(serviceType: type)
+        var requestData = CGRequestData(baseurl: methodandpath.baseurl, methodandpath: methodandpath, parametersDict: parametersDict, dispatchGroup: dispatchGroup, retryCount: CustomerGlu.getInstance.appconfigdata?.allowedRetryCount ?? 1)
         
         // Call Login API with API Router
         let block: (_ status: CGAPIStatus, _ data: [String: Any]?, _ error: CGNetworkError?) -> Void = { (status, data, error) in
@@ -346,7 +290,7 @@ class APIManager {
                     requestData.retryCount = requestData.retryCount - 1
                     if let error, error == .badURLRetry, requestData.retryCount >= 1 {
                         print("*** ANKIT :: Retry Again :: Count \(requestData.retryCount)  ***")
-                        makeAPICall(withRequestData: requestData)
+                        blockOperationForService(withRequestData: requestData)
                     } else {
                         print("*** ANKIT :: Retry Success 1 ***")
                         if let error, error == .badURLRetry {
@@ -366,7 +310,7 @@ class APIManager {
                 requestData.retryCount = requestData.retryCount - 1
                 if let error, error == .badURLRetry, requestData.retryCount >= 1 {
                     print("*** ANKIT :: Retry Failed :: :: Count \(requestData.retryCount) ***")
-                    makeAPICall(withRequestData: requestData)
+                    blockOperationForService(withRequestData: requestData)
                 } else {
                     print("*** ANKIT :: Retry Failed ***")
                     completion(.failure(CGNetworkError.other))
@@ -375,60 +319,55 @@ class APIManager {
         }
         
         requestData.completionBlock = block
-        makeAPICall(withRequestData: requestData)
+        blockOperationForService(withRequestData: requestData)
     }
     
     static func retrytBadUrl(queryParameters: NSDictionary, completion: @escaping (Result<CGRegistrationModel, CGNetworkError>) -> Void) {
-        performRetryAPICallWithRequestData(baseurl: "cg-test.free.beeceptor.com/", methodandpath: MethodandPath(method: "GET", path:"bad-gateway"), parametersDict: queryParameters, completion: completion)
+        serviceCall(for: .badGateway, parametersDict: queryParameters, completion: completion)
     }
     
     static func userRegister(queryParameters: NSDictionary, completion: @escaping (Result<CGRegistrationModel, CGNetworkError>) -> Void) {
-        performRetryAPICallWithRequestData(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.userRegister, parametersDict: queryParameters,completion: completion)
+        serviceCall(for: .userRegister, parametersDict: queryParameters,completion: completion)
     }
     
     static func getWalletRewards(queryParameters: NSDictionary, completion: @escaping (Result<CGCampaignsModel, CGNetworkError>) -> Void) {
-        performRetryAPICallWithRequestData(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.getWalletRewards, parametersDict: queryParameters,completion: completion)
+        serviceCall(for: .getWalletRewards, parametersDict: queryParameters,completion: completion)
     }
     
     static func addToCart(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, CGNetworkError>) -> Void) {
-        performRetryAPICallWithRequestData(baseurl: BaseUrls.eventUrl, methodandpath: MethodNameandPath.addToCart, parametersDict: queryParameters, completion: completion)
+        serviceCall(for: .addToCart, parametersDict: queryParameters, completion: completion)
     }
     
     static func crashReport(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, CGNetworkError>) -> Void) {
-        performRetryAPICallWithRequestData(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.crashReport, parametersDict: queryParameters, completion: completion)
+        serviceCall(for: .crashReport, parametersDict: queryParameters, completion: completion)
     }
     
     static func getEntryPointdata(queryParameters: NSDictionary, completion: @escaping (Result<CGEntryPoint, CGNetworkError>) -> Void) {
-        performRetryAPICallWithRequestData(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.entryPointdata, parametersDict: queryParameters, completion: completion)
+        serviceCall(for: .entryPointdata, parametersDict: queryParameters, completion: completion)
     }
     
     static func entrypoints_config(queryParameters: NSDictionary, completion: @escaping (Result<EntryConfig, CGNetworkError>) -> Void) {
-        performRetryAPICallWithRequestData(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.entrypoints_config, parametersDict: queryParameters, completion: completion)
+        serviceCall(for: .entrypoints_config, parametersDict: queryParameters, completion: completion)
     }
     
     static func sendAnalyticsEvent(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, CGNetworkError>) -> Void) {
-        performRetryAPICallWithRequestData(baseurl: BaseUrls.streamurl, methodandpath: MethodNameandPath.send_analytics_event, parametersDict: queryParameters, completion: completion)
+        serviceCall(for: .send_analytics_event, parametersDict: queryParameters, completion: completion)
     }
     
-    
-    // TODO Response Model needs to be changed.
-    /**
-        Event and Diagnostics Send.
-     **/
     static func sendEventsDiagnostics(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, CGNetworkError>) -> Void) {
-        performRetryAPICallWithRequestData(baseurl: BaseUrls.diagnosticUrl, methodandpath: MethodNameandPath.cgMetricDiagnostics, parametersDict: queryParameters, completion: completion)
+        serviceCall(for: .cgMetricDiagnostics, parametersDict: queryParameters, completion: completion)
     }
     
     static func getCGDeeplinkData(queryParameters: NSDictionary, completion: @escaping (Result<CGDeeplink, CGNetworkError>) -> Void) {
-        performRetryAPICallWithRequestData(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.cgdeeplink, parametersDict: queryParameters, completion: completion)
+        serviceCall(for: .cgdeeplink, parametersDict: queryParameters, completion: completion)
     }
     
     static func appConfig(queryParameters: NSDictionary, completion: @escaping (Result<CGAppConfig, CGNetworkError>) -> Void) {
-        performRetryAPICallWithRequestData(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.appconfig, parametersDict: queryParameters, completion: completion)
+        serviceCall(for: .appconfig, parametersDict: queryParameters, completion: completion)
     }
     
     static func nudgeIntegration(queryParameters: NSDictionary, completion: @escaping (Result<CGNudgeIntegrationModel, CGNetworkError>) -> Void) {
-        performRetryAPICallWithRequestData(baseurl: "stage-api.customerglu.com/", methodandpath: MethodNameandPath.cgNudgeIntegration, parametersDict: queryParameters, completion: completion)
+        serviceCall(for: .cgNudgeIntegration, parametersDict: queryParameters, completion: completion)
     }
     
     // MARK: - Private Class Methods
@@ -472,31 +411,6 @@ class APIManager {
             return actualJson
         } else { // else return dummy object
             return Dictionary<String, Any>()
-        }
-    }
-    
-    static private func dictToObject <T: Decodable>(dict: Dictionary<String, Any>, isRetry: Bool, type: T.Type, completion: @escaping (Result<T, CGNetworkError>) -> Void) {
-        do {
-            // Convert Dictionary to JSON Data
-            let jsonData = try JSONSerialization.data(withJSONObject: dict, options: .prettyPrinted)
-            
-            // Decode data to model object
-            let jsonDecoder = JSONDecoder()
-            let object = try jsonDecoder.decode(type, from: jsonData)
-            // response with model object
-            
-            if isRetry {
-                completion(.failure(CGNetworkError.badURLRetry))
-            } else {
-                completion(.success(object))
-            }
-        } catch let error { // response with error
-            print("JSON decode failed: \(error.localizedDescription)")
-            if isRetry {
-                completion(.failure(CGNetworkError.badURLRetry))
-            } else {
-                completion(.failure(error as! CGNetworkError))
-            }
         }
     }
     
