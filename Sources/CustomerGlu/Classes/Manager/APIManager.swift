@@ -278,6 +278,28 @@ class APIManager {
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
+    private static func blockOperationForServiceWithDelay(andRequestData requestData: CGRequestData) {
+        // Delay
+        printTime()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10, execute: {
+            // Background thread
+            DispatchQueue.global(qos: .userInitiated).async {
+                printTime()
+                blockOperationForService(withRequestData: requestData)
+            }
+        })
+    }
+    
+    private static func printTime() {
+        let date = Date()
+        let calendar = Calendar.current
+
+        let hour = calendar.component(.hour, from: date)
+        let minutes = calendar.component(.minute, from: date)
+        let seconds = calendar.component(.second, from: date)
+        print("hours = \(hour):\(minutes):\(seconds)")
+    }
+    
     private static func serviceCall<T: Decodable>(for type: CGService, parametersDict: NSDictionary, dispatchGroup: DispatchGroup = DispatchGroup(), completion: @escaping (Result<T, CGNetworkError>) -> Void) {
         let methodandpath = MethodandPath(serviceType: type)
         var requestData = CGRequestData(baseurl: methodandpath.baseurl, methodandpath: methodandpath, parametersDict: parametersDict, dispatchGroup: dispatchGroup, retryCount: CustomerGlu.getInstance.appconfigdata?.allowedRetryCount ?? 1)
@@ -290,7 +312,7 @@ class APIManager {
                     requestData.retryCount = requestData.retryCount - 1
                     if let error, error == .badURLRetry, requestData.retryCount >= 1 {
                         print("*** ANKIT :: Retry Again :: Count \(requestData.retryCount)  ***")
-                        blockOperationForService(withRequestData: requestData)
+                        blockOperationForServiceWithDelay(andRequestData: requestData)
                     } else {
                         print("*** ANKIT :: Retry Success 1 ***")
                         if let error, error == .badURLRetry {
@@ -309,8 +331,8 @@ class APIManager {
             case .failure:
                 requestData.retryCount = requestData.retryCount - 1
                 if let error, error == .badURLRetry, requestData.retryCount >= 1 {
-                    print("*** ANKIT :: Retry Failed :: :: Count \(requestData.retryCount) ***")
-                    blockOperationForService(withRequestData: requestData)
+                    print("*** ANKIT :: Retry Again :: Count \(requestData.retryCount)  ***")
+                    blockOperationForServiceWithDelay(andRequestData: requestData)
                 } else {
                     print("*** ANKIT :: Retry Failed ***")
                     completion(.failure(CGNetworkError.other))
