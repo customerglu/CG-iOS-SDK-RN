@@ -26,7 +26,6 @@ public class CGClientTestingSDKSetupEventsCell: UITableViewCell {
     
     @IBOutlet weak var checkDocLabel: UILabel! // Hidden by default
     @IBOutlet weak var retryLabel: UILabel! // Hidden by default
-    @IBOutlet weak var titleLabelLeadingConstraint: NSLayoutConstraint! // 48px by default
     
     private weak var delegate: CGClientTestingSDKSetupEventsCellDelegate?
     private var eventItem: CGClientTestingRowItem?
@@ -42,7 +41,6 @@ public class CGClientTestingSDKSetupEventsCell: UITableViewCell {
         self.delegate = delegate
         eventItem = rowItem
         titleLabel.font = .systemFont(ofSize: 12)
-        titleLabelLeadingConstraint.constant = 48
         
         checkDocLabel.isHidden = true
         retryLabel.isHidden = true
@@ -90,7 +88,6 @@ public class CGClientTestingSDKSetupEventsCell: UITableViewCell {
             stackViewTopConstraint.constant = 0
 
             titleLabel.font = .boldSystemFont(ofSize: 14)
-            titleLabelLeadingConstraint.constant = 16
             tickImageView.isHidden = false
             indicatorView.isHidden = false
             indicatorView.stopAnimating()

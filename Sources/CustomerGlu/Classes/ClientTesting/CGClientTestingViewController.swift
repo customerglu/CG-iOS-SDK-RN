@@ -130,14 +130,14 @@ extension CGClientTestingViewController: CGClientTestingSDKSetupEventsCellDelega
             self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
             
             viewModel.executeNudgeHandling(isRetry: true)
-        case .onelinkHandling:
-            let itemInfo = viewModel.getIndexOfItem(.onelinkHandling(status: .pending))
+        case .cgDeeplinkHandling:
+            let itemInfo = viewModel.getIndexOfItem(.cgDeeplinkHandling(status: .pending))
             guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
             
-            viewModel.eventsSectionsArray[index] = .onelinkHandling(status: .pending)
+            viewModel.eventsSectionsArray[index] = .cgDeeplinkHandling(status: .pending)
             self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
             
-            viewModel.executeOnelinkHandling(isRetry: true)
+            viewModel.executeCGDeeplinkHandling(isRetry: true)
             
         case .entryPointSetup:
             let itemInfo = viewModel.getIndexOfItem(.entryPointSetup(status: .pending))
@@ -221,6 +221,10 @@ extension CGClientTestingViewController: CGClientTestingProtocol {
             UIApplication.shared.openURL(url)
         }
     }
+    
+    public func reloadOnSDKNotificationConfigSuccess() {
+        self.tableView.reloadData()
+    }
 }
 
 // MARK: - CGCustomAlertDelegate
@@ -246,13 +250,13 @@ extension CGClientTestingViewController: CGCustomAlertDelegate {
 
             if !alert.isRetry {
                 //Execute Next Step
-                viewModel.executeOnelinkHandling()
+                viewModel.executeCGDeeplinkHandling()
             }
-        } else if alertTag == CGCustomAlertTag.onelinkHandlingTag.rawValue {
-            let itemInfo = viewModel.getIndexOfItem(.onelinkHandling(status: .pending))
+        } else if alertTag == CGCustomAlertTag.cgDeeplinkHandlingTag.rawValue {
+            let itemInfo = viewModel.getIndexOfItem(.cgDeeplinkHandling(status: .pending))
             guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
             
-            viewModel.eventsSectionsArray[index] = .onelinkHandling(status: .success)
+            viewModel.eventsSectionsArray[index] = .cgDeeplinkHandling(status: .success)
             self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
             
             if !alert.isRetry {
@@ -283,13 +287,13 @@ extension CGClientTestingViewController: CGCustomAlertDelegate {
 
             if !alert.isRetry {
                 //Execute Next Step
-                viewModel.executeOnelinkHandling()
+                viewModel.executeCGDeeplinkHandling()
             }
-        } else if alertTag == CGCustomAlertTag.onelinkHandlingTag.rawValue {
-            let itemInfo = viewModel.getIndexOfItem(.onelinkHandling(status: .pending))
+        } else if alertTag == CGCustomAlertTag.cgDeeplinkHandlingTag.rawValue {
+            let itemInfo = viewModel.getIndexOfItem(.cgDeeplinkHandling(status: .pending))
             guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
             
-            viewModel.eventsSectionsArray[index] = .onelinkHandling(status: .failure)
+            viewModel.eventsSectionsArray[index] = .cgDeeplinkHandling(status: .failure)
             self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
             
             if !alert.isRetry {

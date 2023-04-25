@@ -386,44 +386,6 @@ class APIManager {
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
-    static func onboardingSDKNotificationConfig(queryParameters: NSDictionary, completion: @escaping (Result<CGClientTestingModel, Error>) -> Void) {
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Login API with API Router
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.cgOnboardingSDKNotificationConfig, parametersDict: queryParameters, completion: completion, isClientTesting: true)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
-    }
-    
-    static func onboardingSDKTestSteps(queryParameters: NSDictionary, completion: @escaping (Result<CGClientTestingModel, Error>) -> Void) {
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Login API with API Router
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.cgOnboardingSDKTestSteps, parametersDict: queryParameters, completion: completion, isClientTesting: true)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
-    }
-    
     // MARK: - Private Class Methods
     
     // Recursive Method
@@ -519,5 +481,46 @@ class URLSessionMock: URLSession {
         return URLSessionDataTaskMock {
             completionHandler(data, nil, error)
         }
+    }
+}
+
+// MARK: - Client Testing API's
+extension APIManager {
+    static func onboardingSDKNotificationConfig(queryParameters: NSDictionary, completion: @escaping (Result<CGClientTestingModel, Error>) -> Void) {
+        // create a blockOperation for avoiding miltiple API call at same time
+        let blockOperation = BlockOperation()
+        
+        // Added Task into Queue
+        blockOperation.addExecutionBlock {
+            // Call Login API with API Router
+            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.cgOnboardingSDKNotificationConfig, parametersDict: queryParameters, completion: completion, isClientTesting: true)
+        }
+        
+        // Add dependency to finish previus task before starting new one
+        if(ApplicationManager.operationQueue.operations.count > 0){
+            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
+        }
+        
+        //Added task into Queue
+        ApplicationManager.operationQueue.addOperation(blockOperation)
+    }
+    
+    static func onboardingSDKTestSteps(queryParameters: NSDictionary, completion: @escaping (Result<CGClientTestingModel, Error>) -> Void) {
+        // create a blockOperation for avoiding miltiple API call at same time
+        let blockOperation = BlockOperation()
+        
+        // Added Task into Queue
+        blockOperation.addExecutionBlock {
+            // Call Login API with API Router
+            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.cgOnboardingSDKTestSteps, parametersDict: queryParameters, completion: completion, isClientTesting: true)
+        }
+        
+        // Add dependency to finish previus task before starting new one
+        if(ApplicationManager.operationQueue.operations.count > 0){
+            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
+        }
+        
+        //Added task into Queue
+        ApplicationManager.operationQueue.addOperation(blockOperation)
     }
 }

@@ -13,13 +13,15 @@ public protocol CGClientTestingProtocol: NSObjectProtocol {
     func updateTable(atIndexPath indexPath: IndexPath, forEvent event: CGClientTestingRowItem)
     func showCallBackAlert(forEvent event: CGClientTestingRowItem, isRetry: Bool)
     func testOneLinkDeeplink(withDeeplinkURL deeplinkURL: String)
+    func reloadOnSDKNotificationConfigSuccess()
 }
 
 // MARK: - CGClientTestingViewModel
 public class CGClientTestingViewModel: NSObject {
     
     weak var delegate: CGClientTestingProtocol?
-    var eventsSectionsArray: [CGClientTestingRowItem] = [.basicIntegration(status: .header), .sdkInitialised(status: .pending), .userRegistered(status: .pending), .callbackHanding(status: .pending), .advanceIntegration(status: .header), .nudgeHandling(status: .pending), .onelinkHandling(status: .pending), .entryPointSetup(status: .pending), .entryPointScreeNameSetup(status: .pending), .entryPointBannerIDSetup(status: .pending), .entryPointEmbedIDSetup(status: .pending)]
+    var eventsSectionsArray: [CGClientTestingRowItem] = []
+    
     private var sdkTestStepsArray: [CGSDKTestStepsModel] = []
     var clientTestingModel: CGClientTestingModel?
     
@@ -28,19 +30,22 @@ public class CGClientTestingViewModel: NSObject {
         
         self.sdkTestStepsArray = []
         
-        // Make the API call
-        //TODO: Kausthubh to check if API integration working
-        //self.onboardingSDKNotificationConfig()
+        self.eventsSectionsArray = []
+        eventsSectionsArray.append(.basicIntegration(status: .header))
+        eventsSectionsArray.append(.sdkInitialised(status: .pending))
+        eventsSectionsArray.append(.userRegistered(status: .pending))
+        eventsSectionsArray.append(.callbackHanding(status: .pending))
+        eventsSectionsArray.append(.advanceIntegration(status: .header))
+        eventsSectionsArray.append(.firebaseSetup(status: .pending))
+        eventsSectionsArray.append(.nudgeHandling(status: .pending))
+        eventsSectionsArray.append(.cgDeeplinkHandling(status: .pending))
+        eventsSectionsArray.append(.entryPointSetup(status: .pending))
+        eventsSectionsArray.append(.entryPointScreeNameSetup(status: .pending))
+        eventsSectionsArray.append(.entryPointBannerIDSetup(status: .pending))
+        eventsSectionsArray.append(.entryPointEmbedIDSetup(status: .pending))
         
-        //TODO: Hardcoded - when above API uncommented remove this
-        self.clientTestingModel = CGClientTestingModel()
-        self.clientTestingModel?.success = true
-        var data = CGClientTestingDataModel()
-        data.apnsDeviceToken = true
-        data.firebaseToken = true
-        data.privateKeyApns = true
-        data.privateKeyFirebase = true
-        self.clientTestingModel?.data = data
+        // Make the API call
+        self.onboardingSDKNotificationConfig()
     }
     
     func numberOfSections() -> Int {
@@ -200,13 +205,13 @@ public class CGClientTestingViewModel: NSObject {
                 self?.updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: event, status: .success))
                 
                 // Execute next steps
-                self?.executeOnelinkHandling()
+                self?.executeCGDeeplinkHandling()
             }
         }
     }
     
-    @objc func executeOnelinkHandling(isRetry: Bool = false) {
-        let itemInfo = getIndexOfItem(.onelinkHandling(status: .pending))
+    @objc func executeCGDeeplinkHandling(isRetry: Bool = false) {
+        let itemInfo = getIndexOfItem(.cgDeeplinkHandling(status: .pending))
         guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
         
         if let callbackConfigurationUrl = CustomerGlu.getInstance.appconfigdata?.callbackConfigurationUrl {
@@ -214,7 +219,7 @@ public class CGClientTestingViewModel: NSObject {
                 delegate.testOneLinkDeeplink(withDeeplinkURL: callbackConfigurationUrl)
             }
 
-            let event: CGClientTestingRowItem = .onelinkHandling(status: .pending)
+            let event: CGClientTestingRowItem = .cgDeeplinkHandling(status: .pending)
 
             // Record Test Steps
             updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: event, status: .success))
@@ -222,7 +227,7 @@ public class CGClientTestingViewModel: NSObject {
             // Wait 5 seconds and than perform this action
             self.showCallBackAlert(forEvent: event, isRetry: isRetry)
         } else {
-            let event: CGClientTestingRowItem = .onelinkHandling(status: .failure)
+            let event: CGClientTestingRowItem = .cgDeeplinkHandling(status: .failure)
             eventsSectionsArray[index] = event
             updateTableDelegate(atIndexPath: indexPath, forEvent: event)
             
@@ -335,8 +340,7 @@ public class CGClientTestingViewModel: NSObject {
         updateTableDelegate(atIndexPath: indexPath, forEvent: eventsSectionsArray[index])
         
         // Make the SDK Test Steps API Call
-        //TODO: Kausthubh to check if API integration working
-        //onboardingSDKTestSteps()
+        onboardingSDKTestSteps()
     }
     
     private func updateSdkTestStepsArray(withModel model: CGSDKTestStepsModel) {
@@ -358,12 +362,29 @@ public class CGClientTestingViewModel: NSObject {
         
         APIManager.onboardingSDKNotificationConfig(queryParameters: queryParameters as NSDictionary) { result in
             switch result {
-            case .success(_):
-                print("**Onboarding SDK Notification Config API :: Success **")
-                break
-            case .failure(_):
-                print("**Onboarding SDK Notification Config API :: Failure **")
-                break
+            case .success(let response):
+                self.clientTestingModel = response
+                
+                var event: CGClientTestingRowItem = .firebaseSetup(status: .failure)
+                if let clientTestingModel = self.clientTestingModel, let data = clientTestingModel.data, data.firebaseToken ?? false, data.privateKeyFirebase ?? false {
+                    event = .firebaseSetup(status: .success)
+                }
+                
+                let itemInfo = self.getIndexOfItem(event)
+                guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+
+                self.eventsSectionsArray[index] = event
+                self.updateTableDelegate(atIndexPath: indexPath, forEvent: self.eventsSectionsArray[index])
+                
+            case .failure(let error):
+                var event: CGClientTestingRowItem = .firebaseSetup(status: .failure)
+                let itemInfo = self.getIndexOfItem(event)
+                guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+
+                self.eventsSectionsArray[index] = event
+                self.updateTableDelegate(atIndexPath: indexPath, forEvent: self.eventsSectionsArray[index])
+
+                CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-getAppConfig", posttoserver: true)
             }
         }
     }

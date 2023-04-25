@@ -28,7 +28,7 @@ public enum CGClientTestingStatus: Int {
 public enum CGCustomAlertTag: Int {
     case callbackHandingTag = 1001
     case nudgeHandlingTag = 1002
-    case onelinkHandlingTag = 1003
+    case cgDeeplinkHandlingTag = 1003
 }
 
 // MARK: - CGClientTestingRowItem
@@ -38,8 +38,9 @@ public enum CGClientTestingRowItem {
     case userRegistered(status: CGClientTestingStatus)
     case callbackHanding(status: CGClientTestingStatus)
     case advanceIntegration(status: CGClientTestingStatus)
+    case firebaseSetup(status: CGClientTestingStatus)
     case nudgeHandling(status: CGClientTestingStatus)
-    case onelinkHandling(status: CGClientTestingStatus)
+    case cgDeeplinkHandling(status: CGClientTestingStatus)
     case entryPointSetup(status: CGClientTestingStatus)
     case entryPointScreeNameSetup(status: CGClientTestingStatus)
     case entryPointBannerIDSetup(status: CGClientTestingStatus)
@@ -57,18 +58,20 @@ public enum CGClientTestingRowItem {
             return "Callback Handing"
         case .advanceIntegration:
             return "Advance Integration"
+        case .firebaseSetup:
+            return "Firebase Setup"
         case .nudgeHandling:
             return "Nudge Handling"
-        case .onelinkHandling:
-            return "Onelink Handling"
+        case .cgDeeplinkHandling:
+            return "CG Deeplink Handling"
         case .entryPointSetup:
-            return "Entry Point Set up"
+            return "EntryPoint Setup"
         case .entryPointScreeNameSetup:
-            return "Entry Point Screen Name Set up"
+            return "ScreenName Setup"
         case .entryPointBannerIDSetup:
-            return "Entry Point BannerId Set up"
+            return "BannerId Set up"
         case .entryPointEmbedIDSetup:
-            return "Entry Point EmbedId Set up"
+            return "EmbedId Set up"
         }
     }
     
@@ -84,9 +87,11 @@ public enum CGClientTestingRowItem {
             return status
         case .advanceIntegration(let status):
             return status
+        case .firebaseSetup(let status):
+            return status
         case .nudgeHandling(let status):
             return status
-        case .onelinkHandling(let status):
+        case .cgDeeplinkHandling(let status):
             return status
         case .entryPointSetup(let status):
             return status
@@ -111,10 +116,12 @@ public enum CGClientTestingRowItem {
             return ("CustomerGlu", "Do you receive callback?", CGCustomAlertTag.callbackHandingTag.rawValue)
         case .advanceIntegration:
             return nil
+        case .firebaseSetup:
+            return nil
         case .nudgeHandling:
             return ("CustomerGlu", "Do you see a nudge?", CGCustomAlertTag.nudgeHandlingTag.rawValue)
-        case .onelinkHandling:
-            return ("CustomerGlu", "Has CG Deeplink successfully redirected?", CGCustomAlertTag.onelinkHandlingTag.rawValue)
+        case .cgDeeplinkHandling:
+            return ("CustomerGlu", "Has CG Deeplink successfully redirected?", CGCustomAlertTag.cgDeeplinkHandlingTag.rawValue)
         case .entryPointSetup:
             return nil
         case .entryPointScreeNameSetup:
@@ -138,10 +145,12 @@ public enum CGClientTestingRowItem {
             return URL(string: "https://docs.customerglu.com/sdk/mobile-sdks#handling-events")
         case .advanceIntegration:
             return nil
+        case .firebaseSetup:
+            return nil
         case .nudgeHandling:
             return URL(string: "https://docs.customerglu.com/sdk/mobile-sdks#handle-customerglu-nudges")
-        case .onelinkHandling:
-            return URL(string: "https://docs.customerglu.com/sdk/mobile-sdks#handling-events")
+        case .cgDeeplinkHandling:
+            return URL(string: "https://docs.customerglu.com/sdk/mobile-sdks#handling-customerglu-deeplinks")
         case .entryPointSetup:
             return URL(string: "https://docs.customerglu.com/sdk/mobile-sdks#enable-entry-points")
         case .entryPointScreeNameSetup:
@@ -151,6 +160,15 @@ public enum CGClientTestingRowItem {
         case .entryPointEmbedIDSetup:
             return URL(string: "https://docs.customerglu.com/sdk/mobile-sdks#setting-up-embed-view")
         }
+
+        /*
+         Missing URLs
+         FireBase Private Server Key
+         https://docs.customerglu.com/advanced-topics/notifications#firebase-cloud-messaging-fcm
+         
+         FireBase Token
+         https://docs.customerglu.com/sdk/mobile-sdks#register-user-mandatory
+         */
     }
     
     func getSDKTestStepName() -> String {
@@ -158,25 +176,27 @@ public enum CGClientTestingRowItem {
         case .basicIntegration:
             return ""
         case .sdkInitialised:
-            return "SDK_INITIALISED"
+            return "SDK_INITIALIZED"
         case .userRegistered:
-            return "USER_RESGISTERED"
+            return "USER_REGISTERED"
         case .callbackHanding:
             return "CALLBACK_HANDLING"
         case .advanceIntegration:
             return ""
+        case .firebaseSetup:
+            return ""
         case .nudgeHandling:
             return "NUDGE_HANDLING"
-        case .onelinkHandling:
+        case .cgDeeplinkHandling:
             return "ONELINK_HANDLING"
         case .entryPointSetup:
-            return "ENTRY_POINT_SETUP"
+            return "ENTRYPOINTS_SET_UP"
         case .entryPointScreeNameSetup:
-            return "ENTRY_POINT_SCREEN_NAME_SETUP"
+            return "ENTRYPOINTS_SCREENNAME_SET_UP"
         case .entryPointBannerIDSetup:
-            return "ENTRY_POINT_BANNER_ID_SETUP"
+            return "ENTRYPOINTS_BANNERID_SET_UP"
         case .entryPointEmbedIDSetup:
-            return "ENTRY_POINT_EMBED_ID_SETUP"
+            return "ENTRYPOINTS_EMBEDID_SET_UP"
         }
     }
 }
@@ -193,11 +213,11 @@ public enum CGNudgeSubTask {
         case .apnsDeviceToken:
             return "APNS Setup"
         case .firebaseToken:
-            return "Firebase Setup"
+            return "Firebase Token"
         case .privateKeyApns:
-            return "APNS Server Private Key Setup"
+            return "APNS Server Key Setup"
         case .privateKeyFirebase:
-            return "Firebase Server Private Key Setup"
+            return "Firebase Server Key Setup"
         }
     }
     

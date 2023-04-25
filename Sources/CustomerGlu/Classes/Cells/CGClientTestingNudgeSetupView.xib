@@ -18,21 +18,21 @@
                     <rect key="frame" x="0.0" y="0.0" width="375" height="36"/>
                     <subviews>
                         <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="zma-mQ-g4r">
-                            <rect key="frame" x="0.0" y="8" width="20" height="20"/>
+                            <rect key="frame" x="59" y="8" width="20" height="20"/>
                             <constraints>
                                 <constraint firstAttribute="height" constant="20" id="G0k-SQ-f6F"/>
                                 <constraint firstAttribute="width" constant="20" id="gZG-SJ-irH"/>
                             </constraints>
                         </activityIndicatorView>
                         <imageView hidden="YES" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="GreenTick" translatesAutoresizingMaskIntoConstraints="NO" id="0UR-cI-xUT">
-                            <rect key="frame" x="0.0" y="8" width="20" height="20"/>
+                            <rect key="frame" x="59" y="8" width="20" height="20"/>
                             <constraints>
                                 <constraint firstAttribute="height" constant="20" id="2fW-f3-Jw7"/>
                                 <constraint firstAttribute="width" constant="20" id="Sja-BT-bWg"/>
                             </constraints>
                         </imageView>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gXY-M3-GrF">
-                            <rect key="frame" x="32" y="11" width="327" height="14.333333333333336"/>
+                            <rect key="frame" x="16" y="11" width="31" height="14.333333333333336"/>
                             <fontDescription key="fontDescription" type="system" pointSize="12"/>
                             <nil key="textColor"/>
                             <nil key="highlightedColor"/>
@@ -40,12 +40,12 @@
                     </subviews>
                     <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     <constraints>
-                        <constraint firstItem="zma-mQ-g4r" firstAttribute="leading" secondItem="hfF-lS-rMB" secondAttribute="leading" id="Ar3-iX-0mr"/>
                         <constraint firstItem="0UR-cI-xUT" firstAttribute="height" secondItem="zma-mQ-g4r" secondAttribute="height" id="CkW-xd-9Ws"/>
                         <constraint firstAttribute="bottom" secondItem="zma-mQ-g4r" secondAttribute="bottom" constant="8" id="FKC-PK-eZ3"/>
+                        <constraint firstItem="zma-mQ-g4r" firstAttribute="leading" secondItem="gXY-M3-GrF" secondAttribute="trailing" constant="12" id="FMO-xr-Zso"/>
+                        <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="zma-mQ-g4r" secondAttribute="trailing" constant="16" id="I2p-aM-Vsh"/>
                         <constraint firstItem="gXY-M3-GrF" firstAttribute="centerY" secondItem="0UR-cI-xUT" secondAttribute="centerY" id="OUE-mV-L4b"/>
-                        <constraint firstItem="gXY-M3-GrF" firstAttribute="leading" secondItem="hfF-lS-rMB" secondAttribute="leading" constant="32" id="PmI-2u-wQz"/>
-                        <constraint firstAttribute="trailing" secondItem="gXY-M3-GrF" secondAttribute="trailing" constant="16" id="era-6N-IAx"/>
+                        <constraint firstItem="gXY-M3-GrF" firstAttribute="leading" secondItem="hfF-lS-rMB" secondAttribute="leading" constant="16" id="PmI-2u-wQz"/>
                         <constraint firstItem="0UR-cI-xUT" firstAttribute="centerY" secondItem="zma-mQ-g4r" secondAttribute="centerY" id="lOc-YI-zqF"/>
                         <constraint firstItem="0UR-cI-xUT" firstAttribute="centerX" secondItem="zma-mQ-g4r" secondAttribute="centerX" id="lc5-R5-UGB"/>
                         <constraint firstItem="zma-mQ-g4r" firstAttribute="top" secondItem="hfF-lS-rMB" secondAttribute="top" constant="8" id="rcQ-0x-rw1"/>
