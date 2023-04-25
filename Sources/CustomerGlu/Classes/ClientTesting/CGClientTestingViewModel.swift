@@ -25,6 +25,7 @@ public class CGClientTestingViewModel: NSObject {
     
     private var sdkTestStepsArray: [CGSDKTestStepsModel] = []
     var clientTestingModel: CGClientTestingModel?
+    var testStepsResponseModel: CGSDKTestStepsResponseModel?
     
     public override init() {
         super.init()
@@ -421,7 +422,7 @@ public class CGClientTestingViewModel: NSObject {
 
                 self.update(events: [firebaseSetupEvent, firebaseTokenEvent, firebaseServerKeyEvent, apnsDeviceTokenEvent, privateKeyApnsEvent])
 
-                CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-getAppConfig", posttoserver: true)
+                CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CGClientTestingViewModel-onboardingSDKNotificationConfig", posttoserver: true)
             }
         }
     }
@@ -467,12 +468,11 @@ public class CGClientTestingViewModel: NSObject {
         
         APIManager.onboardingSDKTestSteps(queryParameters: queryParameters as NSDictionary) { result in
             switch result {
-            case .success(_):
-                print("**Onboarding SDK Notification Config API :: Success **")
-                break
-            case .failure(_):
-                print("**Onboarding SDK Notification Config API :: Failure **")
-                break
+            case .success(let response):
+                self.testStepsResponseModel = response
+
+            case .failure(let error):
+                CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CGClientTestingViewModel-onboardingSDKTestSteps", posttoserver: true)
             }
         }
     }

@@ -26,3 +26,15 @@ public class CGClientTestingDataModel: Codable {
     var privateKeyApns: Bool?
     var privateKeyFirebase: Bool?
 }
+
+// MARK: - CGSDKTestStepsResponseModel
+public class CGSDKTestStepsResponseModel: Codable {
+    var success: Bool?
+    var data: CGSDKTestStepsDataModel?
+    var error: CGClientTestingErrorModel?
+}
+
+public class CGSDKTestStepsDataModel: Codable {
+    var message: String?
+}
+

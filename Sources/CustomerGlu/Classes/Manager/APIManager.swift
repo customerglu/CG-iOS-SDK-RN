@@ -505,7 +505,7 @@ extension APIManager {
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
-    static func onboardingSDKTestSteps(queryParameters: NSDictionary, completion: @escaping (Result<CGClientTestingModel, Error>) -> Void) {
+    static func onboardingSDKTestSteps(queryParameters: NSDictionary, completion: @escaping (Result<CGSDKTestStepsResponseModel, Error>) -> Void) {
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
         

@@ -249,7 +249,7 @@ public enum CGClientTestingRowItem {
 struct CGSDKTestStepsModel {
     var name: CGClientTestingRowItem?
     var status: CGClientTestingStatus? // Should hold only success or failure
-    var timestamp: Date = Date() // Whenever model is initialised the timestamp will be recorded.
+    var date: Date = Date() // Whenever model is initialised the timestamp will be recorded.
     
     func asDictionary() -> [String: Any] {
         var data: [String: Any] = [:]
@@ -259,8 +259,14 @@ struct CGSDKTestStepsModel {
         if let status {
             data["status"] = status.getStatusForSDKTestStepsAPI()
         }
-        data["timestamp"] = timestamp.timeIntervalSince1970
+        data["timestamp"] = fetchTimeStamp()
         return data
+    }
+    
+    private func fetchTimeStamp() -> String {
+        let dateformatter = DateFormatter()
+        dateformatter.dateFormat = CGConstants.DATE_FORMAT
+        return dateformatter.string(from: date)
     }
 }
 
