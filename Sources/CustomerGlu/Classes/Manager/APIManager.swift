@@ -164,10 +164,6 @@ class APIManager {
         requestData.dispatchGroup.enter()
         //    }
         
-        if requestData.methodandpath.path.caseInsensitiveCompare("bad-gateway") == .orderedSame {
-            print("performRequest :: Inside Bad URL Call")
-        }
-        
         var urlRequest: URLRequest!
         var url: URL!
         let strUrl = "https://" + requestData.baseurl
@@ -260,7 +256,6 @@ class APIManager {
     }
     
     private static func blockOperationForService(withRequestData requestData: CGRequestData) {
-        print("*** ANKIT :: MAKING RETY BAD URL API CALL  ***")
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
         
@@ -280,24 +275,12 @@ class APIManager {
     
     private static func blockOperationForServiceWithDelay(andRequestData requestData: CGRequestData) {
         // Delay
-        printTime()
         DispatchQueue.main.asyncAfter(deadline: .now() + 10, execute: {
             // Background thread
             DispatchQueue.global(qos: .userInitiated).async {
-                printTime()
                 blockOperationForService(withRequestData: requestData)
             }
         })
-    }
-    
-    private static func printTime() {
-        let date = Date()
-        let calendar = Calendar.current
-
-        let hour = calendar.component(.hour, from: date)
-        let minutes = calendar.component(.minute, from: date)
-        let seconds = calendar.component(.second, from: date)
-        print("hours = \(hour):\(minutes):\(seconds)")
     }
     
     private static func serviceCall<T: Decodable>(for type: CGService, parametersDict: NSDictionary, dispatchGroup: DispatchGroup = DispatchGroup(), completion: @escaping (Result<T, CGNetworkError>) -> Void) {
@@ -311,10 +294,8 @@ class APIManager {
                 if let data {
                     requestData.retryCount = requestData.retryCount - 1
                     if let error, error == .badURLRetry, requestData.retryCount >= 1 {
-                        print("*** ANKIT :: Retry Again :: Count \(requestData.retryCount)  ***")
                         blockOperationForServiceWithDelay(andRequestData: requestData)
                     } else {
-                        print("*** ANKIT :: Retry Success 1 ***")
                         if let error, error == .badURLRetry {
                             completion(.failure(CGNetworkError.badURLRetry))
                         } else if let object = dictToObject(dict: data, type: T.self) {
@@ -324,17 +305,14 @@ class APIManager {
                         }
                     }
                 } else {
-                    print("*** ANKIT :: Retry Success 3 ***")
                     completion(.failure(CGNetworkError.bindingFailed))
                 }
                 
             case .failure:
                 requestData.retryCount = requestData.retryCount - 1
                 if let error, error == .badURLRetry, requestData.retryCount >= 1 {
-                    print("*** ANKIT :: Retry Again :: Count \(requestData.retryCount)  ***")
                     blockOperationForServiceWithDelay(andRequestData: requestData)
                 } else {
-                    print("*** ANKIT :: Retry Failed ***")
                     completion(.failure(CGNetworkError.other))
                 }
             }
