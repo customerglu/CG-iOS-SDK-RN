@@ -159,7 +159,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         CustomerGlu.isAnonymousFlowAllowed = enabled
     }
     
-    @objc public func allowAnonymousRegistration() -> Bool {
+    @objc public func isAnonymousRegistrationAllowed() -> Bool {
         CustomerGlu.isAnonymousFlowAllowed
     }
     
@@ -771,7 +771,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func registerDevice(userdata: [String: AnyHashable], completion: @escaping (Bool) -> Void) {
-        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || (userdata[APIParameterKey.userId] == nil && !allowAnonymousRegistration()){
+        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || (userdata[APIParameterKey.userId] == nil && !isAnonymousRegistrationAllowed()){
             CustomerGlu.getInstance.printlog(cglog: "Fail to call registerDevice", isException: false, methodName: "CustomerGlu-registerDevice-1", posttoserver: true)
             CustomerGlu.bannersHeight = [String:Any]()
             CustomerGlu.embedsHeight = [String:Any]()
@@ -816,7 +816,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         let t_anonymousIdP = userData[APIParameterKey.anonymousId] as! String? ?? ""
         let t_anonymousIdS = self.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_ANONYMOUSID) as String? ?? ""
 
-        if self.allowAnonymousRegistration() {
+        if self.isAnonymousRegistrationAllowed() {
             if (t_userid.count <= 0) {
                 // Pass only anonymousId and removed UserID
                 if (t_anonymousIdP.count > 0) {
