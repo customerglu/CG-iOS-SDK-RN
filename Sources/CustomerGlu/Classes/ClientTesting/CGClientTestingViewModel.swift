@@ -11,6 +11,7 @@ import WebKit
 // MARK: - CGClientTestingProtocol
 public protocol CGClientTestingProtocol: NSObjectProtocol {
     func updateTable(atIndexPath indexPath: IndexPath, forEvent event: CGClientTestingRowItem)
+    func updateTable(atIndexPaths indexPaths: [IndexPath])
     func showCallBackAlert(forEvent event: CGClientTestingRowItem, isRetry: Bool)
     func testOneLinkDeeplink(withDeeplinkURL deeplinkURL: String)
     func reloadOnSDKNotificationConfigSuccess()
@@ -37,6 +38,10 @@ public class CGClientTestingViewModel: NSObject {
         eventsSectionsArray.append(.callbackHanding(status: .pending))
         eventsSectionsArray.append(.advanceIntegration(status: .header))
         eventsSectionsArray.append(.firebaseSetup(status: .pending))
+        eventsSectionsArray.append(.firebaseToken(status: .pending))
+        eventsSectionsArray.append(.firebaseServerKey(status: .pending))
+        eventsSectionsArray.append(.apnsDeviceToken(status: .pending))
+        eventsSectionsArray.append(.privateKeyApns(status: .pending))
         eventsSectionsArray.append(.nudgeHandling(status: .pending))
         eventsSectionsArray.append(.cgDeeplinkHandling(status: .pending))
         eventsSectionsArray.append(.entryPointSetup(status: .pending))
@@ -365,40 +370,87 @@ public class CGClientTestingViewModel: NSObject {
             case .success(let response):
                 self.clientTestingModel = response
                 
-                var event: CGClientTestingRowItem = .firebaseSetup(status: .failure)
-                if let clientTestingModel = self.clientTestingModel, let data = clientTestingModel.data, data.firebaseToken ?? false, data.privateKeyFirebase ?? false {
-                    event = .firebaseSetup(status: .success)
+                var firebaseSetupEvent: CGClientTestingRowItem = .firebaseSetup(status: .failure)
+                var firebaseTokenEvent: CGClientTestingRowItem = .firebaseToken(status: .failure)
+                var firebaseServerKeyEvent: CGClientTestingRowItem = .firebaseServerKey(status: .failure)
+                var apnsDeviceTokenEvent: CGClientTestingRowItem = .apnsDeviceToken(status: .failure)
+                var privateKeyApnsEvent: CGClientTestingRowItem = .privateKeyApns(status: .failure)
+
+                if let clientTestingModel = self.clientTestingModel, let data = clientTestingModel.data {
+                    if data.firebaseToken ?? false, data.privateKeyFirebase ?? false  {
+                        firebaseSetupEvent = .firebaseSetup(status: .success)
+                    }
+                    
+                    if data.firebaseToken ?? false  {
+                        firebaseTokenEvent = .firebaseToken(status: .success)
+                    }
+                    
+                    if data.privateKeyFirebase ?? false  {
+                        firebaseServerKeyEvent = .firebaseServerKey(status: .success)
+                    }
+                    
+                    if data.apnsDeviceToken ?? false  {
+                        apnsDeviceTokenEvent = .apnsDeviceToken(status: .success)
+                    }
+                    
+                    if data.privateKeyApns ?? false  {
+                        privateKeyApnsEvent = .privateKeyApns(status: .success)
+                    }
                 }
                 
-                let itemInfo = self.getIndexOfItem(event)
-                guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+                // Record Test Steps
+                self.updateSdkTestStepsArray(withModel: CGSDKTestStepsModel(name: firebaseTokenEvent, status: firebaseTokenEvent.getStatus()))
+                self.updateSdkTestStepsArray(withModel: CGSDKTestStepsModel(name: firebaseServerKeyEvent, status: firebaseServerKeyEvent.getStatus()))
+                self.updateSdkTestStepsArray(withModel: CGSDKTestStepsModel(name: apnsDeviceTokenEvent, status: apnsDeviceTokenEvent.getStatus()))
+                self.updateSdkTestStepsArray(withModel: CGSDKTestStepsModel(name: privateKeyApnsEvent, status: privateKeyApnsEvent.getStatus()))
 
-                self.eventsSectionsArray[index] = event
-                self.updateTableDelegate(atIndexPath: indexPath, forEvent: self.eventsSectionsArray[index])
-                
+                self.update(events: [firebaseSetupEvent, firebaseTokenEvent, firebaseServerKeyEvent, apnsDeviceTokenEvent, privateKeyApnsEvent])
+
             case .failure(let error):
-                var event: CGClientTestingRowItem = .firebaseSetup(status: .failure)
-                let itemInfo = self.getIndexOfItem(event)
-                guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+                let firebaseSetupEvent: CGClientTestingRowItem = .firebaseSetup(status: .failure)
+                let firebaseTokenEvent: CGClientTestingRowItem = .firebaseToken(status: .failure)
+                let firebaseServerKeyEvent: CGClientTestingRowItem = .firebaseServerKey(status: .failure)
+                let apnsDeviceTokenEvent: CGClientTestingRowItem = .apnsDeviceToken(status: .failure)
+                let privateKeyApnsEvent: CGClientTestingRowItem = .privateKeyApns(status: .failure)
 
-                self.eventsSectionsArray[index] = event
-                self.updateTableDelegate(atIndexPath: indexPath, forEvent: self.eventsSectionsArray[index])
+                // Record Test Steps
+                self.updateSdkTestStepsArray(withModel: CGSDKTestStepsModel(name: firebaseTokenEvent, status: firebaseTokenEvent.getStatus()))
+                self.updateSdkTestStepsArray(withModel: CGSDKTestStepsModel(name: firebaseServerKeyEvent, status: firebaseServerKeyEvent.getStatus()))
+                self.updateSdkTestStepsArray(withModel: CGSDKTestStepsModel(name: apnsDeviceTokenEvent, status: apnsDeviceTokenEvent.getStatus()))
+                self.updateSdkTestStepsArray(withModel: CGSDKTestStepsModel(name: privateKeyApnsEvent, status: privateKeyApnsEvent.getStatus()))
+
+                self.update(events: [firebaseSetupEvent, firebaseTokenEvent, firebaseServerKeyEvent, apnsDeviceTokenEvent, privateKeyApnsEvent])
 
                 CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "CustomerGlu-getAppConfig", posttoserver: true)
             }
         }
     }
     
-    func onboardingSDKTestSteps() {
-        guard let userId = CustomerGlu.getInstance.cgUserData.userId else { return }
+    // Update Multiple Event or Cell at Same time
+    func update(events: [CGClientTestingRowItem]) {
+        var indexPathArray: [IndexPath] = []
+        for event in events {
+            let itemInfo = self.getIndexOfItem(event)
+            if let index = itemInfo.index, let indexPath = itemInfo.indexPath {
+                self.eventsSectionsArray[index] = event
+                indexPathArray.append(indexPath)
+            }
+        }
         
+        if let delegate {
+            delegate.updateTable(atIndexPaths: indexPathArray)
+        }
+    }
+    
+    func onboardingSDKTestSteps() {
         let shortVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") ?? ""
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") ?? ""
         let deviceModel = UIDevice.current.model
         let systemVersion = UIDevice.current.systemVersion
+        let user_id = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_USERID)
 
         var queryParameters: [String: Any] = [:]
-        queryParameters[APIParameterKey.userId] = userId
+        queryParameters[APIParameterKey.user_id] = user_id
         queryParameters["platform"] = "ios"
         queryParameters["cg_sdk_platform"] = "cg-native-ios"
         queryParameters["cg_sdk_version"] = APIParameterKey.cgsdkversionvalue

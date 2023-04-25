@@ -39,6 +39,10 @@ public enum CGClientTestingRowItem {
     case callbackHanding(status: CGClientTestingStatus)
     case advanceIntegration(status: CGClientTestingStatus)
     case firebaseSetup(status: CGClientTestingStatus)
+    case firebaseToken(status: CGClientTestingStatus)
+    case firebaseServerKey(status: CGClientTestingStatus)
+    case apnsDeviceToken(status: CGClientTestingStatus)
+    case privateKeyApns(status: CGClientTestingStatus)
     case nudgeHandling(status: CGClientTestingStatus)
     case cgDeeplinkHandling(status: CGClientTestingStatus)
     case entryPointSetup(status: CGClientTestingStatus)
@@ -60,6 +64,14 @@ public enum CGClientTestingRowItem {
             return "Advance Integration"
         case .firebaseSetup:
             return "Firebase Setup"
+        case .firebaseToken:
+            return "Firebase Token"
+        case .firebaseServerKey:
+            return "Firebase Server Key Setup"
+        case .apnsDeviceToken:
+            return "APNS Setup"
+        case .privateKeyApns:
+            return "APNS Server Key Setup"
         case .nudgeHandling:
             return "Nudge Handling"
         case .cgDeeplinkHandling:
@@ -72,6 +84,15 @@ public enum CGClientTestingRowItem {
             return "BannerId Set up"
         case .entryPointEmbedIDSetup:
             return "EmbedId Set up"
+        }
+    }
+    
+    func isSubTask() -> Bool {
+        switch self {
+        case .firebaseToken, .firebaseServerKey, .apnsDeviceToken, .privateKeyApns, .entryPointScreeNameSetup, .entryPointBannerIDSetup, .entryPointEmbedIDSetup:
+            return true
+        default:
+            return false
         }
     }
     
@@ -88,6 +109,14 @@ public enum CGClientTestingRowItem {
         case .advanceIntegration(let status):
             return status
         case .firebaseSetup(let status):
+            return status
+        case .firebaseToken(let status):
+            return status
+        case .firebaseServerKey(let status):
+            return status
+        case .apnsDeviceToken(let status):
+            return status
+        case .privateKeyApns(let status):
             return status
         case .nudgeHandling(let status):
             return status
@@ -118,6 +147,14 @@ public enum CGClientTestingRowItem {
             return nil
         case .firebaseSetup:
             return nil
+        case .firebaseToken:
+            return nil
+        case .firebaseServerKey:
+            return nil
+        case .apnsDeviceToken:
+            return nil
+        case .privateKeyApns:
+            return nil
         case .nudgeHandling:
             return ("CustomerGlu", "Do you see a nudge?", CGCustomAlertTag.nudgeHandlingTag.rawValue)
         case .cgDeeplinkHandling:
@@ -147,6 +184,14 @@ public enum CGClientTestingRowItem {
             return nil
         case .firebaseSetup:
             return nil
+        case .firebaseToken:
+            return URL(string: "https://docs.customerglu.com/sdk/mobile-sdks#register-user-mandatory")
+        case .firebaseServerKey:
+            return URL(string: "https://docs.customerglu.com/advanced-topics/notifications#firebase-cloud-messaging-fcm")
+        case .apnsDeviceToken:
+            return nil
+        case .privateKeyApns:
+            return nil
         case .nudgeHandling:
             return URL(string: "https://docs.customerglu.com/sdk/mobile-sdks#handle-customerglu-nudges")
         case .cgDeeplinkHandling:
@@ -160,15 +205,6 @@ public enum CGClientTestingRowItem {
         case .entryPointEmbedIDSetup:
             return URL(string: "https://docs.customerglu.com/sdk/mobile-sdks#setting-up-embed-view")
         }
-
-        /*
-         Missing URLs
-         FireBase Private Server Key
-         https://docs.customerglu.com/advanced-topics/notifications#firebase-cloud-messaging-fcm
-         
-         FireBase Token
-         https://docs.customerglu.com/sdk/mobile-sdks#register-user-mandatory
-         */
     }
     
     func getSDKTestStepName() -> String {
@@ -185,6 +221,14 @@ public enum CGClientTestingRowItem {
             return ""
         case .firebaseSetup:
             return ""
+        case .firebaseToken:
+            return "FIREBASE_TOKEN_SHARED"
+        case .firebaseServerKey:
+            return "FIREBASE_PRIVATE_KEY"
+        case .apnsDeviceToken:
+            return "APNS_TOKEN_SHARED"
+        case .privateKeyApns:
+            return "APNS_PRIVATE_KEY"
         case .nudgeHandling:
             return "NUDGE_HANDLING"
         case .cgDeeplinkHandling:
@@ -197,40 +241,6 @@ public enum CGClientTestingRowItem {
             return "ENTRYPOINTS_BANNERID_SET_UP"
         case .entryPointEmbedIDSetup:
             return "ENTRYPOINTS_EMBEDID_SET_UP"
-        }
-    }
-}
-
-// MARK: - CGNudgeSubTask
-public enum CGNudgeSubTask {
-    case apnsDeviceToken(status: CGClientTestingStatus)
-    case firebaseToken(status: CGClientTestingStatus)
-    case privateKeyApns(status: CGClientTestingStatus)
-    case privateKeyFirebase(status: CGClientTestingStatus)
-    
-    func getTitle() -> String {
-        switch self {
-        case .apnsDeviceToken:
-            return "APNS Setup"
-        case .firebaseToken:
-            return "Firebase Token"
-        case .privateKeyApns:
-            return "APNS Server Key Setup"
-        case .privateKeyFirebase:
-            return "Firebase Server Key Setup"
-        }
-    }
-    
-    func getStatus() -> CGClientTestingStatus {
-        switch self {
-        case .apnsDeviceToken(let status):
-            return status
-        case .firebaseToken(let status):
-            return status
-        case .privateKeyApns(let status):
-            return status
-        case .privateKeyFirebase(let status):
-            return status
         }
     }
 }

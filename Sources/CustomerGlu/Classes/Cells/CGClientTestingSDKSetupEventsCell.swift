@@ -19,13 +19,10 @@ public class CGClientTestingSDKSetupEventsCell: UITableViewCell {
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var tickImageView: UIImageView! // Hidden by default
     @IBOutlet weak var indicatorView: UIActivityIndicatorView!
-    
-    @IBOutlet weak var stackView: UIStackView! // To show sub task inside - for example for Nudge Handling else hidden for all types
-    @IBOutlet weak var stackViewTopConstraint: NSLayoutConstraint! // 16px by default
-    @IBOutlet weak var stackViewBottomConstraint: NSLayoutConstraint! // 16px by default
-    
+        
     @IBOutlet weak var checkDocLabel: UILabel! // Hidden by default
     @IBOutlet weak var retryLabel: UILabel! // Hidden by default
+    @IBOutlet weak var titleLabelLeadingConstraint: NSLayoutConstraint! // 16px by default & for subtask 32px
     
     private weak var delegate: CGClientTestingSDKSetupEventsCellDelegate?
     private var eventItem: CGClientTestingRowItem?
@@ -56,37 +53,17 @@ public class CGClientTestingSDKSetupEventsCell: UITableViewCell {
         checkDocLabel.layer.cornerRadius = 12
         retryLabel.layer.cornerRadius = 12
         
-        titleLabel.text = rowItem.getTitle()
-        
-        // Remove anything if already added in stack view
-        for subview in stackView.subviews {
-            subview.removeFromSuperview()
-        }
-        
-        // Doing title comparision for nudge handling because the status can be anything like pending, failure, success
-        if rowItem.getTitle() == CGClientTestingRowItem.nudgeHandling(status: .success).getTitle(), let clientTestingDataModel {
-            // Constraints
-            stackViewTopConstraint.constant = 16
-            stackViewBottomConstraint.constant = 16
-            
-            let nudgeSubtaskArray = clientTestingDataModel.getNudgeHandlingSubTypeArray()
-            for subtaskType in nudgeSubtaskArray {
-                if let view = CGClientTestingNudgeSetupView.instanceFromNib() {
-                    view.setupView(withNudgeType: subtaskType)
-                    stackView.addArrangedSubview(view)
-                }
-            }
+        // Subtask show with bullet point and padding
+        if rowItem.isSubTask() {
+            titleLabel.attributedText = addBullet(toText: rowItem.getTitle())
+            titleLabelLeadingConstraint.constant = 32
         } else {
-            // Constraints
-            stackViewTopConstraint.constant = 16
-            stackViewBottomConstraint.constant = 0
+            titleLabel.text = rowItem.getTitle()
+            titleLabelLeadingConstraint.constant = 16
         }
 
         switch rowItem.getStatus() {
         case .header:
-            // To reduce the unnessary space for header
-            stackViewTopConstraint.constant = 0
-
             titleLabel.font = .boldSystemFont(ofSize: 14)
             tickImageView.isHidden = false
             indicatorView.isHidden = false
@@ -139,5 +116,17 @@ public class CGClientTestingSDKSetupEventsCell: UITableViewCell {
         if let delegate = delegate, let eventItem = eventItem {
             delegate.didTapCheckDoc(forEvent: eventItem)
         }
+    }
+    
+    private func addBullet(toText text: String) -> NSMutableAttributedString {
+        let firstLineAttribute = [NSAttributedString.Key.font: UIFont.boldSystemFont(ofSize: 18)]
+        let firstLineString = NSMutableAttributedString(string: "• ",
+                                                        attributes: firstLineAttribute)
+        
+        let secondLineAttribute = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 12)]
+        let secondLineString = NSMutableAttributedString(string: text,
+                                                         attributes: secondLineAttribute)
+        firstLineString.append(secondLineString)
+        return firstLineString
     }
 }

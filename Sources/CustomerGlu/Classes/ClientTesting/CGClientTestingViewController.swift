@@ -199,6 +199,13 @@ extension CGClientTestingViewController: CGClientTestingProtocol {
         }
     }
     
+    public func updateTable(atIndexPaths indexPaths: [IndexPath]) {
+        DispatchQueue.main.async {
+            // Whenever any event completes execution, update the table UI
+            self.tableView.reloadRows(at: indexPaths, with: .automatic)
+        }
+    }
+    
     public func showCallBackAlert(forEvent event: CGClientTestingRowItem, isRetry: Bool) {
         guard let data = event.getAlertTitleAndMessage() else { return }
         let customAlert = CGCustomAlert()
