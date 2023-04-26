@@ -79,27 +79,16 @@ internal class MethodandPath: Codable {
             self.method = "GET"
             self.path = "bad-gateway"
             self.baseurl = "cg-test.free.beeceptor.com/"
+        case .onboardingSDKNotificationConfig:
+            self.method = "POST"
+            self.path = "integrations/v1/onboarding/sdk/notification-config"
+        case .onboardingSDKTestSteps:
+            self.method = "POST"
+            self.path = "integrations/v1/onboarding/sdk/test-steps"
         }
     }
 }
 
-<<<<<<< HEAD
-// Parameter Key's for all API's
-private struct MethodNameandPath {
-    static let userRegister = MethodandPath(method: "POST", path: "user/v1/user/sdk?token=true")
-    static let getWalletRewards = MethodandPath(method: "GET", path: "reward/v1.1/user")
-    static let addToCart = MethodandPath(method: "POST", path: "server/v4")
-    static let crashReport = MethodandPath(method: "PUT", path: "api/v1/report")
-    static let entryPointdata = MethodandPath(method: "GET", path: "entrypoints/v1/list")
-    static let entrypoints_config = MethodandPath(method: "POST", path: "entrypoints/v1/config")
-    static let send_analytics_event = MethodandPath(method: "POST", path: "v4/sdk")
-    static let appconfig = MethodandPath(method: "GET", path: "client/v1/sdk/config")
-    static let cgdeeplink = MethodandPath(method: "GET", path: "api/v1/wormhole/sdk/url")
-    static let cgMetricDiagnostics = MethodandPath(method: "POST", path:"sdk/v4")
-    static let cgNudgeIntegration = MethodandPath(method: "POST", path:"integrations/v1/nudge/sdk/test")
-    static let cgOnboardingSDKNotificationConfig = MethodandPath(method: "POST", path:"integrations/v1/onboarding/sdk/notification-config")
-    static let cgOnboardingSDKTestSteps = MethodandPath(method: "POST", path:"integrations/v1/onboarding/sdk/test-steps")
-=======
 enum CGService {
     case userRegister
     case getWalletRewards
@@ -113,7 +102,8 @@ enum CGService {
     case cgMetricDiagnostics
     case cgNudgeIntegration
     case badGateway
->>>>>>> 2.3.5
+    case onboardingSDKNotificationConfig
+    case onboardingSDKTestSteps
 }
 
 // Parameter Key's for all API's
@@ -174,11 +164,7 @@ class APIManager {
     // Singleton Instance
     static let shared = APIManager()
     
-<<<<<<< HEAD
-    private static func performRequest<T: Decodable>(baseurl: String, methodandpath: MethodandPath, parametersDict: NSDictionary?,dispatchGroup:DispatchGroup = DispatchGroup() ,completion: @escaping (Result<T, Error>) -> Void, isClientTesting: Bool? = false) {
-=======
     private static func performRequest(withData requestData: CGRequestData) {
->>>>>>> 2.3.5
         
         //Grouped compelete API-call work flow into a DispatchGroup so that it can maintanted the oprational queue for task completion
         // Enter into DispatchGroup
@@ -196,31 +182,18 @@ class APIManager {
         urlRequest.httpMethod = requestData.methodandpath.method//method.rawValue
         
         // Common Headers
+        urlRequest.setValue(ContentType.json.rawValue, forHTTPHeaderField: HTTPHeaderField.contentType.rawValue)
+        urlRequest.setValue(CustomerGlu.sdkWriteKey, forHTTPHeaderField: HTTPHeaderField.xapikey.rawValue)
+        urlRequest.setValue("ios", forHTTPHeaderField: HTTPHeaderField.platform.rawValue)
+        urlRequest.setValue(CustomerGlu.isDebugingEnabled.description, forHTTPHeaderField: HTTPHeaderField.sandbox.rawValue)
+        urlRequest.setValue(APIParameterKey.cgsdkversionvalue, forHTTPHeaderField: HTTPHeaderField.cgsdkversionkey.rawValue)
         
-        // TODO: Kausthubh Sir to check the logic
-        if isClientTesting ?? false {
-            urlRequest.setValue(ContentType.json.rawValue, forHTTPHeaderField: HTTPHeaderField.contentType.rawValue)
-            urlRequest.setValue(CustomerGlu.sdkWriteKey, forHTTPHeaderField: HTTPHeaderField.xapikey.rawValue)
-        } else {
-            urlRequest.setValue(ContentType.json.rawValue, forHTTPHeaderField: HTTPHeaderField.contentType.rawValue)
-            urlRequest.setValue(CustomerGlu.sdkWriteKey, forHTTPHeaderField: HTTPHeaderField.xapikey.rawValue)
-            urlRequest.setValue("ios", forHTTPHeaderField: HTTPHeaderField.platform.rawValue)
-            urlRequest.setValue(CustomerGlu.isDebugingEnabled.description, forHTTPHeaderField: HTTPHeaderField.sandbox.rawValue)
-            urlRequest.setValue(APIParameterKey.cgsdkversionvalue, forHTTPHeaderField: HTTPHeaderField.cgsdkversionkey.rawValue)
-            
-            if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
-                urlRequest.setValue("\(APIParameterKey.bearer) " + CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN), forHTTPHeaderField: HTTPHeaderField.authorization.rawValue)
-                urlRequest.setValue("\(APIParameterKey.bearer) " + CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN), forHTTPHeaderField: HTTPHeaderField.xgluauth.rawValue)
-            }
+        if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
+            urlRequest.setValue("\(APIParameterKey.bearer) " + CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN), forHTTPHeaderField: HTTPHeaderField.authorization.rawValue)
+            urlRequest.setValue("\(APIParameterKey.bearer) " + CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN), forHTTPHeaderField: HTTPHeaderField.xgluauth.rawValue)
         }
-<<<<<<< HEAD
-
-        if parametersDict!.count > 0 { // Check Parameters & Move Accordingly
-=======
         
         if requestData.parametersDict.count > 0 { // Check Parameters & Move Accordingly
->>>>>>> 2.3.5
-            
             if(true == CustomerGlu.isDebugingEnabled){
                 print(requestData.parametersDict as Any)
             }
@@ -384,25 +357,6 @@ class APIManager {
         serviceCall(for: .entrypoints_config, parametersDict: queryParameters, completion: completion)
     }
     
-<<<<<<< HEAD
-    static func nudgeIntegration(queryParameters: NSDictionary, completion: @escaping (Result<CGNudgeIntegrationModel, Error>) -> Void) {
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Login API with API Router
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.cgNudgeIntegration, parametersDict: queryParameters, completion: completion)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
-=======
     static func sendAnalyticsEvent(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, CGNetworkError>) -> Void) {
         serviceCall(for: .send_analytics_event, parametersDict: queryParameters, completion: completion)
     }
@@ -421,7 +375,14 @@ class APIManager {
     
     static func nudgeIntegration(queryParameters: NSDictionary, completion: @escaping (Result<CGNudgeIntegrationModel, CGNetworkError>) -> Void) {
         serviceCall(for: .cgNudgeIntegration, parametersDict: queryParameters, completion: completion)
->>>>>>> 2.3.5
+    }
+    
+    static func onboardingSDKNotificationConfig(queryParameters: NSDictionary, completion: @escaping (Result<CGClientTestingModel, CGNetworkError>) -> Void) {
+        serviceCall(for: .onboardingSDKNotificationConfig, parametersDict: queryParameters, completion: completion)
+    }
+    
+    static func onboardingSDKTestSteps(queryParameters: NSDictionary, completion: @escaping (Result<CGSDKTestStepsResponseModel, CGNetworkError>) -> Void) {
+        serviceCall(for: .onboardingSDKTestSteps, parametersDict: queryParameters, completion: completion)
     }
     
     // MARK: - Private Class Methods
@@ -516,46 +477,5 @@ class URLSessionMock: URLSession {
         return URLSessionDataTaskMock {
             completionHandler(data, nil, error)
         }
-    }
-}
-
-// MARK: - Client Testing API's
-extension APIManager {
-    static func onboardingSDKNotificationConfig(queryParameters: NSDictionary, completion: @escaping (Result<CGClientTestingModel, Error>) -> Void) {
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Login API with API Router
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.cgOnboardingSDKNotificationConfig, parametersDict: queryParameters, completion: completion, isClientTesting: true)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
-    }
-    
-    static func onboardingSDKTestSteps(queryParameters: NSDictionary, completion: @escaping (Result<CGSDKTestStepsResponseModel, Error>) -> Void) {
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Login API with API Router
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.cgOnboardingSDKTestSteps, parametersDict: queryParameters, completion: completion, isClientTesting: true)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
     }
 }
