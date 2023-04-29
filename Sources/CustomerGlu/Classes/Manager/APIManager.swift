@@ -74,7 +74,6 @@ internal class MethodandPath: Codable {
         case .cgNudgeIntegration:
             self.method = "POST"
             self.path = "integrations/v1/nudge/sdk/test"
-            self.baseurl = "stage-api.customerglu.com/"
         case .badGateway:
             self.method = "GET"
             self.path = "bad-gateway"
