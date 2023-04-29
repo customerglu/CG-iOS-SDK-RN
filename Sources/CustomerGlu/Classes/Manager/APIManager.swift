@@ -74,11 +74,6 @@ internal class MethodandPath: Codable {
         case .cgNudgeIntegration:
             self.method = "POST"
             self.path = "integrations/v1/nudge/sdk/test"
-            self.baseurl = "stage-api.customerglu.com/"
-        case .badGateway:
-            self.method = "GET"
-            self.path = "bad-gateway"
-            self.baseurl = "cg-test.free.beeceptor.com/"
         }
     }
 }
@@ -95,7 +90,6 @@ enum CGService {
     case cgdeeplink
     case cgMetricDiagnostics
     case cgNudgeIntegration
-    case badGateway
 }
 
 // Parameter Key's for all API's
@@ -320,10 +314,6 @@ class APIManager {
         
         requestData.completionBlock = block
         blockOperationForService(withRequestData: requestData)
-    }
-    
-    static func retrytBadUrl(queryParameters: NSDictionary, completion: @escaping (Result<CGRegistrationModel, CGNetworkError>) -> Void) {
-        serviceCall(for: .badGateway, parametersDict: queryParameters, completion: completion)
     }
     
     static func userRegister(queryParameters: NSDictionary, completion: @escaping (Result<CGRegistrationModel, CGNetworkError>) -> Void) {
