@@ -202,7 +202,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 let urlStr = (dict.darkUrl == nil || dict.lightUrl == nil) ? dict.url : (CustomerGlu.getInstance.isDarkModeEnabled() ? dict.darkUrl : dict.lightUrl)
                 if let urlStr {
                     imageView.downloadImage(urlString: urlStr) {[weak self] image in
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8, execute: {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: {
                             if image != nil {
                                 self?.progressView.removeFromSuperview()
                             }
