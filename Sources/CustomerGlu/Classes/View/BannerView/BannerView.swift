@@ -8,6 +8,7 @@
 import UIKit
 import Foundation
 import WebKit
+import Lottie
 
 public class BannerView: UIView, UIScrollViewDelegate {
     
@@ -20,6 +21,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
     private var loadedapicalled = false
     var imgScrollView: UIScrollView!
     var pageControl: UIPageControl!
+    private var progressView = LottieAnimationView()
     
     @IBInspectable var bannerId: String? {
         didSet {
@@ -37,9 +39,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
     @objc private func entryPointLoaded(notification: NSNotification) {
         self.reloadBannerView()
     }
-    
-    
-    
+        
     var commonBannerId: String {
         get {
             return self.bannerId ?? ""
@@ -77,6 +77,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.translatesAutoresizingMaskIntoConstraints = true
         view.autoresizesSubviews = true
+        
         // Adding custom subview on top of our view (over any custom drawing > see note below)
         imgScrollView = UIScrollView()
         imgScrollView.frame = bounds
@@ -92,6 +93,27 @@ public class BannerView: UIView, UIScrollViewDelegate {
         pageControl.currentPageIndicatorTintColor = .black
         pageControl.pageIndicatorTintColor = .lightGray
         view.addSubview(pageControl)
+        
+        var path_key = ""
+        if CustomerGlu.getInstance.checkIsDarkMode() {
+            path_key = CGConstants.CUSTOMERGLU_DARK_EMBEDLOTTIE_FILE_PATH
+        } else {
+            path_key = CGConstants.CUSTOMERGLU_LIGHT_EMBEDLOTTIE_FILE_PATH
+        }
+        let path = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key)
+        
+        progressView.removeFromSuperview()
+        
+        if path.count > 0 && URL(string: path) != nil && path.hasSuffix(".json") {
+            progressView = LottieAnimationView(filePath: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key))
+                        
+            progressView.frame = bounds
+            progressView.contentMode = .scaleAspectFill
+            progressView.loopMode = .loop
+            progressView.play()
+            view.addSubview(progressView)
+            view.bringSubviewToFront(progressView)
+        }
         
         addSubview(view)
     }
@@ -128,7 +150,6 @@ public class BannerView: UIView, UIScrollViewDelegate {
     }
     
     private func bannerviewHeightZero() {
-        
         finalHeight = 0
         
         self.constraints.filter{$0.firstAttribute == .height}.forEach({ $0.constant = CGFloat(finalHeight) })
@@ -137,6 +158,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
         
         if self.imgScrollView != nil {
             self.imgScrollView.frame.size.height = CGFloat(finalHeight)
+            self.progressView.frame.size.height = CGFloat(finalHeight)
         }
         
         let postInfo: [String: Any] = [self.bannerId ?? "" : finalHeight]
@@ -165,6 +187,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
         
         if self.imgScrollView != nil {
             self.imgScrollView.frame.size.height = CGFloat(finalHeight)
+            self.progressView.frame.size.height = CGFloat(finalHeight)
         }
         
         for i in 0..<arrContent.count {
@@ -177,7 +200,17 @@ public class BannerView: UIView, UIScrollViewDelegate {
                 imageView.isUserInteractionEnabled = true
                 imageView.tag = i
                 let urlStr = (dict.darkUrl == nil || dict.lightUrl == nil) ? dict.url : (CustomerGlu.getInstance.isDarkModeEnabled() ? dict.darkUrl : dict.lightUrl)
-                imageView.downloadImage(urlString: urlStr!)
+                if let urlStr {
+                    imageView.downloadImage(urlString: urlStr) {[weak self] image in
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8, execute: {
+                            if image != nil {
+                                self?.progressView.removeFromSuperview()
+                            }
+                        })
+                    } failure: { reason in
+                        // Failed to download banner
+                    }
+                }
                 imageView.contentMode = .scaleToFill
                 self.imgScrollView.addSubview(imageView)
                 let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
