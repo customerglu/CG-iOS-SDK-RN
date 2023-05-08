@@ -8,7 +8,7 @@
 import XCTest
 @testable import CustomerGlu
 
-// MARK: - CGEncryptDecryptTests
+// MARK: - CGOtherUtilsTests
 final class CGOtherUtilsTests: CGBaseTestCase {
     var otherUtils: OtherUtils?
 
