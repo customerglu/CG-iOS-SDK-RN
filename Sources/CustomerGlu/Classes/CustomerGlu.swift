@@ -146,7 +146,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     ApplicationManager.callCrashReport(cglog: (crashItems["callStack"] as? String)!, isException: true, methodName: "CustomerGluCrash", user_id: decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_USERID))
                 }
             } catch {
-                CustomerGlu.getInstance.printlog(cglog: "private override init()", isException: false, methodName: "CustomerGlu-init", posttoserver: false)
+                if CustomerGlu.isDebugingEnabled {
+                    print("private override init()")
+                }
             }
         }
     }
