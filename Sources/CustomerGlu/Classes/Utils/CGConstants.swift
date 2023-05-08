@@ -239,3 +239,7 @@ struct CGDismissAction {
     static let CTA_REDIRECT = "CTA_REDIRECT"
     static let DEFAULT = "DEFAULT"
 }
+
+struct CGSafeAreaConstants {
+    static let SAFE_AREA_PADDING = 33.0
+}
