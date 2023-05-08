@@ -241,5 +241,5 @@ struct CGDismissAction {
 }
 
 struct CGSafeAreaConstants {
-    static let SAFE_AREA_PADDING = 33.0
+    static let SAFE_AREA_PADDING = CGFloat(33.0)
 }
