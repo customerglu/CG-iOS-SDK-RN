@@ -25,6 +25,7 @@ public class CGClientTestingViewController: UIViewController {
     override public func viewDidLoad() {
         super.viewDidLoad()
 
+        view.backgroundColor = .white
         navigationController?.setNavigationBarHidden(true, animated: false)
         viewModel.delegate = self
         
@@ -67,17 +68,6 @@ public class CGClientTestingViewController: UIViewController {
             CustomerGlu.getInstance.showFloatingButtons()
         }
     }
-    
-    func showDeeplinkAlert() {
-        let customAlert = CGCustomAlert()
-        customAlert.alertTitle = "CustomerGlu"
-        customAlert.alertMessage = "Do you see a nudge?"
-        customAlert.alertTag = 1001
-        customAlert.okButtonTitle = "Yes"
-        customAlert.cancelButtonTitle = "No"
-        customAlert.delegate = self
-        customAlert.showOnViewController(self)
-    }
 }
 
 // MARK: - UITableViewDataSource, UITableViewDelegate
@@ -92,16 +82,7 @@ extension CGClientTestingViewController: UITableViewDataSource, UITableViewDeleg
     }
     
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if indexPath.section == 0 {
-            return getCGClientTestingSDKSetupEventsCell(with: tableView, indexPath: indexPath)
-        } else {
-            return getCGClientTestingButtonCell(with: tableView, indexPath: indexPath)
-        }
-    }
-    
-    public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        print("Num: \(indexPath.row)")
-        
+        return getCGClientTestingSDKSetupEventsCell(with: tableView, indexPath: indexPath)
     }
     
     public func getCGClientTestingSDKSetupEventsCell(with tableView: UITableView, indexPath: IndexPath) -> CGClientTestingSDKSetupEventsCell {
@@ -124,32 +105,7 @@ extension CGClientTestingViewController: UITableViewDataSource, UITableViewDeleg
         
         // Setup Cell
         let rowItem = viewModel.getRowItemForEventsSection(withIndexPath: indexPath)
-        cell.setupCell(forRowItem: rowItem, delegate: self)
-        
-        return cell
-    }
-    
-    public func getCGClientTestingButtonCell(with tableView: UITableView, indexPath: IndexPath) -> CGClientTestingButtonCell {
-        var nullableCell = tableView.dequeueReusableCell(withIdentifier: CGClientTestingButtonCell.reuseIdentifier) as? CGClientTestingButtonCell
-        
-        if nullableCell == nil {
-            tableView.register(UINib(nibName: CGClientTestingButtonCell.nibName, bundle: .module), forCellReuseIdentifier: CGClientTestingButtonCell.reuseIdentifier)
-            
-            nullableCell = tableView.dequeueReusableCell(withIdentifier: CGClientTestingButtonCell.reuseIdentifier, for: indexPath)  as? CGClientTestingButtonCell
-        }
-        
-        guard let cell = nullableCell else {
-            assert(true)
-            return CGClientTestingButtonCell()
-        }
-        
-        // Selection type
-        cell.selectionStyle = .none
-        cell.accessoryType = .none
-        
-        // Setup Cell
-        let rowItem = viewModel.getRowItemForActionsSection(withIndexPath: indexPath)
-        cell.setupCell(forRowItem: rowItem)
+        cell.setupCell(forRowItem: rowItem, delegate: self, clientTestingDataModel: viewModel.clientTestingModel?.data)
         
         return cell
     }
@@ -157,12 +113,80 @@ extension CGClientTestingViewController: UITableViewDataSource, UITableViewDeleg
 
 // MARK: - CGClientTestingSDKSetupEventsCellDelegate
 extension CGClientTestingViewController: CGClientTestingSDKSetupEventsCellDelegate {
-    func didTapOnAction(forEvent event: CGClientTestingRowItem) {
-        print("Check Doc")
+    func didTapRetry(forEvent event: CGClientTestingRowItem) {
+        switch event {
+        case .callbackHanding:
+            let itemInfo = viewModel.getIndexOfItem(.callbackHanding(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            viewModel.eventsSectionsArray[index] = .callbackHanding(status: .pending)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+
+            viewModel.executecallbackHanding(isRetry: true)
+        case .nudgeHandling:
+            let itemInfo = viewModel.getIndexOfItem(.nudgeHandling(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            
+            viewModel.eventsSectionsArray[index] = .nudgeHandling(status: .pending)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+            
+            viewModel.executeNudgeHandling(isRetry: true)
+        case .cgDeeplinkHandling:
+            let itemInfo = viewModel.getIndexOfItem(.cgDeeplinkHandling(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            
+            viewModel.eventsSectionsArray[index] = .cgDeeplinkHandling(status: .pending)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+            
+            viewModel.executeCGDeeplinkHandling(isRetry: true)
+            
+        case .entryPointSetup:
+            let itemInfo = viewModel.getIndexOfItem(.entryPointSetup(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            
+            viewModel.eventsSectionsArray[index] = .entryPointSetup(status: .pending)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+            
+            viewModel.executeEntryPointSetup(isRetry: true)
+            
+        case .entryPointScreeNameSetup:
+            let itemInfo = viewModel.getIndexOfItem(.entryPointScreeNameSetup(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            
+            viewModel.eventsSectionsArray[index] = .entryPointScreeNameSetup(status: .pending)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+            
+            viewModel.executeEntryPointScreenNameSetup(isRetry: true)
+            
+        case .entryPointBannerIDSetup:
+            let itemInfo = viewModel.getIndexOfItem(.entryPointBannerIDSetup(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            
+            viewModel.eventsSectionsArray[index] = .entryPointBannerIDSetup(status: .pending)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+            
+            viewModel.executeEntryPointBannerIDSetup(isRetry: true)
+            
+        case .entryPointEmbedIDSetup:
+            let itemInfo = viewModel.getIndexOfItem(.entryPointEmbedIDSetup(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            
+            viewModel.eventsSectionsArray[index] = .entryPointEmbedIDSetup(status: .pending)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+            
+            viewModel.executeEntryPointEmbedIDSetup(isRetry: true)
+            
+        default:
+            break
+        }
     }
     
-    func didTapRetry(forEvent event: CGClientTestingRowItem) {
-        print("Retry")
+    func didTapCheckDoc(forEvent event: CGClientTestingRowItem) {
+        guard let url = event.getDocumentationURL() else { return }
+        if #available(iOS 10.0, *) {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        } else {
+            UIApplication.shared.openURL(url)
+        }
     }
 }
 
@@ -175,32 +199,114 @@ extension CGClientTestingViewController: CGClientTestingProtocol {
         }
     }
     
-    public func showCallBackAlert() {
-        showDeeplinkAlert()
+    public func updateTable(atIndexPaths indexPaths: [IndexPath]) {
+        DispatchQueue.main.async {
+            // Whenever any event completes execution, update the table UI
+            self.tableView.reloadRows(at: indexPaths, with: .automatic)
+        }
+    }
+    
+    public func showCallBackAlert(forEvent event: CGClientTestingRowItem, isRetry: Bool) {
+        guard let data = event.getAlertTitleAndMessage() else { return }
+        let customAlert = CGCustomAlert()
+        customAlert.alertTitle = data.title
+        customAlert.alertMessage = data.message
+        customAlert.alertTag = data.tag
+        customAlert.okButtonTitle = "Yes"
+        customAlert.cancelButtonTitle = "No"
+        customAlert.delegate = self
+        customAlert.isRetry = isRetry
+        customAlert.showOnViewController(self)
+    }
+    
+    public func testOneLinkDeeplink(withDeeplinkURL deeplinkURL: String) {
+        guard let url = URL(string: "http://assets.customerglu.com/deeplink-redirect/?redirect=\(deeplinkURL)") else { return}
+        
+        if #available(iOS 10.0, *) {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        } else {
+            UIApplication.shared.openURL(url)
+        }
+    }
+    
+    public func reloadOnSDKNotificationConfigSuccess() {
+        self.tableView.reloadData()
     }
 }
 
 // MARK: - CGCustomAlertDelegate
 extension CGClientTestingViewController: CGCustomAlertDelegate {
     func okButtonPressed(_ alert: CGCustomAlert, alertTag: Int) {
-        let itemInfo = viewModel.getIndexOfItem(.callbackHanding(status: .pending))
-        guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+        if alertTag == CGCustomAlertTag.callbackHandingTag.rawValue {
+            let itemInfo = viewModel.getIndexOfItem(.callbackHanding(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
 
-        viewModel.eventsSectionsArray[index] = .callbackHanding(status: .success)
-        self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
-        
-        //Execute Next Step
-        viewModel.executeNudgeHandling()
+            viewModel.eventsSectionsArray[index] = .callbackHanding(status: .success)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+            
+            if !alert.isRetry {
+                //Execute Next Step
+                viewModel.executeNudgeHandling()
+            }
+        } else if alertTag == CGCustomAlertTag.nudgeHandlingTag.rawValue {
+            let itemInfo = viewModel.getIndexOfItem(.nudgeHandling(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            
+            viewModel.eventsSectionsArray[index] = .nudgeHandling(status: .success)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+
+            if !alert.isRetry {
+                //Execute Next Step
+                viewModel.executeCGDeeplinkHandling()
+            }
+        } else if alertTag == CGCustomAlertTag.cgDeeplinkHandlingTag.rawValue {
+            let itemInfo = viewModel.getIndexOfItem(.cgDeeplinkHandling(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            
+            viewModel.eventsSectionsArray[index] = .cgDeeplinkHandling(status: .success)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+            
+            if !alert.isRetry {
+                //Execute Next Step
+                viewModel.executeEntryPointSetup()
+            }
+        }
     }
     
     func cancelButtonPressed(_ alert: CGCustomAlert, alertTag: Int) {
-        let itemInfo = viewModel.getIndexOfItem(.callbackHanding(status: .pending))
-        guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+        if alertTag == CGCustomAlertTag.callbackHandingTag.rawValue {
+            let itemInfo = viewModel.getIndexOfItem(.callbackHanding(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
 
-        viewModel.eventsSectionsArray[index] = .callbackHanding(status: .failure)
-        self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
-        
-        //Execute Next Step
-        viewModel.executeNudgeHandling()
+            viewModel.eventsSectionsArray[index] = .callbackHanding(status: .failure)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+            
+            if !alert.isRetry {
+                //Execute Next Step
+                viewModel.executeNudgeHandling()
+            }
+        } else if alertTag == CGCustomAlertTag.nudgeHandlingTag.rawValue {
+            let itemInfo = viewModel.getIndexOfItem(.nudgeHandling(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            
+            viewModel.eventsSectionsArray[index] = .nudgeHandling(status: .failure)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+
+            if !alert.isRetry {
+                //Execute Next Step
+                viewModel.executeCGDeeplinkHandling()
+            }
+        } else if alertTag == CGCustomAlertTag.cgDeeplinkHandlingTag.rawValue {
+            let itemInfo = viewModel.getIndexOfItem(.cgDeeplinkHandling(status: .pending))
+            guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
+            
+            viewModel.eventsSectionsArray[index] = .cgDeeplinkHandling(status: .failure)
+            self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
+            
+            if !alert.isRetry {
+                //Execute Next Step
+                viewModel.executeEntryPointSetup()
+            }
+        }
     }
 }
