@@ -31,6 +31,13 @@ struct PopUpModel: Codable {
     public var type: String?
 }
 
+@objc(CGDeeplinkURLType)
+public enum CGDeeplinkURLType: Int {
+    case link,
+         wallet,
+         campaign
+}
+
 @objc(CustomerGlu)
 
 public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
@@ -139,7 +146,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     ApplicationManager.callCrashReport(cglog: (crashItems["callStack"] as? String)!, isException: true, methodName: "CustomerGluCrash", user_id: decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_USERID))
                 }
             } catch {
-                CustomerGlu.getInstance.printlog(cglog: "private override init()", isException: false, methodName: "CustomerGlu-init", posttoserver: false)
+                if CustomerGlu.isDebugingEnabled {
+                    print("private override init()")
+                }
             }
         }
     }
@@ -1377,6 +1386,23 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
         }
     }
+    
+    @objc public func openDeepLink(deepURLType: CGDeeplinkURLType, id: String, completion: @escaping (CGSTATE, String, CGDeeplinkData?) -> Void) {
+        var urlString = ""
+        if deepURLType == .wallet {
+            urlString = "w"
+        } else if deepURLType == .campaign {
+            urlString = "c"
+        } else if deepURLType == .link {
+            urlString = "u"
+        }
+        guard !urlString.isEmpty else {
+            completion(CGSTATE.EXCEPTION, "Incorrect Invalide URL", nil)
+            return
+        }
+        getCGDeeplinkData(withID: id, urlType: urlString, completion: completion)
+    }
+    
     //    getCGDeeplinkData
     //(eventNudge: [String: Any], completion: @escaping (Bool, CGAddCartModel?) -> Void)
     @objc public func openDeepLink(deepurl:URL!, completion: @escaping (CGSTATE, String, CGDeeplinkData?) -> Void) {
@@ -1393,58 +1419,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             let firstpath = deepurl.pathComponents.count > 1 ? deepurl.pathComponents[1].lowercased() : ""
             let secondpath = deepurl.pathComponents.count > 2 ? deepurl.pathComponents[2] : ""
             
-            if((firstpath.count > 0 && (firstpath == "c" || firstpath == "w" || firstpath == "u")) && secondpath.count > 0){
-                CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY)
-                APIManager.getCGDeeplinkData(queryParameters: ["id":secondpath]) { result in
-                    CustomerGlu.getInstance.loaderHide()
-                    switch result {
-                    case .success(let response):
-                        if(response.success == true){
-                            if (response.data != nil){
-                                if(response.data!.anonymous == true){
-                                    CustomerGlu.getInstance.allowAnonymousRegistration(enabled: true)
-                                    if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil{
-                                        self.excecuteDeepLink(firstpath: firstpath, cgdeeplink: response.data!, completion: completion)
-                                    }else{
-                                        // Reg Call then exe
-                                        var userData = [String: AnyHashable]()
-                                        userData["userId"] = ""
-                                        CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY)
-                                        self.registerDevice(userdata: userData) { success in
-                                            CustomerGlu.getInstance.loaderHide()
-                                            if success {
-                                                self.excecuteDeepLink(firstpath: firstpath, cgdeeplink: response.data!, completion: completion)
-                                            } else {
-                                                CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-5", posttoserver: false)
-                                                completion(CGSTATE.EXCEPTION,"Fail to calll register user", nil)
-                                            }
-                                        }
-                                    }
-                                }else{
-                                    if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil && false == ApplicationManager.isAnonymousUesr(){
-                                        self.excecuteDeepLink(firstpath: firstpath, cgdeeplink: response.data!, completion: completion)
-                                    }else{
-                                        CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-5", posttoserver: false)
-                                        completion(CGSTATE.USER_NOT_SIGNED_IN,"", nil)
-                                    }
-                                }
-                                
-                            }else{
-                                CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-4", posttoserver: false)
-                                completion(CGSTATE.EXCEPTION, "Invalid Response", nil)
-                            }
-                            
-                        }else{
-                            CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-2", posttoserver: false)
-                            completion(CGSTATE.EXCEPTION, response.message ?? "", nil)
-                        }
-                        
-                    case .failure(_):
-                        CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-3", posttoserver: false)
-                        completion(CGSTATE.EXCEPTION, "Fail to call getCGDeeplinkData / Invalid response", nil)
-                    }
-                }
-                
+            if((firstpath.count > 0 && (firstpath == "c" || firstpath == "w" || firstpath == "u")) && secondpath.count > 0) {
+                getCGDeeplinkData(withID: secondpath, urlType: firstpath, completion: completion)
             }else{
                 completion(CGSTATE.INVALID_URL, "Incorrect URL", nil)
             }
@@ -1453,6 +1429,60 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             completion(CGSTATE.EXCEPTION, "Incorrect Invalide URL", nil)
         }
     }
+                         
+    private func getCGDeeplinkData(withID id: String, urlType: String, completion: @escaping (CGSTATE, String, CGDeeplinkData?) -> Void) {
+        CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY)
+        APIManager.getCGDeeplinkData(queryParameters: ["id": id]) { result in
+            CustomerGlu.getInstance.loaderHide()
+            switch result {
+            case .success(let response):
+                if(response.success == true){
+                    if (response.data != nil){
+                        if(response.data!.anonymous == true){
+                            CustomerGlu.getInstance.allowAnonymousRegistration(enabled: true)
+                            if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil{
+                                self.excecuteDeepLink(firstpath: urlType, cgdeeplink: response.data!, completion: completion)
+                            }else{
+                                // Reg Call then exe
+                                var userData = [String: AnyHashable]()
+                                userData["userId"] = ""
+                                CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY)
+                                self.registerDevice(userdata: userData) { success in
+                                    CustomerGlu.getInstance.loaderHide()
+                                    if success {
+                                        self.excecuteDeepLink(firstpath: urlType, cgdeeplink: response.data!, completion: completion)
+                                    } else {
+                                        CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-5", posttoserver: false)
+                                        completion(CGSTATE.EXCEPTION,"Fail to calll register user", nil)
+                                    }
+                                }
+                            }
+                        }else{
+                            if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil && false == ApplicationManager.isAnonymousUesr(){
+                                self.excecuteDeepLink(firstpath: urlType, cgdeeplink: response.data!, completion: completion)
+                            }else{
+                                CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-5", posttoserver: false)
+                                completion(CGSTATE.USER_NOT_SIGNED_IN,"", nil)
+                            }
+                        }
+                        
+                    }else{
+                        CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-4", posttoserver: false)
+                        completion(CGSTATE.EXCEPTION, "Invalid Response", nil)
+                    }
+                    
+                }else{
+                    CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-2", posttoserver: false)
+                    completion(CGSTATE.EXCEPTION, response.message ?? "", nil)
+                }
+                
+            case .failure(_):
+                CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-3", posttoserver: false)
+                completion(CGSTATE.EXCEPTION, "Fail to call getCGDeeplinkData / Invalid response", nil)
+            }
+        }
+    }
+                         
     @objc public func openWallet(nudgeConfiguration: CGNudgeConfiguration) {
         var eventData: [String: Any] = [:]
         eventData["nudgeConfiguration"] = nudgeConfiguration
