@@ -11,6 +11,7 @@ import CommonCrypto
 // MARK: - CGMqttClientDelegate
 protocol CGMqttClientDelegate: NSObjectProtocol {
     func getEntryPointDataWithMqttMessage(_ mqttMessage: CGMqttMessage)
+    func openClientTestingPage()
 }
 
 //MARK: - CGMqttClientHelper
@@ -99,8 +100,12 @@ class CGMqttClientHelper: NSObject {
                     do {
                         if(jsonData.count > 0) {
                             let model = try decoder.decode(CGMqttMessage.self, from: jsonData)
-                            if let delegate = self.delegate, let type = model.type, type.caseInsensitiveCompare("ENTRYPOINT") == .orderedSame {
-                                delegate.getEntryPointDataWithMqttMessage(model)
+                            if let delegate = self.delegate, let type = model.type  {
+                                if type.caseInsensitiveCompare(CGConstants.MQTT_ENTRYPOINTS) == .orderedSame{
+                                    delegate.getEntryPointDataWithMqttMessage(model)
+                                }else if type.caseInsensitiveCompare(CGConstants.MQTT_CLIENT_TESTING) == .orderedSame {
+                                    delegate.openClientTestingPage()
+                                }
                             }
                         }
                     } catch {
@@ -120,6 +125,10 @@ class CGMqttClientHelper: NSObject {
     func subscribeToTopic(topic: String) {
         guard let client = client else { return }
         client.subscribe(to: topic)
+        if CustomerGlu.isDebugingEnabled {
+            print("Topic name \(topic)")
+        }
+       
         
         // DIAGNOSTICS
         var eventData: [String: Any] = [:]

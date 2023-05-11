@@ -351,7 +351,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
         webView.isUserInteractionEnabled = true
         webView.tag = 0
         self.loaderShow()
-        webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: url)!)))
+        webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: OtherUtils.shared.addQueryParamsToURL(with: url, paramsToAdd: ["isEmbedded":"true"]))))
         webView.isHidden = true
         self.view.addSubview(webView)
         

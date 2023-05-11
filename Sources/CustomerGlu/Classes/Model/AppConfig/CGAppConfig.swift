@@ -130,8 +130,9 @@ public class CGIosSafeArea: Codable {
     public var darkTopColor: String? = CustomerGlu.topSafeAreaColor.hexString
     public var lightTopColor: String? = CustomerGlu.topSafeAreaColor.hexString
     public var lightBottomColor: String? = CustomerGlu.bottomSafeAreaColor.hexString
-    public var darkBottomColor: String? = CustomerGlu.bottomSafeAreaColor
-        .hexString
+    public var darkBottomColor: String? = CustomerGlu.bottomSafeAreaColor.hexString
+    public var newBottomHeight: Int? = CGConstants.CG_SAFE_AREA_DEFAULT
+    public var newTopHeight: Int? = CGConstants.CG_SAFE_AREA_DEFAULT
     
     required public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -143,6 +144,8 @@ public class CGIosSafeArea: Codable {
         self.lightTopColor = try container.decodeIfPresent(String.self, forKey: .lightTopColor) ?? ""
         self.lightBottomColor = try container.decodeIfPresent(String.self, forKey: .lightBottomColor) ?? ""
         self.darkBottomColor = try container.decodeIfPresent(String.self, forKey: .darkBottomColor) ?? ""
+        self.newBottomHeight = try container.decodeIfPresent(Int.self, forKey: .newBottomHeight) ?? CGConstants.CG_SAFE_AREA_DEFAULT
+        self.newTopHeight = try container.decodeIfPresent(Int.self, forKey: .newTopHeight) ?? CGConstants.CG_SAFE_AREA_DEFAULT
     }
     
     required public init() {

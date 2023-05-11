@@ -335,7 +335,7 @@ public class CGClientTestingViewModel: NSObject {
             eventsSectionsArray[index] = event
 
             // Record Test Steps
-            updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: event, status: .failure))
+            updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: event, status: .success))
         } else {
             let event: CGClientTestingRowItem = .entryPointEmbedIDSetup(status: .failure)
             eventsSectionsArray[index] = event

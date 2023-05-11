@@ -46,9 +46,10 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     private var defaulttimer : Timer?
     var spinner = SpinnerView()
     var progressView = LottieAnimationView()
+    let window = UIApplication.shared.keyWindow
     
     public func configureSafeAreaForDevices() {
-        let window = UIApplication.shared.keyWindow
+        
         let topPadding = (window?.safeAreaInsets.top)!
         let bottomPadding = (window?.safeAreaInsets.bottom)!
         
@@ -86,8 +87,10 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         } else if isbottomsheet {
             rect = CGRect(x: 0, y: 0, width: self.view.frame.width, height: UIScreen.main.bounds.height)
         } else {
-            topHeight.constant = CGFloat(CustomerGlu.topSafeAreaHeight)
-            bottomHeight.constant = CGFloat(CustomerGlu.bottomSafeAreaHeight)
+            let topPadding = (window?.safeAreaInsets.top) ?? CGSafeAreaConstants.SAFE_AREA_PADDING
+            let bottomPadding = (window?.safeAreaInsets.bottom) ?? CGSafeAreaConstants.SAFE_AREA_PADDING
+            topHeight.constant = CGFloat(CustomerGlu.topSafeAreaHeight == -1 ? Int(topPadding) : CustomerGlu.topSafeAreaHeight)
+            bottomHeight.constant = CGFloat(CustomerGlu.bottomSafeAreaHeight == -1 ? Int(bottomPadding) : CustomerGlu.bottomSafeAreaHeight)
             rect = CGRect(x: 0, y: topHeight.constant, width: self.view.frame.width, height: self.view.frame.height - (topHeight.constant + bottomHeight.constant))
         }
         

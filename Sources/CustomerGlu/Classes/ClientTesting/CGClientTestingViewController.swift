@@ -38,8 +38,8 @@ public class CGClientTestingViewController: UIViewController {
     
     public func configureSafeAreaForDevices() {
         let window = UIApplication.shared.keyWindow
-        let topPadding = (window?.safeAreaInsets.top)!
-        let bottomPadding = (window?.safeAreaInsets.bottom)!
+        let topPadding = (window?.safeAreaInsets.top) ?? CGSafeAreaConstants.SAFE_AREA_PADDING
+        let bottomPadding = (window?.safeAreaInsets.bottom) ?? CGSafeAreaConstants.SAFE_AREA_PADDING
         
         if topPadding <= 20 || bottomPadding < 20 {
             CustomerGlu.topSafeAreaHeight = 20
@@ -47,8 +47,9 @@ public class CGClientTestingViewController: UIViewController {
             CustomerGlu.topSafeAreaColor = UIColor.clear
         }
         
-        topHeight.constant = CGFloat(CustomerGlu.topSafeAreaHeight)
-        bottomHeight.constant = CGFloat(CustomerGlu.bottomSafeAreaHeight)
+        topHeight.constant = CGFloat(CustomerGlu.topSafeAreaHeight == -1 ? Int(topPadding) : CustomerGlu.topSafeAreaHeight)
+        bottomHeight.constant = CGFloat(CustomerGlu.bottomSafeAreaHeight == -1 ? Int(bottomPadding) : CustomerGlu.bottomSafeAreaHeight)
+        
         
         if CustomerGlu.getInstance.isDarkModeEnabled(){
             topSafeArea.backgroundColor = CustomerGlu.topSafeAreaColorDark
