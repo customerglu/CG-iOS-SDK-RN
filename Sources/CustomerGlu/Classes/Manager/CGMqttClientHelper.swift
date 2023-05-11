@@ -126,9 +126,9 @@ class CGMqttClientHelper: NSObject {
         guard let client = client else { return }
         client.subscribe(to: topic)
         if CustomerGlu.isDebugingEnabled {
-            
+            print("Topic name \(topic)")
         }
-        print("Topic name \(topic)")
+       
         
         // DIAGNOSTICS
         var eventData: [String: Any] = [:]
