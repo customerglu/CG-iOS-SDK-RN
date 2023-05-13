@@ -8,10 +8,15 @@
 import UIKit
 import CommonCrypto
 
+// MARK: - CGMqttLaunchScreenType
+enum CGMqttLaunchScreenType: String {
+    case nudgeEntrypoint = "ENTRYPOINT"
+    case clientTesting = "OPEN_CLIENT_TESTING_PAGE"
+}
+
 // MARK: - CGMqttClientDelegate
 protocol CGMqttClientDelegate: NSObjectProtocol {
-    func getEntryPointDataWithMqttMessage(_ mqttMessage: CGMqttMessage)
-    func openClientTestingPage()
+    func openScreen(_ screenType: CGMqttLaunchScreenType, withMqttMessage mqttMessage: CGMqttMessage?)
 }
 
 //MARK: - CGMqttClientHelper
@@ -100,12 +105,10 @@ class CGMqttClientHelper: NSObject {
                     do {
                         if(jsonData.count > 0) {
                             let model = try decoder.decode(CGMqttMessage.self, from: jsonData)
-                            if let delegate = self.delegate, let type = model.type  {
-                                if type.caseInsensitiveCompare(CGConstants.MQTT_ENTRYPOINTS) == .orderedSame{
-                                    delegate.getEntryPointDataWithMqttMessage(model)
-                                }else if type.caseInsensitiveCompare(CGConstants.MQTT_CLIENT_TESTING) == .orderedSame {
-                                    delegate.openClientTestingPage()
-                                }
+                            if let delegate = self.delegate,
+                                let type = model.type,
+                                let screenType = CGMqttLaunchScreenType(rawValue: type) {
+                                delegate.openScreen(screenType, withMqttMessage: model)
                             }
                         }
                     } catch {

@@ -2332,18 +2332,19 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
 
 // MARK: - CGMqttClientDelegate
 extension CustomerGlu: CGMqttClientDelegate {
-    func getEntryPointDataWithMqttMessage(_ mqttMessage: CGMqttMessage) {
-        if let entryPointID = mqttMessage.id, !entryPointID.isEmpty {
-            // Open Wallet - Will work in MQTT Flow
-            ApplicationManager.openWalletApi { _, _ in
-                self.getEntryPointData(entryPointID)
+    func openScreen(_ screenType: CGMqttLaunchScreenType, withMqttMessage mqttMessage: CGMqttMessage?) {
+        switch screenType {
+        case .nudgeEntrypoint:
+            if let mqttMessage, let entryPointID = mqttMessage.id, !entryPointID.isEmpty {
+                // Open Wallet - Will work in MQTT Flow
+                ApplicationManager.openWalletApi { _, _ in
+                    self.getEntryPointData(entryPointID)
+                }
+            } else {
+                getEntryPointData()
             }
-        } else {
-            getEntryPointData()
+        case .clientTesting:
+            self.testIntegration()
         }
-    }
-    
-    func openClientTestingPage() {
-        self.testIntegration()
     }
 }
