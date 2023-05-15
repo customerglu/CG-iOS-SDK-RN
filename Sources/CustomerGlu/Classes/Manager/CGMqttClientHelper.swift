@@ -10,8 +10,11 @@ import CommonCrypto
 
 // MARK: - CGMqttLaunchScreenType
 enum CGMqttLaunchScreenType: String {
-    case nudgeEntrypoint = "ENTRYPOINT"
-    case clientTesting = "OPEN_CLIENT_TESTING_PAGE"
+    case ENTRYPOINT = "ENTRYPOINT" // Entrypoint API refresh
+    case OPEN_CLIENT_TESTING_PAGE = "OPEN_CLIENT_TESTING_PAGE"
+    case CAMPAIGN_STATE_UPDATED = "CAMPAIGN_STATE_UPDATED" // loadCampaign & Entrypoints API.
+    case SDK_CONFIG_UPDATED = "SDK_CONFIG_UPDATED" // SDK Config Updation call & SDK re-initialised.
+    case USER_SEGMENT_UPDATED = "USER_SEGMENT_UPDATED" // User re-registration.
 }
 
 // MARK: - CGMqttClientDelegate
@@ -41,7 +44,7 @@ class CGMqttClientHelper: NSObject {
         eventData["username"] = config.username
         eventData["password"] = config.password
         eventData["serverHost"] = config.serverHost
-        eventData["topic"] = config.topic
+        eventData["topics"] = config.topics
         eventData["port"] = config.port
         eventData["mqttIdentifier"] = config.mqttIdentifier
                 
@@ -75,7 +78,7 @@ class CGMqttClientHelper: NSObject {
                 eventData["username"] = config.username
                 eventData["password"] = config.password
                 eventData["serverHost"] = config.serverHost
-                eventData["topic"] = config.topic
+                eventData["topics"] = config.topics
                 eventData["port"] = config.port
                 eventData["mqttIdentifier"] = config.mqttIdentifier
                 
@@ -84,7 +87,7 @@ class CGMqttClientHelper: NSObject {
                 
                 if success {
                     // use the client to subscribe to topics here
-                    self.subscribeToTopic(topic: config.topic)
+                    self.subscribeToTopics(topics: config.topics)
                 }
             }
             
@@ -125,19 +128,21 @@ class CGMqttClientHelper: NSObject {
      *
      * @param topic
      */
-    func subscribeToTopic(topic: String) {
+    func subscribeToTopics(topics: [String]) {
         guard let client = client else { return }
-        client.subscribe(to: topic)
-        if CustomerGlu.isDebugingEnabled {
-            print("Topic name \(topic)")
+        
+        for topic in topics {
+            client.subscribe(to: topic)
+            if CustomerGlu.isDebugingEnabled {
+                print("Topic name \(topic)")
+            }
+            
+            // DIAGNOSTICS
+            var eventData: [String: Any] = [:]
+            eventData["topic"] = topic
+            
+            CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_SUBSCRIBE, eventType: CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
         }
-       
-        
-        // DIAGNOSTICS
-        var eventData: [String: Any] = [:]
-        eventData["topic"] = topic
-        
-        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_SUBSCRIBE, eventType: CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
     }
     
     func checkIsMQTTConnected() -> Bool {
@@ -153,7 +158,7 @@ class CGMqttClientHelper: NSObject {
             eventData["username"] = config.username
             eventData["password"] = config.password
             eventData["serverHost"] = config.serverHost
-            eventData["topic"] = config.topic
+            eventData["topic"] = config.topics
             eventData["port"] = config.port
             eventData["mqttIdentifier"] = config.mqttIdentifier
             
