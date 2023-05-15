@@ -158,7 +158,7 @@ class CGMqttClientHelper: NSObject {
             eventData["username"] = config.username
             eventData["password"] = config.password
             eventData["serverHost"] = config.serverHost
-            eventData["topic"] = config.topics
+            eventData["topics"] = config.topics
             eventData["port"] = config.port
             eventData["mqttIdentifier"] = config.mqttIdentifier
             
