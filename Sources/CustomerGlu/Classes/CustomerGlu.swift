@@ -2306,13 +2306,19 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         // Check if client id is in the preferences, if not there then register
         if let clientID = CustomerGlu.getInstance.cgUserData.client, let userID = CustomerGlu.getInstance.cgUserData.userId {
             // If client id is not nil, than setup MQTT
-            let topic = "nudges/" + (clientID) + "/" + (userID.sha256())
+            /*
+             - The topics to be subscribed in MQTT are as follows -
+                 - **User level**   `/nudges/<client-id>/sha256(userID)` (Used for Event based Nudges)
+                 - **Client level**  `/state/global/<client-id>`
+             */
+            let userTopic = "nudges/" + (clientID) + "/" + (userID.sha256())
+            let clientTopic = "/state/global/" + (clientID)
             let host = "hermes.customerglu.com"
             let username = userID
             let password = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN)
             let mqttIdentifier = decryptUserDefaultKey(userdefaultKey: CGConstants.MQTT_Identifier)
 
-            let config = CGMqttConfig(username: username, password: password, serverHost: host, topic: topic, port: 1883, mqttIdentifier: mqttIdentifier)
+            let config = CGMqttConfig(username: username, password: password, serverHost: host, topics: [userTopic, clientTopic], port: 1883, mqttIdentifier: mqttIdentifier)
             CGMqttClientHelper.shared.setupMQTTClient(withConfig: config, delegate: self)
         } else {
             // Client ID is not available - register
@@ -2333,18 +2339,42 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
 
 // MARK: - CGMqttClientDelegate
 extension CustomerGlu: CGMqttClientDelegate {
-    func getEntryPointDataWithMqttMessage(_ mqttMessage: CGMqttMessage) {
-        if let entryPointID = mqttMessage.id, !entryPointID.isEmpty {
-            // Open Wallet - Will work in MQTT Flow
-            ApplicationManager.openWalletApi { _, _ in
-                self.getEntryPointData(entryPointID)
+    func openScreen(_ screenType: CGMqttLaunchScreenType, withMqttMessage mqttMessage: CGMqttMessage?) {
+        switch screenType {
+        case .ENTRYPOINT:
+            // Entrypoint API refresh
+            if let mqttMessage, let entryPointID = mqttMessage.id, !entryPointID.isEmpty {
+                // Open Wallet - Will work in MQTT Flow
+                ApplicationManager.openWalletApi { success, _ in
+                    if success {
+                        self.getEntryPointData(entryPointID)
+                    }
+                }
+            } else {
+                ApplicationManager.openWalletApi { success, _ in
+                    if success {
+                        self.getEntryPointData()
+                    }
+                }
             }
-        } else {
-            getEntryPointData()
+            
+        case .OPEN_CLIENT_TESTING_PAGE:
+            // Open Client Testing Page
+            self.testIntegration()
+            
+        case .CAMPAIGN_STATE_UPDATED,
+                .USER_SEGMENT_UPDATED:
+            // loadCampaign & Entrypoints API or user re-register
+            ApplicationManager.openWalletApi { success, _ in
+                if success {
+                    self.getEntryPointData()
+                }
+            }
+            
+        case .SDK_CONFIG_UPDATED:
+            // SDK Config Updation call & SDK re-initialised.
+            sdkInitialized = false // so the SDK can be re-initialised
+            initializeSdk()
         }
-    }
-    
-    func openClientTestingPage() {
-        self.testIntegration()
     }
 }

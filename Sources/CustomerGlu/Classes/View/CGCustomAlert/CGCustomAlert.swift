@@ -33,7 +33,7 @@ class CGCustomAlert: UIViewController {
     weak var delegate: CGCustomAlertDelegate?
 
     init() {
-        super.init(nibName: "CGCustomAlert", bundle: Bundle(for: CGCustomAlert.self))
+        super.init(nibName: "CGCustomAlert", bundle: .module)
         self.modalPresentationStyle = .overCurrentContext
         self.modalTransitionStyle = .crossDissolve
     }

@@ -11,15 +11,20 @@ struct CGMqttConfig {
     var username: String!
     var password: String!
     var serverHost: String!
-    var topic: String!
+    /*
+     - The topics to be subscribed in MQTT are as follows -
+         - **User level**   `/nudges/<client-id>/sha256(userID)` (Used for Event based Nudges)
+         - **Client level**  `/state/global/<client-id>`
+     */
+    var topics: [String]!
     var port: UInt16!
     var mqttIdentifier: String!
     
-    init(username: String, password: String, serverHost: String, topic: String, port: UInt16, mqttIdentifier: String) {
+    init(username: String, password: String, serverHost: String, topics: [String], port: UInt16, mqttIdentifier: String) {
         self.username = username
         self.password = password
         self.serverHost = serverHost
-        self.topic = topic
+        self.topics = topics
         self.port = port
         self.mqttIdentifier = mqttIdentifier
     }
