@@ -613,7 +613,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             if !(writekey.isEmpty) {
                 eventData["writeKeyPresent"] = "true"
             } else {
-                eventData["writeKeyPresent"] = "fasle"
+                eventData["writeKeyPresent"] = "false"
             }
             if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
                 eventData["userRegistered"] = "true"
@@ -1056,6 +1056,28 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
         }
     }
+    
+    
+    /***
+        Update Banner Id list
+     */
+    public func addBannerId(bannerId : String){
+        if !CustomerGlu.bannerIds.contains(bannerId){
+            CustomerGlu.bannerIds.append(bannerId)
+        }
+    }
+    
+    
+    /***
+        Update Embed Id list
+     */
+    public func addEmbedId(embedId : String){
+        if !CustomerGlu.embedIds.contains(embedId){
+            CustomerGlu.embedIds.append(embedId)
+        }
+    }
+    
+    
     
     /**
      *
@@ -1599,27 +1621,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
     }
     
-    @objc public func loadCampaignByStatus(status: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
-        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: CGConstants.CUSTOMERGLU_TOKEN) == nil {
-            CustomerGlu.getInstance.printlog(cglog: "Fail to call loadCampaignByStatus", isException: false, methodName: "CustomerGlu-loadCampaignByStatus", posttoserver: true)
-            return
-        }
-        
-        DispatchQueue.main.async {
-            let loadAllCampign = StoryboardType.main.instantiate(vcType: LoadAllCampaignsViewController.self)
-            loadAllCampign.auto_close_webview = auto_close_webview
-            loadAllCampign.loadCampignType = APIParameterKey.status
-            loadAllCampign.loadCampignValue = status
-            guard let topController = UIViewController.topViewController() else {
-                return
-            }
-            let navController = UINavigationController(rootViewController: loadAllCampign)
-            navController.modalPresentationStyle = .overCurrentContext
-            self.hideFloatingButtons()
-            topController.present(navController, animated: true, completion: nil)
-        }
-    }
-    
     @objc public func loadCampaignByFilter(parameters: NSDictionary, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: CGConstants.CUSTOMERGLU_TOKEN) == nil {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call loadCampaignByFilter", isException: false, methodName: "CustomerGlu-loadCampaignByFilter", posttoserver: true)
@@ -1808,9 +1809,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         if CustomerGlu.isEntryPointEnabled {
             if !configScreens.contains(className) {
                 configScreens.append(className)
-                sendEntryPointsIdLists()
 
             }
+            sendEntryPointsIdLists()
             
             CustomerGlu.getInstance.activescreenname = className
             

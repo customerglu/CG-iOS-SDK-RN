@@ -149,6 +149,9 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
         code = true
         self.xibSetup()
         self.commonEmbedId = embedId
+        if let embedId = self.embedId, !embedId.isEmpty {
+            CustomerGlu.getInstance.addEmbedId(embedId: embedId)
+        }
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -335,10 +338,8 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
         
         let screenWidth = self.frame.size.width
         finalHeight = height
-        if !CustomerGlu.embedIds.contains(self.embedId ?? "")
-        {
-            CustomerGlu.embedIds.append(self.embedId ?? "")
-            CustomerGlu.getInstance.sendEntryPointsIdLists()
+        if let embedId = self.embedId, !embedId.isEmpty{
+            CustomerGlu.getInstance.addEmbedId(embedId: embedId)
         }
         let postInfo: [String: Any] = [self.embedId ?? "" : finalHeight]
         NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CGEMBED_FINAL_HEIGHT").rawValue), object: nil, userInfo: postInfo)
