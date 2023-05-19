@@ -598,7 +598,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         CGSentryHelper.shared.logoutSentryUser()
         
         // Disconnect MQTT
-        if CGMqttClientHelper.shared.checkIsMQTTConnected() {
+        if let enableMqtt = self.appconfigdata?.enableMqtt, enableMqtt, CGMqttClientHelper.shared.checkIsMQTTConnected() {
             CGMqttClientHelper.shared.disconnectMQTT()
         }
     }
@@ -881,12 +881,13 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     
                     self.userDefaults.synchronize()
                     
-                    if CGMqttClientHelper.shared.checkIsMQTTConnected(){
-                        CGMqttClientHelper.shared.disconnectMQTT()
+                    if let enableMqtt = self.appconfigdata?.enableMqtt, enableMqtt {
+                        if CGMqttClientHelper.shared.checkIsMQTTConnected() {
+                            CGMqttClientHelper.shared.disconnectMQTT()
+                        }
                         self.initializeMqtt()
                     }
                     
-
                     ApplicationManager.openWalletApi { success, _ in
                         if success {
                             if CustomerGlu.isEntryPointEnabled {
