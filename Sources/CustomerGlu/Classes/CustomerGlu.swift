@@ -596,6 +596,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         CustomerGlu.getInstance.cgUserData = CGUser()
         ApplicationManager.appSessionId = UUID().uuidString
         CGSentryHelper.shared.logoutSentryUser()
+        
+        // Disconnect MQTT
+        if CGMqttClientHelper.shared.checkIsMQTTConnected() {
+            CGMqttClientHelper.shared.disconnectMQTT()
+        }
     }
     
     // MARK: - API Calls Methods
