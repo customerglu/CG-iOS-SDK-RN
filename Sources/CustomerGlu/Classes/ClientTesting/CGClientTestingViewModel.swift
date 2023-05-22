@@ -158,9 +158,19 @@ public class CGClientTestingViewModel: NSObject {
             
             do {
                 let jsonData = try JSONEncoder().encode(model)
-
-                var diagnosticsEventData: [String: Any] = [:]
-                webController.handleDeeplinkEvent(withEventName: WebViewsKey.open_deeplink, bodyData: jsonData, message: message, diagnosticsEventData: &diagnosticsEventData)
+                
+                var postdata = [String:Any]()
+                postdata["eventName"] = "OPEN_DEEPLINK"
+                
+                var data = [String:Any]()
+                data["name"] = "home"
+                data["deepLink"] = "customerglu://home"
+                
+                postdata["data"] = data
+                
+                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_DEEPLINK_EVENT").rawValue), object: nil, userInfo: postdata)
+                    
+//                webController.handleDeeplinkEvent(withEventName: WebViewsKey.open_deeplink, bodyData: jsonData, message: message, diagnosticsEventData: &diagnosticsEventData)
 
                 // just show alert - Yes show green tick - No show cross UI
                 // Add retry button next to call back, nudge and onelink
