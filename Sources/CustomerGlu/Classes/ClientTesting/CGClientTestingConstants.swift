@@ -142,7 +142,7 @@ public enum CGClientTestingRowItem {
         case .userRegistered:
             return nil
         case .callbackHanding:
-            return ("CustomerGlu", "Do you receive callback?", CGCustomAlertTag.callbackHandingTag.rawValue)
+            return ("CustomerGlu", "Following button contains", CGCustomAlertTag.callbackHandingTag.rawValue)
         case .advanceIntegration:
             return nil
         case .firebaseSetup:

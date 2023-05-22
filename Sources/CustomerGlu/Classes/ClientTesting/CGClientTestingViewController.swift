@@ -213,8 +213,15 @@ extension CGClientTestingViewController: CGClientTestingProtocol {
         customAlert.alertTitle = data.title
         customAlert.alertMessage = data.message
         customAlert.alertTag = data.tag
-        customAlert.okButtonTitle = "Yes"
-        customAlert.cancelButtonTitle = "No"
+        if data.tag == CGCustomAlertTag.callbackHandingTag.rawValue {
+            customAlert.okButtonTitle = "CallBack"
+            customAlert.cancelButtonTitle = ""
+            customAlert.isCancelButtonHidden = true
+        } else {
+            customAlert.okButtonTitle = "Yes"
+            customAlert.cancelButtonTitle = "No"
+            customAlert.isCancelButtonHidden = false
+        }
         customAlert.delegate = self
         customAlert.isRetry = isRetry
         customAlert.showOnViewController(self)
