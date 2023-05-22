@@ -149,27 +149,15 @@ public class CGClientTestingViewModel: NSObject {
         let itemInfo = getIndexOfItem(.callbackHanding(status: .pending))
         guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
                         
-        let webController = CustomerWebViewController()
-        let message: WKScriptMessage = WKScriptMessage()
+//        let webController = CustomerWebViewController()
+//        let message: WKScriptMessage = WKScriptMessage()
         
-        if let callbackConfigurationUrl = CustomerGlu.getInstance.appconfigdata?.callbackConfigurationUrl {
-            let eventLinkData = CGEventLinkData(deepLink: callbackConfigurationUrl)
-            let model = CGDeepLinkModel(eventName: "OPEN_DEEPLINK", data: eventLinkData)
+        if let _ = CustomerGlu.getInstance.appconfigdata?.callbackConfigurationUrl {
+//            let eventLinkData = CGEventLinkData(deepLink: callbackConfigurationUrl)
+//            let model = CGDeepLinkModel(eventName: "OPEN_DEEPLINK", data: eventLinkData)
             
-            do {
-                let jsonData = try JSONEncoder().encode(model)
-                
-                var postdata = [String:Any]()
-                postdata["eventName"] = "OPEN_DEEPLINK"
-                
-                var data = [String:Any]()
-                data["name"] = "home"
-                data["deepLink"] = "customerglu://home"
-                
-                postdata["data"] = data
-                
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_DEEPLINK_EVENT").rawValue), object: nil, userInfo: postdata)
-                    
+//            do {
+//                let jsonData = try JSONEncoder().encode(model)
 //                webController.handleDeeplinkEvent(withEventName: WebViewsKey.open_deeplink, bodyData: jsonData, message: message, diagnosticsEventData: &diagnosticsEventData)
 
                 // just show alert - Yes show green tick - No show cross UI
@@ -184,11 +172,14 @@ public class CGClientTestingViewModel: NSObject {
 
                 // Wait 5 seconds and than perform this action & Next step NudgeHandling will happen on alert response Yes or No
                 self.showCallBackAlert(forEvent: eventsSectionsArray[index], isRetry: isRetry)
-            } catch {
-                // nothing
-                // Record Test Steps
-                updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: .callbackHanding(status: .failure), status: .failure))
-            }
+//            } catch {
+//                // nothing
+//                // Record Test Steps
+//                updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: .callbackHanding(status: .failure), status: .failure))
+//            }
+        } else {
+            // Record Test Steps
+            updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: .callbackHanding(status: .failure), status: .failure))
         }
     }
     

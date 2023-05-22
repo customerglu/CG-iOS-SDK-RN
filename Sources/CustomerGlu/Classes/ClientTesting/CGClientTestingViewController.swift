@@ -246,6 +246,19 @@ extension CGClientTestingViewController: CGCustomAlertDelegate {
             self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
             
             if !alert.isRetry {
+                if let callbackConfigurationUrl = CustomerGlu.getInstance.appconfigdata?.callbackConfigurationUrl {
+                    var postdata = [String:Any]()
+                    postdata["eventName"] = "OPEN_DEEPLINK"
+                    
+                    var data = [String:Any]()
+                    data["name"] = "home"
+                    data["deepLink"] = callbackConfigurationUrl
+                    
+                    postdata["data"] = data
+                    
+                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_DEEPLINK_EVENT").rawValue), object: nil, userInfo: postdata)
+                }
+                
                 //Execute Next Step
                 viewModel.executeNudgeHandling()
             }
