@@ -107,24 +107,6 @@ class ApplicationManager {
         if CustomerGlu.sdk_disable != true {
             CGSentryHelper.shared.captureExceptionEvent(exceptionLog: cglog)
         }
-        var params = OtherUtils.shared.getCrashInfo()
-        if isException {
-            params![APIParameterKey.type] = "Crash"
-        } else {
-            params![APIParameterKey.type] = "Error"
-        }
-        params![APIParameterKey.stack_trace] = cglog
-        params![APIParameterKey.method] = methodName
-        params![APIParameterKey.user_id] = user_id
-        params![APIParameterKey.version] = "1.0.0"
-        crashReport(parameters: (params as NSDictionary?)!) { success, _ in
-            if success {
-                UserDefaults.standard.removeObject(forKey: CGConstants.CustomerGluCrash)
-                UserDefaults.standard.synchronize()
-            } else {
-                CustomerGlu.getInstance.printlog(cglog: "crashReport API fail", isException: false, methodName: "ApplicationManager-callCrashReport", posttoserver: false)
-            }
-        }
     }
     
     public static func sendEventsDiagnostics(eventLogType: String,eventName: String,eventMeta:[String:Any],completion: @escaping(Bool, CGAddCartModel?) -> Void){
