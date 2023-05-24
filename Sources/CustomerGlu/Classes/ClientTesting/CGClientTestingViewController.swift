@@ -213,8 +213,15 @@ extension CGClientTestingViewController: CGClientTestingProtocol {
         customAlert.alertTitle = data.title
         customAlert.alertMessage = data.message
         customAlert.alertTag = data.tag
-        customAlert.okButtonTitle = "Yes"
-        customAlert.cancelButtonTitle = "No"
+        if data.tag == CGCustomAlertTag.callbackHandingTag.rawValue {
+            customAlert.okButtonTitle = "CallBack"
+            customAlert.cancelButtonTitle = ""
+            customAlert.isCancelButtonHidden = true
+        } else {
+            customAlert.okButtonTitle = "Yes"
+            customAlert.cancelButtonTitle = "No"
+            customAlert.isCancelButtonHidden = false
+        }
         customAlert.delegate = self
         customAlert.isRetry = isRetry
         customAlert.showOnViewController(self)
@@ -246,6 +253,19 @@ extension CGClientTestingViewController: CGCustomAlertDelegate {
             self.updateTable(atIndexPath: indexPath, forEvent: viewModel.eventsSectionsArray[index])
             
             if !alert.isRetry {
+                if let callbackConfigurationUrl = CustomerGlu.getInstance.appconfigdata?.callbackConfigurationUrl {
+                    var postdata = [String:Any]()
+                    postdata["eventName"] = "OPEN_DEEPLINK"
+                    
+                    var data = [String:Any]()
+                    data["name"] = "home"
+                    data["deepLink"] = callbackConfigurationUrl
+                    
+                    postdata["data"] = data
+                    
+                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CUSTOMERGLU_DEEPLINK_EVENT").rawValue), object: nil, userInfo: postdata)
+                }
+                
                 //Execute Next Step
                 viewModel.executeNudgeHandling()
             }

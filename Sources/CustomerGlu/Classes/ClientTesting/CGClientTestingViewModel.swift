@@ -149,18 +149,16 @@ public class CGClientTestingViewModel: NSObject {
         let itemInfo = getIndexOfItem(.callbackHanding(status: .pending))
         guard let index = itemInfo.index, let indexPath = itemInfo.indexPath else { return }
                         
-        let webController = CustomerWebViewController()
-        let message: WKScriptMessage = WKScriptMessage()
+//        let webController = CustomerWebViewController()
+//        let message: WKScriptMessage = WKScriptMessage()
         
-        if let callbackConfigurationUrl = CustomerGlu.getInstance.appconfigdata?.callbackConfigurationUrl {
-            let eventLinkData = CGEventLinkData(deepLink: callbackConfigurationUrl)
-            let model = CGDeepLinkModel(eventName: "OPEN_DEEPLINK", data: eventLinkData)
+        if let _ = CustomerGlu.getInstance.appconfigdata?.callbackConfigurationUrl {
+//            let eventLinkData = CGEventLinkData(deepLink: callbackConfigurationUrl)
+//            let model = CGDeepLinkModel(eventName: "OPEN_DEEPLINK", data: eventLinkData)
             
-            do {
-                let jsonData = try JSONEncoder().encode(model)
-
-                var diagnosticsEventData: [String: Any] = [:]
-                webController.handleDeeplinkEvent(withEventName: WebViewsKey.open_deeplink, bodyData: jsonData, message: message, diagnosticsEventData: &diagnosticsEventData)
+//            do {
+//                let jsonData = try JSONEncoder().encode(model)
+//                webController.handleDeeplinkEvent(withEventName: WebViewsKey.open_deeplink, bodyData: jsonData, message: message, diagnosticsEventData: &diagnosticsEventData)
 
                 // just show alert - Yes show green tick - No show cross UI
                 // Add retry button next to call back, nudge and onelink
@@ -174,11 +172,14 @@ public class CGClientTestingViewModel: NSObject {
 
                 // Wait 5 seconds and than perform this action & Next step NudgeHandling will happen on alert response Yes or No
                 self.showCallBackAlert(forEvent: eventsSectionsArray[index], isRetry: isRetry)
-            } catch {
-                // nothing
-                // Record Test Steps
-                updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: .callbackHanding(status: .failure), status: .failure))
-            }
+//            } catch {
+//                // nothing
+//                // Record Test Steps
+//                updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: .callbackHanding(status: .failure), status: .failure))
+//            }
+        } else {
+            // Record Test Steps
+            updateSdkTestStepsArray(withModel:CGSDKTestStepsModel(name: .callbackHanding(status: .failure), status: .failure))
         }
     }
     
