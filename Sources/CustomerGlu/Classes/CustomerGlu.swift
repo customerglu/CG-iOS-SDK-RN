@@ -2330,9 +2330,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             // Client ID is not available - register
             var userData = [String: AnyHashable]()
             userData["userId"] = CustomerGlu.getInstance.cgUserData.userId ?? ""
-            CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY)
             self.registerDevice(userdata: userData) { success in
-                CustomerGlu.getInstance.loaderHide()
                 if success {
 
                     // Initialize Mqtt
