@@ -715,8 +715,11 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     private func loaderShow(withcoordinate x: CGFloat, y: CGFloat) {
-        if let nudgeConfiguration = nudgeConfiguration, !nudgeConfiguration.isHyperLink {
-            DispatchQueue.main.async { [self] in
+        if let nudgeConfiguration = nudgeConfiguration, nudgeConfiguration.isHyperLink {
+            return
+        }
+        
+        DispatchQueue.main.async { [self] in
                 self.view.isUserInteractionEnabled = false
                 
                 var path_key = ""
@@ -747,7 +750,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                     self.view.bringSubviewToFront(spinner)
                 }
             }
-        }
+        
     }
     
     private func loaderHide() {
