@@ -754,12 +754,15 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     private func loaderHide() {
-        if let nudgeConfiguration = nudgeConfiguration, !nudgeConfiguration.isHyperLink {
-            DispatchQueue.main.async { [self] in
+        if let nudgeConfiguration = nudgeConfiguration, nudgeConfiguration.isHyperLink{
+            return
+        }
+        
+        DispatchQueue.main.async { [self] in
                 self.view.isUserInteractionEnabled = true
                 spinner.removeFromSuperview()
                 progressView.removeFromSuperview()
-            }
         }
+        
     }
 }
