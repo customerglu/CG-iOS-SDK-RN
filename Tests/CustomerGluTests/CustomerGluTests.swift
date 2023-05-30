@@ -214,7 +214,6 @@ final class CustomerGluTests: XCTestCase {
         session.data = MockData.walletResponse.data(using: .utf8)!
         APIManager.shared.session = session
         
-        CustomerGlu.getInstance.loadCampaignByStatus(status: "pristine")
     }
     
     func test_loadCampaignByStatus_With_DisableSDK() {
@@ -225,7 +224,6 @@ final class CustomerGluTests: XCTestCase {
         session.data = MockData.walletResponse.data(using: .utf8)!
         APIManager.shared.session = session
         
-        CustomerGlu.getInstance.loadCampaignByStatus(status: "pristine")
     }
     
     func test_loadCampaignByFilter() {

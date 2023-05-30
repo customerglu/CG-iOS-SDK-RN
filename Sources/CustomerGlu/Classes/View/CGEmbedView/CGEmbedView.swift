@@ -23,6 +23,13 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
         hideLoaderNShowWebview()
     }
     
+    public override func awakeFromNib() {
+        super.awakeFromNib()
+        if let embedId = self.embedId, !embedId.isEmpty {
+            CustomerGlu.getInstance.addEmbedId(embedId: embedId)
+        }
+    }
+    
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         
         if message.name == WebViewsKey.callback {

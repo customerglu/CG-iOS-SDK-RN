@@ -36,6 +36,13 @@ public class BannerView: UIView, UIScrollViewDelegate {
         }
     }
     
+    public override func awakeFromNib() {
+        super.awakeFromNib()
+        if let bannerId = self.bannerId, !bannerId.isEmpty {
+            CustomerGlu.getInstance.addBannerId(bannerId: bannerId)
+        }
+    }
+    
     @objc private func entryPointLoaded(notification: NSNotification) {
         self.reloadBannerView()
     }
