@@ -110,7 +110,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     private static var isAnonymousFlowAllowed: Bool = false
     
     private var isOpenWalletOnFailure: Bool = true
-    private var savedCampaignsList: [CGCampaigns] = []
+    private var cacheCampaignsList: [CGCampaigns] = []
 
     internal static var sdkWriteKey: String = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String ?? ""
     
@@ -395,20 +395,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     private func setCampaignsModel(_ model: CGCampaignsModel?) {
         if isOpenWalletOnFailure {
-            savedCampaignsList = model?.campaigns ?? []
+            cacheCampaignsList = model?.campaigns ?? []
         }
-    }
-    
-    private func validateCampaignID(_ campaignID: String) -> Bool? {
-        if isOpenWalletOnFailure {
-            for campaignsModel in savedCampaignsList {
-                if campaignsModel.campaignId == campaignID {
-                    return true
-                }
-            }
-        }
-        
-        return nil
     }
     
     @objc public func cgapplication(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], backgroundAlpha: Double = 0.5,auto_close_webview : Bool = CustomerGlu.auto_close_webview!, fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
@@ -1592,7 +1580,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
         
         // Check the user has set flag 'isOpenWalletOnFailure' false and based on that check is campaign ID valid is false
-        if !isOpenWalletOnFailure, let flag = validateCampaignID(campaign_id), !flag {
+        
+        if !isOpenWalletOnFailure, cacheCampaignsList.count > 0, !OtherUtils.shared.validateCampaign(withCampaignID: campaign_id, in: cacheCampaignsList) {
             var eventInfo = [String: Any]()
             eventInfo["campaignId"] = campaign_id
             eventInfo[APIParameterKey.messagekey] = "Invalid campaignId"
