@@ -108,6 +108,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     @objc public var cgUserData = CGUser()
     private var sdkInitialized: Bool = false
     private static var isAnonymousFlowAllowed: Bool = false
+    
+    private var isOpenWalletOnFailure: Bool = true
+    private var savedCampaignsList: [CGCampaigns] = []
+
     internal static var sdkWriteKey: String = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String ?? ""
     
     private override init() {
@@ -383,6 +387,28 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     @objc public func setDiagnosticsEnabled(isDiagnosticsEnabled: Bool){
         CustomerGlu.isDiagnosticsEnabled = isDiagnosticsEnabled
+    }
+    
+    @objc public func setOpenWalletOnFailure(_ flag: Bool) {
+        isOpenWalletOnFailure = flag
+    }
+    
+    private func setCampaignsModel(_ model: CGCampaignsModel?) {
+        if isOpenWalletOnFailure {
+            savedCampaignsList = model?.campaigns ?? []
+        }
+    }
+    
+    private func validateCampaignID(_ campaignID: String) -> Bool? {
+        if isOpenWalletOnFailure {
+            for campaignsModel in savedCampaignsList {
+                if campaignsModel.campaignId == campaignID {
+                    return true
+                }
+            }
+        }
+        
+        return nil
     }
     
     @objc public func cgapplication(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], backgroundAlpha: Double = 0.5,auto_close_webview : Bool = CustomerGlu.auto_close_webview!, fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
@@ -888,8 +914,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         self.initializeMqtt()
                     }
                     
-                    ApplicationManager.openWalletApi { success, _ in
+                    ApplicationManager.openWalletApi { success, response in
                         if success {
+                            // Save this - To open / not open wallet incase of failure / invalid campaignId in loadCampaignById
+                            self.setCampaignsModel(response)
+
                             if CustomerGlu.isEntryPointEnabled {
                                 CustomerGlu.bannersHeight = nil
                                 CustomerGlu.embedsHeight = nil
@@ -1262,6 +1291,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             APIManager.getWalletRewards(queryParameters: [:]) { result in
                 switch result {
                 case .success(let response):
+                    // Save this - To open / not open wallet incase of failure / invalid campaignId in loadCampaignById
+                    self.setCampaignsModel(response)
                     
                     if(response.defaultUrl.count > 0){
                         let url = URL(string: response.defaultUrl)
@@ -1351,7 +1382,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         ApplicationManager.loadAllCampaignsApi(type: "", value: "", loadByparams: [:]) { success, campaignsModel in
             CustomerGlu.getInstance.loaderHide()
             if success {
-                
+                // Save this - To open / not open wallet incase of failure / invalid campaignId in loadCampaignById
+                self.setCampaignsModel(campaignsModel)
+
                 let defaultwalleturl = String(campaignsModel?.defaultUrl ?? "")
                 var cgstate = CGSTATE.EXCEPTION
                 if(firstpath == "u"){
@@ -1557,6 +1590,16 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call loadCampaignById", isException: false, methodName: "CustomerGlu-loadCampaignById", posttoserver: true)
             return
         }
+        
+        // Check the user has set flag 'isOpenWalletOnFailure' false and based on that check is campaign ID valid is false
+        if !isOpenWalletOnFailure, let flag = validateCampaignID(campaign_id), !flag {
+            var eventInfo = [String: Any]()
+            eventInfo["campaignId"] = campaign_id
+            eventInfo[APIParameterKey.messagekey] = "Invalid campaignId"
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CG_INVALID_CAMPAIGN_ID").rawValue), object: nil, userInfo: eventInfo)
+            return
+        }
+        
         var eventData: [String: Any] = [:]
         eventData["nudgeConfiguration"] = nudgeConfiguration
         eventData["campaign_id"] = campaign_id
@@ -2349,14 +2392,18 @@ extension CustomerGlu: CGMqttClientDelegate {
             // Entrypoint API refresh
             if let mqttMessage, let entryPointID = mqttMessage.id, !entryPointID.isEmpty {
                 // Open Wallet - Will work in MQTT Flow
-                ApplicationManager.openWalletApi { success, _ in
+                ApplicationManager.openWalletApi { success, response in
                     if success {
+                        // Save this - To open / not open wallet incase of failure / invalid campaignId in loadCampaignById
+                        self.setCampaignsModel(response)
                         self.getEntryPointData(entryPointID)
                     }
                 }
             } else {
-                ApplicationManager.openWalletApi { success, _ in
+                ApplicationManager.openWalletApi { success, response in
                     if success {
+                        // Save this - To open / not open wallet incase of failure / invalid campaignId in loadCampaignById
+                        self.setCampaignsModel(response)
                         self.getEntryPointData()
                     }
                 }
@@ -2369,8 +2416,10 @@ extension CustomerGlu: CGMqttClientDelegate {
         case .CAMPAIGN_STATE_UPDATED,
                 .USER_SEGMENT_UPDATED:
             // loadCampaign & Entrypoints API or user re-register
-            ApplicationManager.openWalletApi { success, _ in
+            ApplicationManager.openWalletApi { success, response in
                 if success {
+                    // Save this - To open / not open wallet incase of failure / invalid campaignId in loadCampaignById
+                    self.setCampaignsModel(response)
                     self.getEntryPointData()
                 }
             }
