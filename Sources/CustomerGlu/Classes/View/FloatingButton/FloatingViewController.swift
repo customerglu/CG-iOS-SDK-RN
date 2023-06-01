@@ -217,9 +217,14 @@ class FloatingButtonController: UIViewController {
                 CustomerGlu.getInstance.openURLWithNudgeConfig(url: actionData.url, nudgeConfiguration: nudgeConfiguration)
             } else {
                 //Incase of failure / API contract breach
-                
+                // Check to open wallet or not in fallback case
+                let campaignId = floatInfo?.mobile.content[0].campaignId
+                guard CustomerGlu.getInstance.checkToOpenWalletOrNot(withCampaignID: campaignId ?? "") else {
+                    return
+                }
+
                 // Opening Campaign using CampaignId from payload
-                if let  campaignId = floatInfo?.mobile.content[0].campaignId {
+                if let campaignId = campaignId {
                     let nudgeConfiguration = CGNudgeConfiguration()
                     nudgeConfiguration.layout = floatInfo?.mobile.content[0].openLayout.lowercased() ?? CGConstants.FULL_SCREEN_NOTIFICATION
                     nudgeConfiguration.opacity = floatInfo?.mobile.conditions.backgroundOpacity ?? 0.5
@@ -229,8 +234,6 @@ class FloatingButtonController: UIViewController {
                     
                     CustomerGlu.getInstance.openCampaignById(campaign_id: campaignId, nudgeConfiguration: nudgeConfiguration)
                 } else {
-                    
-                    
                     //Incase Campaign Id is nil / unavailable
                     CustomerGlu.getInstance.openWallet()
                 }
