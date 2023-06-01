@@ -142,7 +142,11 @@ public enum CGClientTestingRowItem {
         case .userRegistered:
             return nil
         case .callbackHanding:
-            return ("CustomerGlu", "Following button contains", CGCustomAlertTag.callbackHandingTag.rawValue)
+            if let callbackConfigurationUrl = CustomerGlu.getInstance.appconfigdata?.callbackConfigurationUrl {
+                return ("CustomerGlu", "Following button contains \(callbackConfigurationUrl)", CGCustomAlertTag.callbackHandingTag.rawValue)
+            } else {
+                return nil
+            }
         case .advanceIntegration:
             return nil
         case .firebaseSetup:
