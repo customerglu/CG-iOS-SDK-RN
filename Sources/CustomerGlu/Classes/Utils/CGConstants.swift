@@ -45,6 +45,10 @@ struct CGConstants {
     static let MQTT_ENTRYPOINTS = "ENTRYPOINT"
     static let MQTT_CLIENT_TESTING = "OPEN_CLIENT_TESTING_PAGE"
     static let CG_SAFE_AREA_DEFAULT = -1
+    
+    static let MQTT_Enabled_Components_State_Sync = "STATE_SYNC"
+    static let MQTT_Enabled_Components_Nudges = "NUDGES"
+    static let MQTT_Enabled_Components_EntryPoints = "ENTRYPOINTS"
 }
 
 struct CGDiagnosticConstants{

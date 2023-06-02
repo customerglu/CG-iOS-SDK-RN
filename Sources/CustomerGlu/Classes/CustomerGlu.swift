@@ -728,6 +728,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 CGEventsDiagnosticsHelper.shared.sendMultipleDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_ENABLED, eventTypes: [CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, CGDiagnosticConstants.CG_TYPE_METRICS], eventMeta:eventData)
                 
                 // Initialize Mqtt
+                if CGMqttClientHelper.shared.checkIsMQTTConnected() {
+                    CGMqttClientHelper.shared.disconnectMQTT()
+                }
                 initializeMqtt()
             } else {
                 var eventData: [String: Any] = [:]
@@ -2351,7 +2354,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             userData["userId"] = CustomerGlu.getInstance.cgUserData.userId ?? ""
             self.registerDevice(userdata: userData) { success in
                 if success {
-
                     // Initialize Mqtt
                     self.initializeMqtt()
                 }
@@ -2365,10 +2367,14 @@ extension CustomerGlu: CGMqttClientDelegate {
     func openScreen(_ screenType: CGMqttLaunchScreenType, withMqttMessage mqttMessage: CGMqttMessage?) {
         switch screenType {
         case .ENTRYPOINT:
-            // Entrypoint API refresh
-            ApplicationManager.openWalletApi { success, response in
-                if success {
-                    self.getEntryPointData()
+            // Check Mqtt Enabled Components
+            if checkMqttEnabledComponents(containsKey: CGConstants.MQTT_Enabled_Components_State_Sync) ||
+                checkMqttEnabledComponents(containsKey: CGConstants.MQTT_Enabled_Components_EntryPoints) {
+                // Entrypoint API refresh
+                ApplicationManager.openWalletApi { success, response in
+                    if success {
+                        self.getEntryPointData()
+                    }
                 }
             }
             
@@ -2378,17 +2384,31 @@ extension CustomerGlu: CGMqttClientDelegate {
             
         case .CAMPAIGN_STATE_UPDATED,
                 .USER_SEGMENT_UPDATED:
-            // loadCampaign & Entrypoints API or user re-register
-            ApplicationManager.openWalletApi { success, response in
-                if success {
-                    self.getEntryPointData()
+            // Check Mqtt Enabled Components
+            if checkMqttEnabledComponents(containsKey: CGConstants.MQTT_Enabled_Components_State_Sync) {
+                // loadCampaign & Entrypoints API or user re-register
+                ApplicationManager.openWalletApi { success, response in
+                    if success {
+                        self.getEntryPointData()
+                    }
                 }
             }
             
         case .SDK_CONFIG_UPDATED:
-            // SDK Config Updation call & SDK re-initialised.
-            sdkInitialized = false // so the SDK can be re-initialised
-            initializeSdk()
+            // Check Mqtt Enabled Components
+            if checkMqttEnabledComponents(containsKey: CGConstants.MQTT_Enabled_Components_State_Sync) {
+                // SDK Config Updation call & SDK re-initialised.
+                sdkInitialized = false // so the SDK can be re-initialised
+                initializeSdk()
+            }
         }
+    }
+    
+    private func checkMqttEnabledComponents(containsKey key: String) -> Bool {
+        if let mqttEnabledComponents = self.appconfigdata?.mqttEnabledComponents, mqttEnabledComponents.count > 0, mqttEnabledComponents.contains(key) {
+            return true
+        }
+        
+        return false
     }
 }
