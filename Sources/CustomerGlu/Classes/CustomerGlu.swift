@@ -1112,14 +1112,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             CustomerGlu.embedIds.append(embedId)
         }
     }
-    
-    
-    
-    /**
-     *
-     * @param entryPointID   - Pass only in case of MQTT
-     */
-    private func getEntryPointData(_ entryPointID: String? = nil) {
+
+    private func getEntryPointData() {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: CGConstants.CUSTOMERGLU_TOKEN) == nil {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call getEntryPointData", isException: false, methodName: "CustomerGlu-getEntryPointData", posttoserver: true)
             CustomerGlu.bannersHeight = [String:Any]()
@@ -1139,10 +1133,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         CustomerGlu.bannersHeight = nil
         CustomerGlu.embedsHeight = nil
         
-        var queryParameters: [AnyHashable: Any] = ["consumer": "MOBILE"]
-        if let entryPointID = entryPointID, !entryPointID.isEmpty {
-            queryParameters["id"] = entryPointID
-        }
+        let queryParameters: [AnyHashable: Any] = ["consumer": "MOBILE"]
         
         APIManager.getEntryPointdata(queryParameters: queryParameters as NSDictionary) { [self] result in
             switch result {
@@ -1151,20 +1142,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     self.dismissFloatingButtons(is_remove: false)
                 }
                 
-                if let entryPointID = entryPointID, !entryPointID.isEmpty {
-                    // MQTT Flow
-                    let newEntryPointData = OtherUtils.shared.getUniqueEntryData(fromExistingData: CustomerGlu.entryPointdata, byComparingItWithNewEntryData: response.data)
-                    
-                    if newEntryPointData.count > 0 {
-                        for data in newEntryPointData {
-                            CustomerGlu.entryPointdata.append(data)
-                        }
-                    }
-                } else {
-                    // Normal Flow
-                    CustomerGlu.entryPointdata.removeAll()
-                    CustomerGlu.entryPointdata = response.data
-                }
+                // Normal Flow
+                CustomerGlu.entryPointdata.removeAll()
+                CustomerGlu.entryPointdata = response.data
                 
                 // FLOATING Buttons
                 let floatingButtons = CustomerGlu.entryPointdata.filter {
@@ -1176,13 +1156,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 postBannersCount()
                 
                 /*
-                 In case of MQTT - type POPUP was not launching the screen.
-                 So below code only handles that scenario to show POPUP if it exists in API response.
+                 Below code only handles that scenario to show POPUP if it exists in API response.
                  */
                 let popupData = CustomerGlu.entryPointdata.filter {
                     $0.mobile.container.type == "POPUP"
                 }
-                if let entryPointID = entryPointID, let popupDataId = popupData.first?._id , popupDataId == entryPointID,!entryPointID.isEmpty, popupData.count > 0  {
+                if popupData.count > 0 {
                     DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(0), execute: {
                         CustomerGlu.getInstance.setCurrentClassName(className: CustomerGlu.getInstance.activescreenname)
                     })
