@@ -2371,9 +2371,12 @@ extension CustomerGlu: CGMqttClientDelegate {
             if checkMqttEnabledComponents(containsKey: CGConstants.MQTT_Enabled_Components_State_Sync) ||
                 checkMqttEnabledComponents(containsKey: CGConstants.MQTT_Enabled_Components_EntryPoints) {
                 // Entrypoint API refresh
-                ApplicationManager.openWalletApi { success, response in
-                    if success {
-                        self.getEntryPointData()
+                
+                if  let enableMQTT =  self.appconfigdata?.enableMqtt, enableMQTT{
+                    ApplicationManager.openWalletApi { success, response in
+                        if success {
+                            self.getEntryPointData()
+                        }
                     }
                 }
             }
@@ -2385,7 +2388,7 @@ extension CustomerGlu: CGMqttClientDelegate {
         case .CAMPAIGN_STATE_UPDATED,
                 .USER_SEGMENT_UPDATED:
             // Check Mqtt Enabled Components
-            if checkMqttEnabledComponents(containsKey: CGConstants.MQTT_Enabled_Components_State_Sync) {
+            if checkMqttEnabledComponents(containsKey: CGConstants.MQTT_Enabled_Components_State_Sync),  let enableMQTT =  self.appconfigdata?.enableMqtt, enableMQTT {
                 // loadCampaign & Entrypoints API or user re-register
                 ApplicationManager.openWalletApi { success, response in
                     if success {
@@ -2396,7 +2399,7 @@ extension CustomerGlu: CGMqttClientDelegate {
             
         case .SDK_CONFIG_UPDATED:
             // Check Mqtt Enabled Components
-            if checkMqttEnabledComponents(containsKey: CGConstants.MQTT_Enabled_Components_State_Sync) {
+            if checkMqttEnabledComponents(containsKey: CGConstants.MQTT_Enabled_Components_State_Sync), let enableMQTT =  self.appconfigdata?.enableMqtt, enableMQTT {
                 // SDK Config Updation call & SDK re-initialised.
                 sdkInitialized = false // so the SDK can be re-initialised
                 initializeSdk()
