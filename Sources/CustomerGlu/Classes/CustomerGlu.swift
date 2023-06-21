@@ -2317,8 +2317,13 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func testIntegration() {
+        launchClientTesting()
+    }
+    
+    private func launchClientTesting(isDeeplinkRelaunch: Bool = false) {
         DispatchQueue.main.async {
             let clientTestingVC = StoryboardType.main.instantiate(vcType: CGClientTestingViewController.self)
+            clientTestingVC.viewModel.isRelaunch = isDeeplinkRelaunch
             guard let topController = UIViewController.topViewController() else {
                 return
             }
@@ -2368,6 +2373,39 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
         }
     }
+    
+    internal func showClientTestingRedirectAlert() {
+        // After 8 seconds show redirect alert
+        DispatchQueue.main.asyncAfter(deadline: .now() + 8.0) { [weak self] in
+            guard let topController = UIViewController.topViewController() else {
+                return
+            }
+            
+            let customAlert = CGCustomAlert()
+            customAlert.alertTitle = "Client Testing"
+            customAlert.alertMessage = "Relaunch client testing after successful deeplink redirect!"
+            customAlert.alertTag = 1001
+            customAlert.isCancelButtonHidden = true
+            customAlert.okButtonTitle = "Relaunch"
+            customAlert.cancelButtonTitle = ""
+            customAlert.isCancelButtonHidden = true
+            customAlert.delegate = self
+            customAlert.isRetry = false
+            customAlert.showOnViewController(topController)
+        }
+    }
+}
+
+// MARK: - CGCustomAlertDelegate
+extension CustomerGlu: CGCustomAlertDelegate {
+    func okButtonPressed(_ alert: CGCustomAlert, alertTag: Int) {
+        // Doing it after delay because topController is 'CGCustomAlert' and client testing wont open back
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            self?.launchClientTesting(isDeeplinkRelaunch: true)
+        }
+    }
+    
+    func cancelButtonPressed(_ alert: CGCustomAlert, alertTag: Int) {}
 }
 
 // MARK: - CGMqttClientDelegate
