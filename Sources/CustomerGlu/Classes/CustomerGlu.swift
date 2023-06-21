@@ -2360,6 +2360,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
         }
     }
+    
+    func doLoadCampaignAndEntryPointCall() {
+        ApplicationManager.openWalletApi { success, response in
+            if success {
+                self.getEntryPointData()
+            }
+        }
+    }
 }
 
 // MARK: - CGMqttClientDelegate
@@ -2373,11 +2381,7 @@ extension CustomerGlu: CGMqttClientDelegate {
                 // Entrypoint API refresh
                 
                 if  let enableMQTT =  self.appconfigdata?.enableMqtt, enableMQTT{
-                    ApplicationManager.openWalletApi { success, response in
-                        if success {
-                            self.getEntryPointData()
-                        }
-                    }
+                    doLoadCampaignAndEntryPointCall()
                 }
             }
             
