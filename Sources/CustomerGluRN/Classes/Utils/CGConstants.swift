@@ -42,6 +42,9 @@ struct CGConstants {
     static let CGOPENWALLET = "CG-OPEN-WALLET"
     static let CGSENTRYDSN = "https://d856e4a14b6d4c6eae1fc283d6ddbe8e@o4504440824856576.ingest.sentry.io/4504442660454400"
     static let MQTT_Identifier = "MQTT_Identifier"
+    static let MQTT_ENTRYPOINTS = "ENTRYPOINT"
+    static let MQTT_CLIENT_TESTING = "OPEN_CLIENT_TESTING_PAGE"
+    static let CG_SAFE_AREA_DEFAULT = -1
 }
 
 struct CGDiagnosticConstants{
@@ -171,7 +174,7 @@ struct APIParameterKey {
     static let appSessionId = "appSessionId"
     static let userAgent = "userAgent"
     static let eventName = "eventName"
-    static let cgsdkversionvalue = "1.1.5"
+    static let cgsdkversionvalue = "1.2.0"
     static let analytics_version_value = "4.0.0"
     static let analytics_version = "analytics_version"
     static let dismiss_trigger = "dismiss_trigger"
@@ -238,4 +241,8 @@ struct CGDismissAction {
     static let UI_BUTTON = "UI_BUTTON"
     static let CTA_REDIRECT = "CTA_REDIRECT"
     static let DEFAULT = "DEFAULT"
+}
+
+struct CGSafeAreaConstants {
+    static let SAFE_AREA_PADDING = CGFloat(33.0)
 }

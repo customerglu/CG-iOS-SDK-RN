@@ -28,11 +28,12 @@ class CGCustomAlert: UIViewController {
     var cancelButtonTitle = "NO"
     var alertTag = 0
     var isCancelButtonHidden = false
+    var isRetry = false
     
     weak var delegate: CGCustomAlertDelegate?
 
     init() {
-        super.init(nibName: "CGCustomAlert", bundle: Bundle(for: CGCustomAlert.self))
+        super.init(nibName: "CGCustomAlert", bundle: .module)
         self.modalPresentationStyle = .overCurrentContext
         self.modalTransitionStyle = .crossDissolve
     }

@@ -31,6 +31,13 @@ struct PopUpModel: Codable {
     public var type: String?
 }
 
+@objc(CGDeeplinkURLType)
+public enum CGDeeplinkURLType: Int {
+    case link,
+         wallet,
+         campaign
+}
+
 @objc(CustomerGlu)
 
 public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
@@ -139,7 +146,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     ApplicationManager.callCrashReport(cglog: (crashItems["callStack"] as? String)!, isException: true, methodName: "CustomerGluCrash", user_id: decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_USERID))
                 }
             } catch {
-                CustomerGlu.getInstance.printlog(cglog: "private override init()", isException: false, methodName: "CustomerGlu-init", posttoserver: false)
+                if CustomerGlu.isDebugingEnabled {
+                    print("private override init()")
+                }
             }
         }
     }
@@ -587,6 +596,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         CustomerGlu.getInstance.cgUserData = CGUser()
         ApplicationManager.appSessionId = UUID().uuidString
         CGSentryHelper.shared.logoutSentryUser()
+        
+        // Disconnect MQTT
+        if let enableMqtt = self.appconfigdata?.enableMqtt, enableMqtt, CGMqttClientHelper.shared.checkIsMQTTConnected() {
+            CGMqttClientHelper.shared.disconnectMQTT()
+        }
     }
     
     // MARK: - API Calls Methods
@@ -604,7 +618,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             if !(writekey.isEmpty) {
                 eventData["writeKeyPresent"] = "true"
             } else {
-                eventData["writeKeyPresent"] = "fasle"
+                eventData["writeKeyPresent"] = "false"
             }
             if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
                 eventData["userRegistered"] = "true"
@@ -709,7 +723,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             
             if(self.appconfigdata!.iosSafeArea != nil){
                 
-                CustomerGlu.getInstance.configureSafeArea(topHeight: Int(self.appconfigdata!.iosSafeArea?.topHeight ?? CustomerGlu.topSafeAreaHeight), bottomHeight: Int(self.appconfigdata!.iosSafeArea?.bottomHeight ?? CustomerGlu.bottomSafeAreaHeight), topSafeAreaLightColor: UIColor(hex: self.appconfigdata!.iosSafeArea?.lightTopColor ?? CustomerGlu.topSafeAreaColor.hexString) ?? CustomerGlu.topSafeAreaColor, bottomSafeAreaLightColor: UIColor(hex: self.appconfigdata!.iosSafeArea?.lightBottomColor ?? CustomerGlu.bottomSafeAreaColor.hexString) ?? CustomerGlu.bottomSafeAreaColor, topSafeAreaDarkColor:  UIColor(hex: self.appconfigdata!.iosSafeArea?.darkTopColor ?? CustomerGlu.topSafeAreaColor.hexString) ?? CustomerGlu.topSafeAreaColor, bottomSafeAreaDarkColor: UIColor(hex: self.appconfigdata!.iosSafeArea?.darkBottomColor ?? CustomerGlu.bottomSafeAreaColor.hexString) ?? CustomerGlu.bottomSafeAreaColor)
+                CustomerGlu.getInstance.configureSafeArea(topHeight: Int(self.appconfigdata!.iosSafeArea?.newTopHeight ?? CustomerGlu.topSafeAreaHeight), bottomHeight: Int(self.appconfigdata!.iosSafeArea?.newBottomHeight ?? CustomerGlu.bottomSafeAreaHeight), topSafeAreaLightColor: UIColor(hex: self.appconfigdata!.iosSafeArea?.lightTopColor ?? CustomerGlu.topSafeAreaColor.hexString) ?? CustomerGlu.topSafeAreaColor, bottomSafeAreaLightColor: UIColor(hex: self.appconfigdata!.iosSafeArea?.lightBottomColor ?? CustomerGlu.bottomSafeAreaColor.hexString) ?? CustomerGlu.bottomSafeAreaColor, topSafeAreaDarkColor:  UIColor(hex: self.appconfigdata!.iosSafeArea?.darkTopColor ?? CustomerGlu.topSafeAreaColor.hexString) ?? CustomerGlu.topSafeAreaColor, bottomSafeAreaDarkColor: UIColor(hex: self.appconfigdata!.iosSafeArea?.darkBottomColor ?? CustomerGlu.bottomSafeAreaColor.hexString) ?? CustomerGlu.bottomSafeAreaColor)
                 
                 
             }
@@ -867,12 +881,13 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     
                     self.userDefaults.synchronize()
                     
-                    if CGMqttClientHelper.shared.checkIsMQTTConnected(){
-                        CGMqttClientHelper.shared.disconnectMQTT()
+                    if let enableMqtt = self.appconfigdata?.enableMqtt, enableMqtt {
+                        if CGMqttClientHelper.shared.checkIsMQTTConnected() {
+                            CGMqttClientHelper.shared.disconnectMQTT()
+                        }
                         self.initializeMqtt()
                     }
                     
-
                     ApplicationManager.openWalletApi { success, _ in
                         if success {
                             if CustomerGlu.isEntryPointEnabled {
@@ -1047,6 +1062,28 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
         }
     }
+    
+    
+    /***
+        Update Banner Id list
+     */
+    public func addBannerId(bannerId : String){
+        if !CustomerGlu.bannerIds.contains(bannerId){
+            CustomerGlu.bannerIds.append(bannerId)
+        }
+    }
+    
+    
+    /***
+        Update Embed Id list
+     */
+    public func addEmbedId(embedId : String){
+        if !CustomerGlu.embedIds.contains(embedId){
+            CustomerGlu.embedIds.append(embedId)
+        }
+    }
+    
+    
     
     /**
      *
@@ -1378,6 +1415,23 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
         }
     }
+    
+    @objc public func openDeepLink(deepURLType: CGDeeplinkURLType, id: String, completion: @escaping (CGSTATE, String, CGDeeplinkData?) -> Void) {
+        var urlString = ""
+        if deepURLType == .wallet {
+            urlString = "w"
+        } else if deepURLType == .campaign {
+            urlString = "c"
+        } else if deepURLType == .link {
+            urlString = "u"
+        }
+        guard !urlString.isEmpty else {
+            completion(CGSTATE.EXCEPTION, "Incorrect Invalide URL", nil)
+            return
+        }
+        getCGDeeplinkData(withID: id, urlType: urlString, completion: completion)
+    }
+    
     //    getCGDeeplinkData
     //(eventNudge: [String: Any], completion: @escaping (Bool, CGAddCartModel?) -> Void)
     @objc public func openDeepLink(deepurl:URL!, completion: @escaping (CGSTATE, String, CGDeeplinkData?) -> Void) {
@@ -1394,58 +1448,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             let firstpath = deepurl.pathComponents.count > 1 ? deepurl.pathComponents[1].lowercased() : ""
             let secondpath = deepurl.pathComponents.count > 2 ? deepurl.pathComponents[2] : ""
             
-            if((firstpath.count > 0 && (firstpath == "c" || firstpath == "w" || firstpath == "u")) && secondpath.count > 0){
-                CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY)
-                APIManager.getCGDeeplinkData(queryParameters: ["id":secondpath]) { result in
-                    CustomerGlu.getInstance.loaderHide()
-                    switch result {
-                    case .success(let response):
-                        if(response.success == true){
-                            if (response.data != nil){
-                                if(response.data!.anonymous == true){
-                                    CustomerGlu.getInstance.allowAnonymousRegistration(enabled: true)
-                                    if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil{
-                                        self.excecuteDeepLink(firstpath: firstpath, cgdeeplink: response.data!, completion: completion)
-                                    }else{
-                                        // Reg Call then exe
-                                        var userData = [String: AnyHashable]()
-                                        userData["userId"] = ""
-                                        CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY)
-                                        self.registerDevice(userdata: userData) { success in
-                                            CustomerGlu.getInstance.loaderHide()
-                                            if success {
-                                                self.excecuteDeepLink(firstpath: firstpath, cgdeeplink: response.data!, completion: completion)
-                                            } else {
-                                                CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-5", posttoserver: false)
-                                                completion(CGSTATE.EXCEPTION,"Fail to calll register user", nil)
-                                            }
-                                        }
-                                    }
-                                }else{
-                                    if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil && false == ApplicationManager.isAnonymousUesr(){
-                                        self.excecuteDeepLink(firstpath: firstpath, cgdeeplink: response.data!, completion: completion)
-                                    }else{
-                                        CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-5", posttoserver: false)
-                                        completion(CGSTATE.USER_NOT_SIGNED_IN,"", nil)
-                                    }
-                                }
-                                
-                            }else{
-                                CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-4", posttoserver: false)
-                                completion(CGSTATE.EXCEPTION, "Invalid Response", nil)
-                            }
-                            
-                        }else{
-                            CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-2", posttoserver: false)
-                            completion(CGSTATE.EXCEPTION, response.message ?? "", nil)
-                        }
-                        
-                    case .failure(_):
-                        CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-3", posttoserver: false)
-                        completion(CGSTATE.EXCEPTION, "Fail to call getCGDeeplinkData / Invalid response", nil)
-                    }
-                }
-                
+            if((firstpath.count > 0 && (firstpath == "c" || firstpath == "w" || firstpath == "u")) && secondpath.count > 0) {
+                getCGDeeplinkData(withID: secondpath, urlType: firstpath, completion: completion)
             }else{
                 completion(CGSTATE.INVALID_URL, "Incorrect URL", nil)
             }
@@ -1454,6 +1458,60 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             completion(CGSTATE.EXCEPTION, "Incorrect Invalide URL", nil)
         }
     }
+                         
+    private func getCGDeeplinkData(withID id: String, urlType: String, completion: @escaping (CGSTATE, String, CGDeeplinkData?) -> Void) {
+        CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY)
+        APIManager.getCGDeeplinkData(queryParameters: ["id": id]) { result in
+            CustomerGlu.getInstance.loaderHide()
+            switch result {
+            case .success(let response):
+                if(response.success == true){
+                    if (response.data != nil){
+                        if(response.data!.anonymous == true){
+                            CustomerGlu.getInstance.allowAnonymousRegistration(enabled: true)
+                            if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil{
+                                self.excecuteDeepLink(firstpath: urlType, cgdeeplink: response.data!, completion: completion)
+                            }else{
+                                // Reg Call then exe
+                                var userData = [String: AnyHashable]()
+                                userData["userId"] = ""
+                                CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY)
+                                self.registerDevice(userdata: userData) { success in
+                                    CustomerGlu.getInstance.loaderHide()
+                                    if success {
+                                        self.excecuteDeepLink(firstpath: urlType, cgdeeplink: response.data!, completion: completion)
+                                    } else {
+                                        CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-5", posttoserver: false)
+                                        completion(CGSTATE.EXCEPTION,"Fail to calll register user", nil)
+                                    }
+                                }
+                            }
+                        }else{
+                            if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil && false == ApplicationManager.isAnonymousUesr(){
+                                self.excecuteDeepLink(firstpath: urlType, cgdeeplink: response.data!, completion: completion)
+                            }else{
+                                CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-5", posttoserver: false)
+                                completion(CGSTATE.USER_NOT_SIGNED_IN,"", nil)
+                            }
+                        }
+                        
+                    }else{
+                        CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-4", posttoserver: false)
+                        completion(CGSTATE.EXCEPTION, "Invalid Response", nil)
+                    }
+                    
+                }else{
+                    CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-2", posttoserver: false)
+                    completion(CGSTATE.EXCEPTION, response.message ?? "", nil)
+                }
+                
+            case .failure(_):
+                CustomerGlu.getInstance.printlog(cglog: "Fail to call getCGDeeplinkData", isException: false, methodName: "CustomerGlu-openDeepLink-3", posttoserver: false)
+                completion(CGSTATE.EXCEPTION, "Fail to call getCGDeeplinkData / Invalid response", nil)
+            }
+        }
+    }
+                         
     @objc public func openWallet(nudgeConfiguration: CGNudgeConfiguration) {
         var eventData: [String: Any] = [:]
         eventData["nudgeConfiguration"] = nudgeConfiguration
@@ -1489,6 +1547,13 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func loadCampaignById(campaign_id: String, nudgeConfiguration : CGNudgeConfiguration? = nil , auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
+        
+        // Do Client Testing
+        if campaign_id.caseInsensitiveCompare("test-integration") == .orderedSame {
+            testIntegration()
+            return
+        }
+        
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: CGConstants.CUSTOMERGLU_TOKEN) == nil {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call loadCampaignById", isException: false, methodName: "CustomerGlu-loadCampaignById", posttoserver: true)
             return
@@ -1553,27 +1618,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             loadAllCampign.auto_close_webview = auto_close_webview
             loadAllCampign.loadCampignType = APIParameterKey.type
             loadAllCampign.loadCampignValue = type
-            guard let topController = UIViewController.topViewController() else {
-                return
-            }
-            let navController = UINavigationController(rootViewController: loadAllCampign)
-            navController.modalPresentationStyle = .overCurrentContext
-            self.hideFloatingButtons()
-            topController.present(navController, animated: true, completion: nil)
-        }
-    }
-    
-    @objc public func loadCampaignByStatus(status: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
-        if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: CGConstants.CUSTOMERGLU_TOKEN) == nil {
-            CustomerGlu.getInstance.printlog(cglog: "Fail to call loadCampaignByStatus", isException: false, methodName: "CustomerGlu-loadCampaignByStatus", posttoserver: true)
-            return
-        }
-        
-        DispatchQueue.main.async {
-            let loadAllCampign = StoryboardType.main.instantiate(vcType: LoadAllCampaignsViewController.self)
-            loadAllCampign.auto_close_webview = auto_close_webview
-            loadAllCampign.loadCampignType = APIParameterKey.status
-            loadAllCampign.loadCampignValue = status
             guard let topController = UIViewController.topViewController() else {
                 return
             }
@@ -1772,9 +1816,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         if CustomerGlu.isEntryPointEnabled {
             if !configScreens.contains(className) {
                 configScreens.append(className)
-                sendEntryPointsIdLists()
 
             }
+            sendEntryPointsIdLists()
             
             CustomerGlu.getInstance.activescreenname = className
             
@@ -2269,21 +2313,25 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         // Check if client id is in the preferences, if not there then register
         if let clientID = CustomerGlu.getInstance.cgUserData.client, let userID = CustomerGlu.getInstance.cgUserData.userId {
             // If client id is not nil, than setup MQTT
-            let topic = "nudges/" + (clientID) + "/" + (userID.sha256())
+            /*
+             - The topics to be subscribed in MQTT are as follows -
+                 - **User level**   `/nudges/<client-id>/sha256(userID)` (Used for Event based Nudges)
+                 - **Client level**  `/state/global/<client-id>`
+             */
+            let userTopic = "nudges/" + (clientID) + "/" + (userID.sha256())
+            let clientTopic = "/state/global/" + (clientID)
             let host = "hermes.customerglu.com"
             let username = userID
             let password = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN)
             let mqttIdentifier = decryptUserDefaultKey(userdefaultKey: CGConstants.MQTT_Identifier)
 
-            let config = CGMqttConfig(username: username, password: password, serverHost: host, topic: topic, port: 1883, mqttIdentifier: mqttIdentifier)
+            let config = CGMqttConfig(username: username, password: password, serverHost: host, topics: [userTopic, clientTopic], port: 1883, mqttIdentifier: mqttIdentifier)
             CGMqttClientHelper.shared.setupMQTTClient(withConfig: config, delegate: self)
         } else {
             // Client ID is not available - register
             var userData = [String: AnyHashable]()
             userData["userId"] = CustomerGlu.getInstance.cgUserData.userId ?? ""
-            CustomerGlu.getInstance.loaderShow(withcoordinate: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY)
             self.registerDevice(userdata: userData) { success in
-                CustomerGlu.getInstance.loaderHide()
                 if success {
 
                     // Initialize Mqtt
@@ -2296,14 +2344,42 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
 
 // MARK: - CGMqttClientDelegate
 extension CustomerGlu: CGMqttClientDelegate {
-    func getEntryPointDataWithMqttMessage(_ mqttMessage: CGMqttMessage) {
-        if let entryPointID = mqttMessage.id, !entryPointID.isEmpty {
-            // Open Wallet - Will work in MQTT Flow
-            ApplicationManager.openWalletApi { _, _ in
-                self.getEntryPointData(entryPointID)
+    func openScreen(_ screenType: CGMqttLaunchScreenType, withMqttMessage mqttMessage: CGMqttMessage?) {
+        switch screenType {
+        case .ENTRYPOINT:
+            // Entrypoint API refresh
+            if let mqttMessage, let entryPointID = mqttMessage.id, !entryPointID.isEmpty {
+                // Open Wallet - Will work in MQTT Flow
+                ApplicationManager.openWalletApi { success, _ in
+                    if success {
+                        self.getEntryPointData(entryPointID)
+                    }
+                }
+            } else {
+                ApplicationManager.openWalletApi { success, _ in
+                    if success {
+                        self.getEntryPointData()
+                    }
+                }
             }
-        } else {
-            getEntryPointData()
+            
+        case .OPEN_CLIENT_TESTING_PAGE:
+            // Open Client Testing Page
+            self.testIntegration()
+            
+        case .CAMPAIGN_STATE_UPDATED,
+                .USER_SEGMENT_UPDATED:
+            // loadCampaign & Entrypoints API or user re-register
+            ApplicationManager.openWalletApi { success, _ in
+                if success {
+                    self.getEntryPointData()
+                }
+            }
+            
+        case .SDK_CONFIG_UPDATED:
+            // SDK Config Updation call & SDK re-initialised.
+            sdkInitialized = false // so the SDK can be re-initialised
+            initializeSdk()
         }
     }
 }
