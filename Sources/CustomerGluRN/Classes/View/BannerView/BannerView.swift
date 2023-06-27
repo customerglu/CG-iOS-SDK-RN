@@ -330,6 +330,10 @@ public class BannerView: UIView, UIScrollViewDelegate {
                     CustomerGlu.getInstance.openURLWithNudgeConfig(url: actionData.url, nudgeConfiguration: nudgeConfiguration)
                 } else {
                     //Incase of any data is missing
+                    // Check to open wallet or not in fallback case
+                    guard CustomerGlu.getInstance.checkToOpenWalletOrNot(withCampaignID: dict.campaignId) else {
+                        return
+                    }
                     
                     //Load Campaign Id from the payload
                     if let campaignId = dict.campaignId {
