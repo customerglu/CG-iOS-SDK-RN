@@ -108,6 +108,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     @objc public var cgUserData = CGUser()
     private var sdkInitialized: Bool = false
     private static var isAnonymousFlowAllowed: Bool = false
+    
+    private var allowOpenWallet: Bool = true
+    private var loadCampaignResponse: CGCampaignsModel?
+    
     internal static var sdkWriteKey: String = Bundle.main.object(forInfoDictionaryKey: "CUSTOMERGLU_WRITE_KEY") as? String ?? ""
     
     private override init() {
@@ -383,6 +387,32 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     
     @objc public func setDiagnosticsEnabled(isDiagnosticsEnabled: Bool){
         CustomerGlu.isDiagnosticsEnabled = isDiagnosticsEnabled
+    }
+    
+    @objc public func setOpenWalletAsFallback(_ flag: Bool) {
+        allowOpenWallet = flag
+    }
+    
+    func setCampaignsModel(_ model: CGCampaignsModel?) {
+        loadCampaignResponse = model
+    }
+    
+    @objc internal func checkToOpenWalletOrNot(withCampaignID campaignID: String) -> Bool {
+        // Check the user has set flag 'allowOpenWallet' false and based on that check is campaign ID valid is false
+        if !allowOpenWallet,
+           let loadCampaignResponse,
+           let campaigns = loadCampaignResponse.campaigns,
+           campaigns.count > 0,
+            !OtherUtils.shared.validateCampaign(withCampaignID: campaignID, in: campaigns)
+        {
+            var eventInfo = [String: Any]()
+            eventInfo["campaignId"] = campaignID
+            eventInfo[APIParameterKey.messagekey] = "Invalid campaignId"
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CG_INVALID_CAMPAIGN_ID").rawValue), object: nil, userInfo: eventInfo)
+            return false
+        }
+        
+        return true
     }
     
     @objc public func cgapplication(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], backgroundAlpha: Double = 0.5,auto_close_webview : Bool = CustomerGlu.auto_close_webview!, fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
@@ -698,6 +728,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 CGEventsDiagnosticsHelper.shared.sendMultipleDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_ENABLED, eventTypes: [CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, CGDiagnosticConstants.CG_TYPE_METRICS], eventMeta:eventData)
                 
                 // Initialize Mqtt
+                if CGMqttClientHelper.shared.checkIsMQTTConnected() {
+                    CGMqttClientHelper.shared.disconnectMQTT()
+                }
                 initializeMqtt()
             } else {
                 var eventData: [String: Any] = [:]
@@ -816,6 +849,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         userData[APIParameterKey.deviceName] = getDeviceName()
         userData[APIParameterKey.appVersion] = appVersion
         userData[APIParameterKey.writeKey] = writekey
+        if let isMQTTEnabled = appconfigdata?.enableMqtt {
+            userData[APIParameterKey.isMQTTEnabled] = isMQTTEnabled
+        } else {
+            userData[APIParameterKey.isMQTTEnabled] = false
+        }
         
         if CustomerGlu.fcm_apn == "fcm" {
             userData[APIParameterKey.apnsDeviceToken] = ""
@@ -888,7 +926,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         self.initializeMqtt()
                     }
                     
-                    ApplicationManager.openWalletApi { success, _ in
+                    ApplicationManager.openWalletApi { success, response in
                         if success {
                             if CustomerGlu.isEntryPointEnabled {
                                 CustomerGlu.bannersHeight = nil
@@ -1082,14 +1120,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             CustomerGlu.embedIds.append(embedId)
         }
     }
-    
-    
-    
-    /**
-     *
-     * @param entryPointID   - Pass only in case of MQTT
-     */
-    private func getEntryPointData(_ entryPointID: String? = nil) {
+
+    private func getEntryPointData() {
         if CustomerGlu.sdk_disable! == true || Reachability.shared.isConnectedToNetwork() != true || userDefaults.string(forKey: CGConstants.CUSTOMERGLU_TOKEN) == nil {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call getEntryPointData", isException: false, methodName: "CustomerGlu-getEntryPointData", posttoserver: true)
             CustomerGlu.bannersHeight = [String:Any]()
@@ -1109,10 +1141,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         CustomerGlu.bannersHeight = nil
         CustomerGlu.embedsHeight = nil
         
-        var queryParameters: [AnyHashable: Any] = ["consumer": "MOBILE"]
-        if let entryPointID = entryPointID, !entryPointID.isEmpty {
-            queryParameters["id"] = entryPointID
-        }
+        let queryParameters: [AnyHashable: Any] = ["consumer": "MOBILE"]
         
         APIManager.getEntryPointdata(queryParameters: queryParameters as NSDictionary) { [self] result in
             switch result {
@@ -1121,20 +1150,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     self.dismissFloatingButtons(is_remove: false)
                 }
                 
-                if let entryPointID = entryPointID, !entryPointID.isEmpty {
-                    // MQTT Flow
-                    let newEntryPointData = OtherUtils.shared.getUniqueEntryData(fromExistingData: CustomerGlu.entryPointdata, byComparingItWithNewEntryData: response.data)
-                    
-                    if newEntryPointData.count > 0 {
-                        for data in newEntryPointData {
-                            CustomerGlu.entryPointdata.append(data)
-                        }
-                    }
-                } else {
-                    // Normal Flow
-                    CustomerGlu.entryPointdata.removeAll()
-                    CustomerGlu.entryPointdata = response.data
-                }
+                // Normal Flow
+                CustomerGlu.entryPointdata.removeAll()
+                CustomerGlu.entryPointdata = response.data
                 
                 // FLOATING Buttons
                 let floatingButtons = CustomerGlu.entryPointdata.filter {
@@ -1146,13 +1164,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 postBannersCount()
                 
                 /*
-                 In case of MQTT - type POPUP was not launching the screen.
-                 So below code only handles that scenario to show POPUP if it exists in API response.
+                 Below code only handles that scenario to show POPUP if it exists in API response.
                  */
                 let popupData = CustomerGlu.entryPointdata.filter {
                     $0.mobile.container.type == "POPUP"
                 }
-                if let entryPointID = entryPointID, let popupDataId = popupData.first?._id , popupDataId == entryPointID,!entryPointID.isEmpty, popupData.count > 0  {
+                if popupData.count > 0 {
                     DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(0), execute: {
                         CustomerGlu.getInstance.setCurrentClassName(className: CustomerGlu.getInstance.activescreenname)
                     })
@@ -1262,6 +1279,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             APIManager.getWalletRewards(queryParameters: [:]) { result in
                 switch result {
                 case .success(let response):
+                    // Save this - To open / not open wallet incase of failure / invalid campaignId in loadCampaignById
+                    self.setCampaignsModel(response)
                     
                     if(response.defaultUrl.count > 0){
                         let url = URL(string: response.defaultUrl)
@@ -1351,7 +1370,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         ApplicationManager.loadAllCampaignsApi(type: "", value: "", loadByparams: [:]) { success, campaignsModel in
             CustomerGlu.getInstance.loaderHide()
             if success {
-                
+                // Save this - To open / not open wallet incase of failure / invalid campaignId in loadCampaignById
+                self.setCampaignsModel(campaignsModel)
+
                 let defaultwalleturl = String(campaignsModel?.defaultUrl ?? "")
                 var cgstate = CGSTATE.EXCEPTION
                 if(firstpath == "u"){
@@ -1557,6 +1578,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             CustomerGlu.getInstance.printlog(cglog: "Fail to call loadCampaignById", isException: false, methodName: "CustomerGlu-loadCampaignById", posttoserver: true)
             return
         }
+        
+        // Check to open wallet or not in fallback case
+        guard checkToOpenWalletOrNot(withCampaignID: campaign_id) else {
+            return
+        }
+        
         var eventData: [String: Any] = [:]
         eventData["nudgeConfiguration"] = nudgeConfiguration
         eventData["campaign_id"] = campaign_id
@@ -2295,8 +2322,13 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func testIntegration() {
+        launchClientTesting()
+    }
+    
+    private func launchClientTesting(isDeeplinkRelaunch: Bool = false) {
         DispatchQueue.main.async {
             let clientTestingVC = StoryboardType.main.instantiate(vcType: CGClientTestingViewController.self)
+            clientTestingVC.viewModel.isRelaunch = isDeeplinkRelaunch
             guard let topController = UIViewController.topViewController() else {
                 return
             }
@@ -2332,13 +2364,53 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             userData["userId"] = CustomerGlu.getInstance.cgUserData.userId ?? ""
             self.registerDevice(userdata: userData) { success in
                 if success {
-
                     // Initialize Mqtt
                     self.initializeMqtt()
                 }
             }
         }
     }
+    
+    func doLoadCampaignAndEntryPointCall() {
+        ApplicationManager.openWalletApi { success, response in
+            if success {
+                self.getEntryPointData()
+            }
+        }
+    }
+    
+    internal func showClientTestingRedirectAlert() {
+        // After 8 seconds show redirect alert
+        DispatchQueue.main.asyncAfter(deadline: .now() + 8.0) { [weak self] in
+            guard let topController = UIViewController.topViewController() else {
+                return
+            }
+            
+            let customAlert = CGCustomAlert()
+            customAlert.alertTitle = "Client Testing"
+            customAlert.alertMessage = "Relaunch client testing after successful deeplink redirect!"
+            customAlert.alertTag = 1001
+            customAlert.isCancelButtonHidden = true
+            customAlert.okButtonTitle = "Relaunch"
+            customAlert.cancelButtonTitle = ""
+            customAlert.isCancelButtonHidden = true
+            customAlert.delegate = self
+            customAlert.isRetry = false
+            customAlert.showOnViewController(topController)
+        }
+    }
+}
+
+// MARK: - CGCustomAlertDelegate
+extension CustomerGlu: CGCustomAlertDelegate {
+    func okButtonPressed(_ alert: CGCustomAlert, alertTag: Int) {
+        // Doing it after delay because topController is 'CGCustomAlert' and client testing wont open back
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            self?.launchClientTesting(isDeeplinkRelaunch: true)
+        }
+    }
+    
+    func cancelButtonPressed(_ alert: CGCustomAlert, alertTag: Int) {}
 }
 
 // MARK: - CGMqttClientDelegate
@@ -2346,19 +2418,13 @@ extension CustomerGlu: CGMqttClientDelegate {
     func openScreen(_ screenType: CGMqttLaunchScreenType, withMqttMessage mqttMessage: CGMqttMessage?) {
         switch screenType {
         case .ENTRYPOINT:
-            // Entrypoint API refresh
-            if let mqttMessage, let entryPointID = mqttMessage.id, !entryPointID.isEmpty {
-                // Open Wallet - Will work in MQTT Flow
-                ApplicationManager.openWalletApi { success, _ in
-                    if success {
-                        self.getEntryPointData(entryPointID)
-                    }
-                }
-            } else {
-                ApplicationManager.openWalletApi { success, _ in
-                    if success {
-                        self.getEntryPointData()
-                    }
+            // Check Mqtt Enabled Components
+            if checkMqttEnabledComponents(containsKey: CGConstants.MQTT_Enabled_Components_State_Sync) ||
+                checkMqttEnabledComponents(containsKey: CGConstants.MQTT_Enabled_Components_EntryPoints) {
+                // Entrypoint API refresh
+                
+                if  let enableMQTT =  self.appconfigdata?.enableMqtt, enableMQTT{
+                    doLoadCampaignAndEntryPointCall()
                 }
             }
             
@@ -2368,17 +2434,31 @@ extension CustomerGlu: CGMqttClientDelegate {
             
         case .CAMPAIGN_STATE_UPDATED,
                 .USER_SEGMENT_UPDATED:
-            // loadCampaign & Entrypoints API or user re-register
-            ApplicationManager.openWalletApi { success, _ in
-                if success {
-                    self.getEntryPointData()
+            // Check Mqtt Enabled Components
+            if checkMqttEnabledComponents(containsKey: CGConstants.MQTT_Enabled_Components_State_Sync),  let enableMQTT =  self.appconfigdata?.enableMqtt, enableMQTT {
+                // loadCampaign & Entrypoints API or user re-register
+                ApplicationManager.openWalletApi { success, response in
+                    if success {
+                        self.getEntryPointData()
+                    }
                 }
             }
             
         case .SDK_CONFIG_UPDATED:
-            // SDK Config Updation call & SDK re-initialised.
-            sdkInitialized = false // so the SDK can be re-initialised
-            initializeSdk()
+            // Check Mqtt Enabled Components
+            if checkMqttEnabledComponents(containsKey: CGConstants.MQTT_Enabled_Components_State_Sync), let enableMQTT =  self.appconfigdata?.enableMqtt, enableMQTT {
+                // SDK Config Updation call & SDK re-initialised.
+                sdkInitialized = false // so the SDK can be re-initialised
+                initializeSdk()
+            }
         }
+    }
+    
+    private func checkMqttEnabledComponents(containsKey key: String) -> Bool {
+        if let mqttEnabledComponents = self.appconfigdata?.mqttEnabledComponents, mqttEnabledComponents.count > 0, mqttEnabledComponents.contains(key) {
+            return true
+        }
+        
+        return false
     }
 }

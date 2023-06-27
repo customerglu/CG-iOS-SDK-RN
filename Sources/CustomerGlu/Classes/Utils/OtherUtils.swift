@@ -29,7 +29,7 @@ class OtherUtils {
         Add Query Parameters to URL
      */
     func addQueryParamsToURL(with urlWithoutParams: String, paramsToAdd: [String: Any]) -> URL{
-        var urlComponents = NSURLComponents(string: urlWithoutParams)!
+        let urlComponents = NSURLComponents(string: urlWithoutParams)!
 
         for paramsData in paramsToAdd {
             urlComponents.queryItems?.append(NSURLQueryItem(name: paramsData.key, value: paramsData.value as? String) as URLQueryItem)
@@ -71,5 +71,15 @@ class OtherUtils {
         }
         
         return uniqueData
+    }
+    
+    func validateCampaign(withCampaignID campaignID: String, in campaigns: [CGCampaigns]) -> Bool {
+        for campaignsModel in campaigns {
+            if campaignsModel.campaignId == campaignID {
+                return true
+            }
+        }
+        
+        return false
     }
 }

@@ -68,6 +68,7 @@ public class CGMobileData: Codable {
     public var bannerIds: PlatformList?
     public var embedIds: PlatformList?
     public var enableMqtt: Bool?
+    public var mqttEnabledComponents: [String]?
     public var allowedRetryCount: Int = 1
     public var allowAnonymousRegistration: Bool?
     
@@ -113,6 +114,11 @@ public class CGMobileData: Codable {
         self.bannerIds = try container.decodeIfPresent(PlatformList.self, forKey: .bannerIds) ?? PlatformList()
         self.embedIds = try container.decodeIfPresent(PlatformList.self, forKey: .embedIds) ?? PlatformList()
         self.enableMqtt = try container.decodeIfPresent(Bool.self, forKey: .enableMqtt) ?? false
+        if let mqttEnabledComponents = try? container.decodeIfPresent([String].self, forKey: .mqttEnabledComponents) {
+            self.mqttEnabledComponents = mqttEnabledComponents
+        } else {
+            self.mqttEnabledComponents = []
+        }
         self.allowedRetryCount = try container.decodeIfPresent(Int.self, forKey: .allowedRetryCount) ?? 1
         self.allowAnonymousRegistration = try container.decodeIfPresent(Bool.self, forKey: .allowAnonymousRegistration) ?? false
     }
