@@ -108,6 +108,7 @@ class ApplicationManager {
             CGSentryHelper.shared.captureExceptionEvent(exceptionLog: cglog)
         }
         // Removed the crash event old implementation
+
     }
     
     public static func sendEventsDiagnostics(eventLogType: String,eventName: String,eventMeta:[String:Any],completion: @escaping(Bool, CGAddCartModel?) -> Void){

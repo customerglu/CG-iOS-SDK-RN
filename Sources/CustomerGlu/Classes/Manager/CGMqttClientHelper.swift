@@ -8,10 +8,18 @@
 import UIKit
 import CommonCrypto
 
+// MARK: - CGMqttLaunchScreenType
+enum CGMqttLaunchScreenType: String {
+    case ENTRYPOINT = "ENTRYPOINT" // Entrypoint API refresh
+    case OPEN_CLIENT_TESTING_PAGE = "OPEN_CLIENT_TESTING_PAGE"
+    case CAMPAIGN_STATE_UPDATED = "CAMPAIGN_STATE_UPDATED" // loadCampaign & Entrypoints API.
+    case SDK_CONFIG_UPDATED = "SDK_CONFIG_UPDATED" // SDK Config Updation call & SDK re-initialised.
+    case USER_SEGMENT_UPDATED = "USER_SEGMENT_UPDATED" // User re-registration.
+}
+
 // MARK: - CGMqttClientDelegate
 protocol CGMqttClientDelegate: NSObjectProtocol {
-    func getEntryPointDataWithMqttMessage(_ mqttMessage: CGMqttMessage)
-    func openClientTestingPage()
+    func openScreen(_ screenType: CGMqttLaunchScreenType, withMqttMessage mqttMessage: CGMqttMessage?)
 }
 
 //MARK: - CGMqttClientHelper
@@ -36,7 +44,7 @@ class CGMqttClientHelper: NSObject {
         eventData["username"] = config.username
         eventData["password"] = config.password
         eventData["serverHost"] = config.serverHost
-        eventData["topic"] = config.topic
+        eventData["topics"] = config.topics
         eventData["port"] = config.port
         eventData["mqttIdentifier"] = config.mqttIdentifier
                 
@@ -70,7 +78,7 @@ class CGMqttClientHelper: NSObject {
                 eventData["username"] = config.username
                 eventData["password"] = config.password
                 eventData["serverHost"] = config.serverHost
-                eventData["topic"] = config.topic
+                eventData["topics"] = config.topics
                 eventData["port"] = config.port
                 eventData["mqttIdentifier"] = config.mqttIdentifier
                 
@@ -79,7 +87,7 @@ class CGMqttClientHelper: NSObject {
                 
                 if success {
                     // use the client to subscribe to topics here
-                    self.subscribeToTopic(topic: config.topic)
+                    self.subscribeToTopics(topics: config.topics)
                 }
             }
             
@@ -100,12 +108,10 @@ class CGMqttClientHelper: NSObject {
                     do {
                         if(jsonData.count > 0) {
                             let model = try decoder.decode(CGMqttMessage.self, from: jsonData)
-                            if let delegate = self.delegate, let type = model.type  {
-                                if type.caseInsensitiveCompare(CGConstants.MQTT_ENTRYPOINTS) == .orderedSame{
-                                    delegate.getEntryPointDataWithMqttMessage(model)
-                                }else if type.caseInsensitiveCompare(CGConstants.MQTT_CLIENT_TESTING) == .orderedSame {
-                                    delegate.openClientTestingPage()
-                                }
+                            if let delegate = self.delegate,
+                                let type = model.type,
+                                let screenType = CGMqttLaunchScreenType(rawValue: type) {
+                                delegate.openScreen(screenType, withMqttMessage: model)
                             }
                         }
                     } catch {
@@ -122,19 +128,21 @@ class CGMqttClientHelper: NSObject {
      *
      * @param topic
      */
-    func subscribeToTopic(topic: String) {
+    func subscribeToTopics(topics: [String]) {
         guard let client = client else { return }
-        client.subscribe(to: topic)
-        if CustomerGlu.isDebugingEnabled {
-            print("Topic name \(topic)")
+        
+        for topic in topics {
+            client.subscribe(to: topic)
+            if CustomerGlu.isDebugingEnabled {
+                print("Topic name \(topic)")
+            }
+            
+            // DIAGNOSTICS
+            var eventData: [String: Any] = [:]
+            eventData["topic"] = topic
+            
+            CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_SUBSCRIBE, eventType: CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
         }
-       
-        
-        // DIAGNOSTICS
-        var eventData: [String: Any] = [:]
-        eventData["topic"] = topic
-        
-        CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_MQTT_SUBSCRIBE, eventType: CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
     }
     
     func checkIsMQTTConnected() -> Bool {
@@ -150,7 +158,7 @@ class CGMqttClientHelper: NSObject {
             eventData["username"] = config.username
             eventData["password"] = config.password
             eventData["serverHost"] = config.serverHost
-            eventData["topic"] = config.topic
+            eventData["topics"] = config.topics
             eventData["port"] = config.port
             eventData["mqttIdentifier"] = config.mqttIdentifier
             
