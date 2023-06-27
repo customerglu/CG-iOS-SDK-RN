@@ -46,6 +46,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     private var defaulttimer : Timer?
     var spinner = SpinnerView()
     var progressView = AnimationView()
+    let window = UIApplication.shared.keyWindow
     
     public func configureSafeAreaForDevices() {
         
