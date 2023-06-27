@@ -25,32 +25,79 @@ private enum ContentType: String {
     case json = "application/json"
 }
 
-// MARK: - ProfileEndPoint Model
+// MARK: - MethodandPath
 internal class MethodandPath: Codable {
     
     // MARK: - Variables
     internal var method: String
     internal var path: String
+    internal var baseurl: String
     
-    init(method: String?, path: String?) {
-        self.method = method!
-        self.path = path!
+    init(serviceType: CGService) {
+        // Default value else change it in respective enum case.
+        self.baseurl = BaseUrls.baseurl
+        
+        switch serviceType {
+        case .userRegister:
+            self.method = "POST"
+            self.path = "user/v1/user/sdk?token=true"
+        case .getWalletRewards:
+            self.method = "GET"
+            self.path = "reward/v1.1/user"
+        case .addToCart:
+            self.method = "POST"
+            self.path = "server/v4"
+            self.baseurl = BaseUrls.eventUrl
+        case .crashReport:
+            self.method = "PUT"
+            self.path = "api/v1/report"
+        case .entryPointdata:
+            self.method = "GET"
+            self.path = "entrypoints/v1/list"
+        case .entrypoints_config:
+            self.method = "POST"
+            self.path = "entrypoints/v1/config"
+        case .send_analytics_event:
+            self.method = "POST"
+            self.path = "v4/sdk"
+            self.baseurl = BaseUrls.streamurl
+        case .appconfig:
+            self.method = "GET"
+            self.path = "client/v1/sdk/config"
+        case .cgdeeplink:
+            self.method = "GET"
+            self.path = "api/v1/wormhole/sdk/url"
+        case .cgMetricDiagnostics:
+            self.method = "POST"
+            self.path = "sdk/v4"
+            self.baseurl = BaseUrls.diagnosticUrl
+        case .cgNudgeIntegration:
+            self.method = "POST"
+            self.path = "integrations/v1/nudge/sdk/test"
+        case .onboardingSDKNotificationConfig:
+            self.method = "POST"
+            self.path = "integrations/v1/onboarding/sdk/notification-config"
+        case .onboardingSDKTestSteps:
+            self.method = "POST"
+            self.path = "integrations/v1/onboarding/sdk/test-steps"
+        }
     }
 }
 
-// Parameter Key's for all API's
-private struct MethodNameandPath {
-    static let userRegister = MethodandPath(method: "POST", path: "user/v1/user/sdk?token=true")
-    static let getWalletRewards = MethodandPath(method: "GET", path: "reward/v1.1/user")
-    static let addToCart = MethodandPath(method: "POST", path: "server/v4")
-    static let crashReport = MethodandPath(method: "PUT", path: "api/v1/report")
-    static let entryPointdata = MethodandPath(method: "GET", path: "entrypoints/v1/list")
-    static let entrypoints_config = MethodandPath(method: "POST", path: "entrypoints/v1/config")
-    static let send_analytics_event = MethodandPath(method: "POST", path: "v4/sdk")
-    static let appconfig = MethodandPath(method: "GET", path: "client/v1/sdk/config")
-    static let cgdeeplink = MethodandPath(method: "GET", path: "api/v1/wormhole/sdk/url")
-    static let cgMetricDiagnostics = MethodandPath(method: "POST", path:"sdk/v4")
-    static let cgNudgeIntegration = MethodandPath(method: "POST", path:"integrations/v1/nudge/sdk/test")
+enum CGService {
+    case userRegister
+    case getWalletRewards
+    case addToCart
+    case crashReport
+    case entryPointdata
+    case entrypoints_config
+    case send_analytics_event
+    case appconfig
+    case cgdeeplink
+    case cgMetricDiagnostics
+    case cgNudgeIntegration
+    case onboardingSDKNotificationConfig
+    case onboardingSDKTestSteps
 }
 
 // Parameter Key's for all API's
@@ -63,9 +110,46 @@ private struct BaseUrls {
     static let analyticsUrl = ApplicationManager.analyticsUrl
 }
 
+// MARK: - CGRequestData
+private struct CGRequestData {
+    var baseurl: String
+    var methodandpath: MethodandPath
+    var parametersDict: NSDictionary
+    var dispatchGroup:DispatchGroup = DispatchGroup()
+    var retryCount: Int = 1
+    var completionBlock: ((_ status: CGAPIStatus, _ data: [String: Any]?, _ error: CGNetworkError?) -> Void)?
+}
+
+// MARK: - CGAPIStatus
+enum CGAPIStatus {
+    case success
+    case failure
+}
+
+// MARK: - CGNetworkError
+enum CGNetworkError: Error, LocalizedError {
+    case badURLRetry
+    case unauthorized
+    case bindingFailed
+    case other
+
+    public var errorDescription: String? {
+        switch self {
+        case .badURLRetry:
+            return NSLocalizedString("Bad URL Type, please retry", comment: "CGNetworkError")
+        case .unauthorized:
+            return NSLocalizedString("Unauthorized user logout", comment: "CGNetworkError")
+        case .bindingFailed:
+            return NSLocalizedString("Data binding failed", comment: "CGNetworkError")
+        case .other:
+            return NSLocalizedString("Other Error", comment: "CGNetworkError")
+        }
+    }
+}
+
 // Class contain Helper Methods Used in Overall Application Related to API Calls
+// MARK: - APIManager
 class APIManager {
-    
     public var session: URLSession
     init(session: URLSession = .shared) {
         self.session = session
@@ -74,22 +158,22 @@ class APIManager {
     // Singleton Instance
     static let shared = APIManager()
     
-    private static func performRequest<T: Decodable>(baseurl: String, methodandpath: MethodandPath, parametersDict: NSDictionary?,dispatchGroup:DispatchGroup = DispatchGroup() ,completion: @escaping (Result<T, Error>) -> Void) {
+    private static func performRequest(withData requestData: CGRequestData) {
         
         //Grouped compelete API-call work flow into a DispatchGroup so that it can maintanted the oprational queue for task completion
         // Enter into DispatchGroup
         //   if(MethodNameandPath.getWalletRewards.path == methodandpath.path){
-        dispatchGroup.enter()
+        requestData.dispatchGroup.enter()
         //    }
         
         var urlRequest: URLRequest!
         var url: URL!
-        let strUrl = "https://" + baseurl
-        url = URL(string: strUrl + methodandpath.path)!
+        let strUrl = "https://" + requestData.baseurl
+        url = URL(string: strUrl + requestData.methodandpath.path)!
         urlRequest = URLRequest(url: url)
         
         // HTTP Method
-        urlRequest.httpMethod = methodandpath.method//method.rawValue
+        urlRequest.httpMethod = requestData.methodandpath.method//method.rawValue
         
         // Common Headers
         urlRequest.setValue(ContentType.json.rawValue, forHTTPHeaderField: HTTPHeaderField.contentType.rawValue)
@@ -103,14 +187,13 @@ class APIManager {
             urlRequest.setValue("\(APIParameterKey.bearer) " + CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN), forHTTPHeaderField: HTTPHeaderField.xgluauth.rawValue)
         }
         
-        if parametersDict!.count > 0 { // Check Parameters & Move Accordingly
-            
+        if requestData.parametersDict.count > 0 { // Check Parameters & Move Accordingly
             if(true == CustomerGlu.isDebugingEnabled){
-                print(parametersDict as Any)
+                print(requestData.parametersDict as Any)
             }
-            if methodandpath.method == "GET" {
+            if requestData.methodandpath.method == "GET" {
                 var urlString = ""
-                for (i, (keys, values)) in parametersDict!.enumerated() {
+                for (i, (keys, values)) in requestData.parametersDict.enumerated() {
                     urlString += i == 0 ? "?\(keys)=\(values)" : "&\(keys)=\(values)"
                 }
                 // Append GET Parameters to URL
@@ -119,7 +202,7 @@ class APIManager {
                 absoluteStr = absoluteStr.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
                 urlRequest.url = URL(string: absoluteStr)!
             } else {
-                urlRequest.httpBody = try? JSONSerialization.data(withJSONObject: parametersDict as Any, options: .fragmentsAllowed)
+                urlRequest.httpBody = try? JSONSerialization.data(withJSONObject: requestData.parametersDict as Any, options: .fragmentsAllowed)
             }
         }
         
@@ -130,15 +213,17 @@ class APIManager {
         let task = shared.session.dataTask(with: urlRequest) { data, response, error in
             
             // Leave from dispachgroup
-            // wait untill dispatchGroup.leave() not called
-            // if(MethodNameandPath.getWalletRewards.path == methodandpath.path){
-            dispatchGroup.leave()
-            //  }
+            requestData.dispatchGroup.leave()
             
+            
+            
+            var isRetry = false
             if let httpResponse = response as? HTTPURLResponse {
                 if httpResponse.statusCode == 401 {
                     CustomerGlu.getInstance.clearGluData()
                     return
+                } else if httpResponse.statusCode == 429 || httpResponse.statusCode == 502 || httpResponse.statusCode == 408 {
+                    isRetry = true
                 }
             }
             guard let data = data, error == nil else { return }
@@ -148,30 +233,36 @@ class APIManager {
                 let JSON = json
                 JSON?.printJson()
                 let cleanedJSON = cleanJSON(json: JSON!, isReturn: true)
-                dictToObject(dict: cleanedJSON, type: T.self, completion: completion)
-            } catch let error as NSError {
+                if isRetry {
+                    requestData.completionBlock?(.success, cleanedJSON, CGNetworkError.badURLRetry)
+                } else {
+                    requestData.completionBlock?(.success, cleanedJSON, nil)
+                }
+            } catch let error {
                 if(true == CustomerGlu.isDebugingEnabled){
                     print(error)
                 }
                 
+                if isRetry {
+                    requestData.completionBlock?(.failure, nil, CGNetworkError.badURLRetry)
+                } else {
+                    requestData.completionBlock?(.failure, nil, error as? CGNetworkError)
+                }
             }
         }
         task.resume()
         
         // wait untill dispatchGroup.leave() not called
-        //  if(MethodNameandPath.getWalletRewards.path == methodandpath.path){
-        dispatchGroup.wait()
-        //   }
+        requestData.dispatchGroup.wait()
     }
     
-    static func userRegister(queryParameters: NSDictionary, completion: @escaping (Result<CGRegistrationModel, Error>) -> Void) {
+    private static func blockOperationForService(withRequestData requestData: CGRequestData) {
         // create a blockOperation for avoiding miltiple API call at same time
         let blockOperation = BlockOperation()
         
         // Added Task into Queue
         blockOperation.addExecutionBlock {
-            // Call Login API with API Router
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.userRegister, parametersDict: queryParameters, completion: completion)
+            performRequest(withData: requestData)
         }
         
         // Add dependency to finish previus task before starting new one
@@ -183,198 +274,105 @@ class APIManager {
         ApplicationManager.operationQueue.addOperation(blockOperation)
     }
     
-    static func getWalletRewards(queryParameters: NSDictionary, completion: @escaping (Result<CGCampaignsModel, Error>) -> Void) {
-        // Call Get Wallet and Rewards List
-        
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.getWalletRewards, parametersDict: queryParameters,completion: completion)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
+    private static func blockOperationForServiceWithDelay(andRequestData requestData: CGRequestData) {
+        // Delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10, execute: {
+            // Background thread
+            DispatchQueue.global(qos: .userInitiated).async {
+                blockOperationForService(withRequestData: requestData)
+            }
+        })
     }
     
-    static func addToCart(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, Error>) -> Void) {
+    private static func serviceCall<T: Decodable>(for type: CGService, parametersDict: NSDictionary, dispatchGroup: DispatchGroup = DispatchGroup(), completion: @escaping (Result<T, CGNetworkError>) -> Void) {
+        let methodandpath = MethodandPath(serviceType: type)
+        var requestData = CGRequestData(baseurl: methodandpath.baseurl, methodandpath: methodandpath, parametersDict: parametersDict, dispatchGroup: dispatchGroup, retryCount: CustomerGlu.getInstance.appconfigdata?.allowedRetryCount ?? 1)
         
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Get Wallet and Rewards List
-            performRequest(baseurl: BaseUrls.eventUrl, methodandpath: MethodNameandPath.addToCart, parametersDict: queryParameters, completion: completion)
+        // Call Login API with API Router
+        let block: (_ status: CGAPIStatus, _ data: [String: Any]?, _ error: CGNetworkError?) -> Void = { (status, data, error) in
+            switch status {
+            case .success:
+                if let data {
+                    requestData.retryCount = requestData.retryCount - 1
+                    if let error, error == .badURLRetry, requestData.retryCount >= 1 {
+                        blockOperationForServiceWithDelay(andRequestData: requestData)
+                    } else {
+                        if let error, error == .badURLRetry {
+                            completion(.failure(CGNetworkError.badURLRetry))
+                        } else if let object = dictToObject(dict: data, type: T.self) {
+                            completion(.success(object))
+                        } else {
+                            completion(.failure(CGNetworkError.other))
+                        }
+                    }
+                } else {
+                    completion(.failure(CGNetworkError.bindingFailed))
+                }
+                
+            case .failure:
+                requestData.retryCount = requestData.retryCount - 1
+                if let error, error == .badURLRetry, requestData.retryCount >= 1 {
+                    blockOperationForServiceWithDelay(andRequestData: requestData)
+                } else {
+                    completion(.failure(CGNetworkError.other))
+                }
+            }
         }
         
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
+        requestData.completionBlock = block
+        blockOperationForService(withRequestData: requestData)
     }
     
-    static func crashReport(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, Error>) -> Void) {
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Get Wallet and Rewards List
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.crashReport, parametersDict: queryParameters, completion: completion)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
+    static func userRegister(queryParameters: NSDictionary, completion: @escaping (Result<CGRegistrationModel, CGNetworkError>) -> Void) {
+        serviceCall(for: .userRegister, parametersDict: queryParameters,completion: completion)
     }
     
-    static func getEntryPointdata(queryParameters: NSDictionary, completion: @escaping (Result<CGEntryPoint, Error>) -> Void) {
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Get Wallet and Rewards List
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.entryPointdata, parametersDict: queryParameters, completion: completion)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
+    static func getWalletRewards(queryParameters: NSDictionary, completion: @escaping (Result<CGCampaignsModel, CGNetworkError>) -> Void) {
+        serviceCall(for: .getWalletRewards, parametersDict: queryParameters,completion: completion)
     }
     
-    static func entrypoints_config(queryParameters: NSDictionary, completion: @escaping (Result<EntryConfig, Error>) -> Void) {
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Put EntryPoints_Config
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.entrypoints_config, parametersDict: queryParameters, completion: completion)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
+    static func addToCart(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, CGNetworkError>) -> Void) {
+        serviceCall(for: .addToCart, parametersDict: queryParameters, completion: completion)
     }
     
-    static func sendAnalyticsEvent(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, Error>) -> Void) {
-        
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Get Wallet and Rewards List
-            performRequest(baseurl: BaseUrls.streamurl, methodandpath: MethodNameandPath.send_analytics_event, parametersDict: queryParameters, completion: completion)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
+    static func crashReport(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, CGNetworkError>) -> Void) {
+        serviceCall(for: .crashReport, parametersDict: queryParameters, completion: completion)
     }
     
-    
-    // TODO Response Model needs to be changed.
-    /**
-        Event and Diagnostics Send.
-     **/
-    static func sendEventsDiagnostics(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, Error>) -> Void) {
-        
-        let blockOperation = BlockOperation()
-        
-        blockOperation.addExecutionBlock {
-            performRequest(baseurl: BaseUrls.diagnosticUrl, methodandpath: MethodNameandPath.cgMetricDiagnostics, parametersDict: queryParameters, completion: completion)
-        }
-        
-        if ApplicationManager.operationQueue.operations.count > 0 {
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        ApplicationManager.operationQueue.addOperation(blockOperation)
+    static func getEntryPointdata(queryParameters: NSDictionary, completion: @escaping (Result<CGEntryPoint, CGNetworkError>) -> Void) {
+        serviceCall(for: .entryPointdata, parametersDict: queryParameters, completion: completion)
     }
     
-    static func getCGDeeplinkData(queryParameters: NSDictionary, completion: @escaping (Result<CGDeeplink, Error>) -> Void) {
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Login API with API Router
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.cgdeeplink, parametersDict: queryParameters, completion: completion)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
+    static func entrypoints_config(queryParameters: NSDictionary, completion: @escaping (Result<EntryConfig, CGNetworkError>) -> Void) {
+        serviceCall(for: .entrypoints_config, parametersDict: queryParameters, completion: completion)
     }
     
-    static func appConfig(queryParameters: NSDictionary, completion: @escaping (Result<CGAppConfig, Error>) -> Void) {
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Login API with API Router
-            performRequest(baseurl: BaseUrls.baseurl, methodandpath: MethodNameandPath.appconfig, parametersDict: queryParameters, completion: completion)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
+    static func sendAnalyticsEvent(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, CGNetworkError>) -> Void) {
+        serviceCall(for: .send_analytics_event, parametersDict: queryParameters, completion: completion)
     }
     
-    static func nudgeIntegration(queryParameters: NSDictionary, completion: @escaping (Result<CGNudgeIntegrationModel, Error>) -> Void) {
-        // create a blockOperation for avoiding miltiple API call at same time
-        let blockOperation = BlockOperation()
-        
-        // Added Task into Queue
-        blockOperation.addExecutionBlock {
-            // Call Login API with API Router
-            performRequest(baseurl: "stage-api.customerglu.com/", methodandpath: MethodNameandPath.cgNudgeIntegration, parametersDict: queryParameters, completion: completion)
-        }
-        
-        // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
-        }
-        
-        //Added task into Queue
-        ApplicationManager.operationQueue.addOperation(blockOperation)
+    static func sendEventsDiagnostics(queryParameters: NSDictionary, completion: @escaping (Result<CGAddCartModel, CGNetworkError>) -> Void) {
+        serviceCall(for: .cgMetricDiagnostics, parametersDict: queryParameters, completion: completion)
+    }
+    
+    static func getCGDeeplinkData(queryParameters: NSDictionary, completion: @escaping (Result<CGDeeplink, CGNetworkError>) -> Void) {
+        serviceCall(for: .cgdeeplink, parametersDict: queryParameters, completion: completion)
+    }
+    
+    static func appConfig(queryParameters: NSDictionary, completion: @escaping (Result<CGAppConfig, CGNetworkError>) -> Void) {
+        serviceCall(for: .appconfig, parametersDict: queryParameters, completion: completion)
+    }
+    
+    static func nudgeIntegration(queryParameters: NSDictionary, completion: @escaping (Result<CGNudgeIntegrationModel, CGNetworkError>) -> Void) {
+        serviceCall(for: .cgNudgeIntegration, parametersDict: queryParameters, completion: completion)
+    }
+    
+    static func onboardingSDKNotificationConfig(queryParameters: NSDictionary, completion: @escaping (Result<CGClientTestingModel, CGNetworkError>) -> Void) {
+        serviceCall(for: .onboardingSDKNotificationConfig, parametersDict: queryParameters, completion: completion)
+    }
+    
+    static func onboardingSDKTestSteps(queryParameters: NSDictionary, completion: @escaping (Result<CGSDKTestStepsResponseModel, CGNetworkError>) -> Void) {
+        serviceCall(for: .onboardingSDKTestSteps, parametersDict: queryParameters, completion: completion)
     }
     
     // MARK: - Private Class Methods
@@ -421,20 +419,17 @@ class APIManager {
         }
     }
     
-    static private func dictToObject <T: Decodable>(dict: Dictionary<String, Any>, type: T.Type, completion: @escaping (Result<T, Error>) -> Void) {
+    static private func dictToObject <T: Decodable>(dict: Dictionary<String, Any>, type: T.Type) -> T? {
         do {
             // Convert Dictionary to JSON Data
             let jsonData = try JSONSerialization.data(withJSONObject: dict, options: .prettyPrinted)
-            
             // Decode data to model object
             let jsonDecoder = JSONDecoder()
             let object = try jsonDecoder.decode(type, from: jsonData)
-            
-            // response with model object
-            completion(.success(object))
+            return object
         } catch let error { // response with error
             print("JSON decode failed: \(error.localizedDescription)")
-            completion(.failure(error))
+            return nil
         }
     }
 }
