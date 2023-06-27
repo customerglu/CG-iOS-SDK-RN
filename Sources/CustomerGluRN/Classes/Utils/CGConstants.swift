@@ -45,6 +45,10 @@ struct CGConstants {
     static let MQTT_ENTRYPOINTS = "ENTRYPOINT"
     static let MQTT_CLIENT_TESTING = "OPEN_CLIENT_TESTING_PAGE"
     static let CG_SAFE_AREA_DEFAULT = -1
+    
+    static let MQTT_Enabled_Components_State_Sync = "STATE_SYNC"
+    static let MQTT_Enabled_Components_Nudges = "NUDGES"
+    static let MQTT_Enabled_Components_EntryPoints = "ENTRYPOINTS"
 }
 
 struct CGDiagnosticConstants{
@@ -128,6 +132,7 @@ struct APIParameterKey {
     static let deviceType = "deviceType"
     static let deviceName = "deviceName"
     static let appVersion = "appVersion"
+    static let isMQTTEnabled = "isMqttEnabled"
     static let writeKey = "writeKey"
     static let event_id = "event_id"
     static let event_name = "event_name"
@@ -174,7 +179,7 @@ struct APIParameterKey {
     static let appSessionId = "appSessionId"
     static let userAgent = "userAgent"
     static let eventName = "eventName"
-    static let cgsdkversionvalue = "1.2.0"
+    static let cgsdkversionvalue = "1.2.3"
     static let analytics_version_value = "4.0.0"
     static let analytics_version = "analytics_version"
     static let dismiss_trigger = "dismiss_trigger"

@@ -36,6 +36,8 @@ class ApplicationManager {
         APIManager.getWalletRewards(queryParameters: [:]) { result in
             switch result {
             case .success(let response):
+                // Save this - To open / not open wallet incase of failure / invalid campaignId in loadCampaignById
+                CustomerGlu.getInstance.setCampaignsModel(response)
                 completion(true, response)
                 
             case .failure(let error):
@@ -64,6 +66,8 @@ class ApplicationManager {
         APIManager.getWalletRewards(queryParameters: params as NSDictionary) { result in
             switch result {
             case .success(let response):
+                // Save this - To open / not open wallet incase of failure / invalid campaignId in loadCampaignById
+                CustomerGlu.getInstance.setCampaignsModel(response)
                 completion(true, response)
                 
             case .failure(let error):

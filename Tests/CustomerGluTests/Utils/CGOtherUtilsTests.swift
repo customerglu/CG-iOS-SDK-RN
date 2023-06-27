@@ -83,4 +83,32 @@ final class CGOtherUtilsTests: CGBaseTestCase {
         outputDataArray = otherUtils?.getUniqueEntryData(fromExistingData: inputDataArray1, byComparingItWithNewEntryData: inputDataArray2) ?? []
         XCTAssertTrue(outputDataArray.count == 0)
     }
+    
+    func testValidateCampaign() {
+        // Case 1 - Invalid Campaign ID
+        let campaign1 = CGCampaigns()
+        campaign1.campaignId = "9"
+        
+        let campaign2 = CGCampaigns()
+        campaign2.campaignId = "8"
+        
+        let campaign3 = CGCampaigns()
+        campaign3.campaignId = "9"
+        
+        var campaigns: [CGCampaigns] = [campaign1, campaign2, campaign3]
+        
+        if let invalidCampaignFlag = otherUtils?.validateCampaign(withCampaignID: "123456", in: campaigns) {
+            XCTAssertFalse(invalidCampaignFlag)
+        }
+        
+        // Case 2 - Valid Campaign ID
+        let campaign4 = CGCampaigns()
+        campaign4.campaignId = "123456"
+        
+        campaigns = [campaign1, campaign2, campaign3, campaign4]
+        
+        if let validCampaignFlag = otherUtils?.validateCampaign(withCampaignID: "123456", in: campaigns) {
+            XCTAssertTrue(validCampaignFlag)
+        }
+    }
 }
