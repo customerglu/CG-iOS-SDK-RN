@@ -21,7 +21,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
     private var loadedapicalled = false
     var imgScrollView: UIScrollView!
     var pageControl: UIPageControl!
-    private var progressView = LottieAnimationView()
+    private var progressView = AnimationView()
     
     @IBInspectable var bannerId: String? {
         didSet {
@@ -115,7 +115,7 @@ public class BannerView: UIView, UIScrollViewDelegate {
         progressView.removeFromSuperview()
         
         if path.count > 0 && URL(string: path) != nil && path.hasSuffix(".json") {
-            progressView = LottieAnimationView(filePath: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key))
+            progressView = AnimationView(filePath: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key))
                         
             progressView.frame = bounds
             progressView.contentMode = .scaleAspectFill
