@@ -849,11 +849,6 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         userData[APIParameterKey.deviceName] = getDeviceName()
         userData[APIParameterKey.appVersion] = appVersion
         userData[APIParameterKey.writeKey] = writekey
-        if let isMQTTEnabled = appconfigdata?.enableMqtt {
-            userData[APIParameterKey.isMQTTEnabled] = isMQTTEnabled
-        } else {
-            userData[APIParameterKey.isMQTTEnabled] = false
-        }
         
         if CustomerGlu.fcm_apn == "fcm" {
             userData[APIParameterKey.apnsDeviceToken] = ""
