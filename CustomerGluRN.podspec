@@ -25,7 +25,7 @@ A new CustomerGlu.
     LICENSE
   }
   s.author           = { 'CustomerGlu' => 'code@customerglu.net' }
-  s.source           = { :git => 'https://github.com/customerglu/CG-iOS-SDK-RN.git', :tag => 'v1.2.4'}
+  s.source           = { :git => 'https://github.com/customerglu/CG-iOS-SDK-RN.git', :tag => 'v1.2.5'}
   s.source_files = 'Sources/CustomerGluRN/Classes/**/*.*'
   s.exclude_files = 'Tests/**/*.*'
   s.resources = 'Sources/CustomerGluRN/Resources/**/*.*'
@@ -35,6 +35,5 @@ A new CustomerGlu.
   # s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
   s.ios.deployment_target = '11.0'
   s.swift_version = '5.0'
-  s.dependency 'Sentry'
   s.dependency 'lottie-ios','~> 3.4.0'
 end
