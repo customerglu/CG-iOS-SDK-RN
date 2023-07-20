@@ -9,7 +9,7 @@ import Foundation
 //import Sentry
 
 // TBD
-//public class CGExceptionHelper{
+public class CGExceptionHelper{
 //
 //    static let shared = CGExceptionHelper()
 //
@@ -58,4 +58,4 @@ import Foundation
 //
 //
 //
-//}
+}
