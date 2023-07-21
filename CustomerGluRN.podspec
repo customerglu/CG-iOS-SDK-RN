@@ -35,6 +35,5 @@ A new CustomerGlu.
   # s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
   s.ios.deployment_target = '11.0'
   s.swift_version = '5.0'
-  s.dependency 'Sentry'
   s.dependency 'lottie-ios','~> 3.4.0'
 end
