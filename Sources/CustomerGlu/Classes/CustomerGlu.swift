@@ -826,6 +826,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             return
         }
         
+        var userdata: [String: AnyHashable] = userdata.compactMapValues { $0 }
+        
         // Generate the UDID only once and save it to user defaults for MQTT Identifier
         let mqttIdentifier = decryptUserDefaultKey(userdefaultKey: CGConstants.MQTT_Identifier)
         if mqttIdentifier.isEmpty {

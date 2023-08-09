@@ -166,11 +166,10 @@ class APIManager {
         requestData.dispatchGroup.enter()
         //    }
         
-        var urlRequest: URLRequest!
-        var url: URL!
+        
         let strUrl = "https://" + requestData.baseurl
-        url = URL(string: strUrl + requestData.methodandpath.path)!
-        urlRequest = URLRequest(url: url)
+        guard let url = URL(string: strUrl + requestData.methodandpath.path) else { return }
+        var urlRequest = URLRequest(url: url)
         
         // HTTP Method
         urlRequest.httpMethod = requestData.methodandpath.method//method.rawValue
@@ -199,15 +198,15 @@ class APIManager {
                 // Append GET Parameters to URL
                 var absoluteStr = url.absoluteString
                 absoluteStr += urlString
-                absoluteStr = absoluteStr.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
-                urlRequest.url = URL(string: absoluteStr)!
+                absoluteStr = absoluteStr.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+                urlRequest.url = URL(string: absoluteStr)
             } else {
                 urlRequest.httpBody = try? JSONSerialization.data(withJSONObject: requestData.parametersDict as Any, options: .fragmentsAllowed)
             }
         }
         
         if(true == CustomerGlu.isDebugingEnabled) {
-            print(urlRequest!)
+            print(urlRequest)
         }
         
         let task = shared.session.dataTask(with: urlRequest) { data, response, error in
@@ -230,9 +229,9 @@ class APIManager {
             do {
                 let json = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any]
                 // Get JSON, Clean it and Convert to Object
-                let JSON = json
-                JSON?.printJson()
-                let cleanedJSON = cleanJSON(json: JSON!, isReturn: true)
+                guard let JSON = json else { return }
+                JSON.printJson()
+                let cleanedJSON = cleanJSON(json: JSON, isReturn: true)
                 if isRetry {
                     requestData.completionBlock?(.success, cleanedJSON, CGNetworkError.badURLRetry)
                 } else {
@@ -266,8 +265,8 @@ class APIManager {
         }
         
         // Add dependency to finish previus task before starting new one
-        if(ApplicationManager.operationQueue.operations.count > 0){
-            blockOperation.addDependency(ApplicationManager.operationQueue.operations.last!)
+        if let lastOperation = ApplicationManager.operationQueue.operations.last {
+            blockOperation.addDependency(lastOperation)
         }
         
         //Added task into Queue
