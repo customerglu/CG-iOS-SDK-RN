@@ -826,7 +826,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             return
         }
         
-        var userdata: [String: AnyHashable] = userdata.compactMapValues { $0 }
+        let userdata: [String: AnyHashable] = userdata.compactMapValues { $0 }
         
         // Generate the UDID only once and save it to user defaults for MQTT Identifier
         let mqttIdentifier = decryptUserDefaultKey(userdefaultKey: CGConstants.MQTT_Identifier)
@@ -861,8 +861,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
         
         // Manage UserID & AnonymousId
-        let t_userid = userData[APIParameterKey.userId] as! String? ?? ""
-        let t_anonymousIdP = userData[APIParameterKey.anonymousId] as! String? ?? ""
+        let t_userid = userData[APIParameterKey.userId] as? String ?? ""
+        let t_anonymousIdP = userData[APIParameterKey.anonymousId] as? String ?? ""
         let t_anonymousIdS = self.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_ANONYMOUSID) as String? ?? ""
 
         if self.allowAnonymousRegistration() {
@@ -1216,7 +1216,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         var refreshlocal : Bool = false
                         if(dict.mobile.conditions.showCount.dailyRefresh == true && popupDict[index].showcount?.dailyRefresh == true){
                             
-                            if !(Calendar.current.isDate(popupDict[index].popupdate!, equalTo: Date(), toGranularity: .day)){
+                            if !(Calendar.current.isDate(popupDict[index].popupdate ?? Date(), equalTo: Date(), toGranularity: .day)){
                                 refreshlocal = true
                             }
                             
@@ -1280,7 +1280,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: nudgeConfiguration.url, page_type: nudgeConfiguration.layout, backgroundAlpha: nudgeConfiguration.opacity,auto_close_webview: nudgeConfiguration.closeOnDeepLink)
     }
     
-    @objc public func openWalletWithURL(url: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
+    @objc public func openWalletWithURL(url: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview ?? false) {
         CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: url, page_type: CGConstants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview)
     }
     
@@ -1305,10 +1305,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             let writekey = CustomerGlu.sdkWriteKey
                             
                             var layout = layout
-                            if(nudgeConfiguration != nil){
-                                layout = nudgeConfiguration!.layout
+                            if let nudgeConfiguration = nudgeConfiguration {
+                                layout = nudgeConfiguration.layout
                             }
-                            
                             var cglayout = CGConstants.FULL_SCREEN_NOTIFICATION
                             if(layout == "middle-popup"){
                                 cglayout = CGConstants.MIDDLE_NOTIFICATIONS

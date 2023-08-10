@@ -26,9 +26,8 @@ class ApplicationManager {
         var eventData: [String: Any] = [:]
         var token: String? = ""
         if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
-            token = UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) as! String ?? ""
-            eventData["token"] = token
-        }else{
+              eventData["token"] = token
+        } else {
             eventData["token"] = token
 
         }
@@ -56,7 +55,7 @@ class ApplicationManager {
         var params = [String: AnyHashable]()
         
         if loadByparams.count != 0 {
-            params = (loadByparams as? [String: AnyHashable])!
+            params = (loadByparams as? [String: AnyHashable] ?? [:])
         } else {
             if type != "" {
                 params[type] = value
@@ -177,7 +176,7 @@ class ApplicationManager {
     public static func doValidateToken() -> Bool {
         if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
             let arr = JWTDecode.shared.decode(jwtToken: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN))
-            let expTime = Date(timeIntervalSince1970: (arr["exp"] as? Double)!)
+            let expTime = Date(timeIntervalSince1970: (arr["exp"] as? Double ?? 0))
             let currentDateTime = Date()
             if currentDateTime < expTime {
                 return true
