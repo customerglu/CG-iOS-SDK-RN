@@ -2279,6 +2279,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
         if(true == posttoserver){
             ApplicationManager.callCrashReport(cglog: cglog, isException: isException, methodName: methodName, user_id:  decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_USERID))
+            
+            APIManager.crashReport(queryParameters: ["Method Name" : methodName, "CGLog" : cglog]) { _ in }
         }
     }
     
