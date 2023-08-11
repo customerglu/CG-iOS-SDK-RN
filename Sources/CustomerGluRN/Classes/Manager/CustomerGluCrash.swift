@@ -148,8 +148,8 @@ public class CustomerGluCrash: NSObject {
     
     private static let RecieveException: @convention(c) (NSException) -> Swift.Void = {
         (exteption) -> Void in
-        if app_old_exceptionHandler != nil {
-            app_old_exceptionHandler!(exteption)
+        if let app_old_exceptionHandler = app_old_exceptionHandler {
+            app_old_exceptionHandler(exteption)
         }
         
         guard CustomerGluCrash.isOpen == true else {
@@ -161,13 +161,13 @@ public class CustomerGluCrash: NSObject {
         let name = exteption.name
         let appinfo = CustomerGluCrash.appInfo()
         
-        let jsonData = try? JSONSerialization.data(withJSONObject: appinfo, options: .prettyPrinted)
-        let jsonString = String(data: jsonData!, encoding: .utf8)
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: appinfo, options: .prettyPrinted) else { return }
+        let jsonString = String(data: jsonData, encoding: .utf8)
         
         let model = CrashModel(type: CrashModelType.exception,
                                name: name.rawValue,
                                reason: reason,
-                               appinfo: jsonString!,
+                               appinfo: jsonString ?? "",
                                callStack: callStack)
         
         for delegate in CustomerGluCrash.delegates {
@@ -188,13 +188,13 @@ public class CustomerGluCrash: NSObject {
         let reason = "Signal \(CustomerGluCrash.name(of: signal))(\(signal)) was raised.\n"
         let appinfo = CustomerGluCrash.appInfo()
         
-        let jsonData = try? JSONSerialization.data(withJSONObject: appinfo, options: .prettyPrinted)
-        let jsonString = String(data: jsonData!, encoding: .utf8)
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: appinfo, options: .prettyPrinted) else { return }
+        let jsonString = String(data: jsonData, encoding: .utf8)
         
         let model = CrashModel(type: CrashModelType.signal,
                                name: CustomerGluCrash.name(of: signal),
                                reason: reason,
-                               appinfo: jsonString!,
+                               appinfo: jsonString ?? "",
                                callStack: callStack)
         
         for delegate in CustomerGluCrash.delegates {
@@ -214,9 +214,9 @@ public class CustomerGluCrash: NSObject {
         let osName = UIDevice.current.systemName
         let udid = UIDevice.current.identifierForVendor?.uuidString
         let timestamp = Date.currentTimeStamp
-        let timezone = TimeZone.current.abbreviation()!
+        let timezone = TimeZone.current.abbreviation()
         
-        let dict = ["app_name": displayName, "device_name": deviceModel, "os_version": "\(systemName) \(systemVersion)", "app_version": "\(shortVersion)(\(version))", "platform": osName, "device_id": udid!, "timestamp": timestamp, "timezone": timezone] as [String: Any]
+        let dict = ["app_name": displayName, "device_name": deviceModel, "os_version": "\(systemName) \(systemVersion)", "app_version": "\(shortVersion)(\(version))", "platform": osName, "device_id": udid ?? "", "timestamp": timestamp, "timezone": timezone ?? ""] as [String: Any]
         return dict
     }
     
