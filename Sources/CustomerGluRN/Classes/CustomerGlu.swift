@@ -180,15 +180,15 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
         CustomerGlu.getInstance.printlog(cglog: "\(model)", isException: false, methodName: "CustomerGlu-customerGluDidCatchCrash-1", posttoserver: false)
         let dict = [
-            "name": model.name!,
-            "reason": model.reason!,
-            "appinfo": model.appinfo!,
-            "callStack": model.callStack!] as [String: Any]
+            "name": model.name ?? "",
+            "reason": model.reason ?? "",
+            "appinfo": model.appinfo ?? "",
+            "callStack": model.callStack ?? ""] as [String: Any]
         
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: dict, options: .prettyPrinted)
             // here "jsonData" is the dictionary encoded in JSON data
-            let jsonString2 = String(data: jsonData, encoding: .utf8)!
+            let jsonString2 = String(data: jsonData, encoding: .utf8) ?? ""
             encryptUserDefaultKey(str: jsonString2, userdefaultKey: CGConstants.CustomerGluCrash)
         } catch {
             print(error.localizedDescription)
@@ -826,6 +826,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             return
         }
         
+        let userdata: [String: AnyHashable] = userdata.compactMapValues { $0 }
+        
         // Generate the UDID only once and save it to user defaults for MQTT Identifier
         let mqttIdentifier = decryptUserDefaultKey(userdefaultKey: CGConstants.MQTT_Identifier)
         if mqttIdentifier.isEmpty {
@@ -859,8 +861,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         }
         
         // Manage UserID & AnonymousId
-        let t_userid = userData[APIParameterKey.userId] as! String? ?? ""
-        let t_anonymousIdP = userData[APIParameterKey.anonymousId] as! String? ?? ""
+        let t_userid = userData[APIParameterKey.userId] as? String ?? ""
+        let t_anonymousIdP = userData[APIParameterKey.anonymousId] as? String ?? ""
         let t_anonymousIdS = self.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_ANONYMOUSID) as String? ?? ""
 
         if self.isAnonymousRegistrationAllowed() {
@@ -908,10 +910,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     self.encryptUserDefaultKey(str: response.data?.user?.anonymousId ?? "", userdefaultKey: CGConstants.CUSTOMERGLU_ANONYMOUSID)
                     
                     self.cgUserData = response.data?.user ?? CGUser()
-                    let data = try! JSONEncoder().encode(self.cgUserData)
-                    let jsonString = String(data: data, encoding: .utf8)!
+                    var data: Data?
+                    do {
+                        data = try JSONEncoder().encode(self.cgUserData)
+                    } catch(let error) {
+                        CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "registerDevice", posttoserver: true)
+                    }
+                    guard let data = data, let jsonString = String(data: data, encoding: .utf8) else { return }
                     self.encryptUserDefaultKey(str: jsonString, userdefaultKey: CGConstants.CUSTOMERGLU_USERDATA)
-                    
                     self.userDefaults.synchronize()
                     
                     if let enableMqtt = self.appconfigdata?.enableMqtt, enableMqtt {
@@ -1040,8 +1046,14 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     self.encryptUserDefaultKey(str: response.data?.user?.anonymousId ?? "", userdefaultKey: CGConstants.CUSTOMERGLU_ANONYMOUSID)
                     
                     self.cgUserData = response.data?.user ?? CGUser()
-                    let data = try! JSONEncoder().encode(self.cgUserData)
-                    let jsonString = String(data: data, encoding: .utf8)!
+                    var data: Data?
+                    do {
+                        data = try JSONEncoder().encode(self.cgUserData)
+                    } catch(let error) {
+                        CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "updateProfile", posttoserver: true)
+                    }
+                    
+                    guard let data = data, let jsonString = String(data: data, encoding: .utf8) else { return }
                     self.encryptUserDefaultKey(str: jsonString, userdefaultKey: CGConstants.CUSTOMERGLU_USERDATA)
                     
                     self.userDefaults.synchronize()
@@ -1204,7 +1216,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         var refreshlocal : Bool = false
                         if(dict.mobile.conditions.showCount.dailyRefresh == true && popupDict[index].showcount?.dailyRefresh == true){
                             
-                            if !(Calendar.current.isDate(popupDict[index].popupdate!, equalTo: Date(), toGranularity: .day)){
+                            if !(Calendar.current.isDate(popupDict[index].popupdate ?? Date(), equalTo: Date(), toGranularity: .day)){
                                 refreshlocal = true
                             }
                             
@@ -1251,8 +1263,15 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             
             entryPointPopUpModel.popups = popupDict
             
-            let data = try! JSONEncoder().encode(entryPointPopUpModel)
-            let jsonString2 = String(data: data, encoding: .utf8)!
+            var data: Data?
+            
+            do {
+                data = try JSONEncoder().encode(entryPointPopUpModel)
+            } catch(let error) {
+                CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "entryPointInfoAddDelete", posttoserver: true)
+            }
+            
+            guard let data = data, let jsonString2 = String(data: data, encoding: .utf8) else { return }
             encryptUserDefaultKey(str: jsonString2, userdefaultKey: CGConstants.CustomerGluPopupDict)
         }
     }
@@ -1261,7 +1280,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: nudgeConfiguration.url, page_type: nudgeConfiguration.layout, backgroundAlpha: nudgeConfiguration.opacity,auto_close_webview: nudgeConfiguration.closeOnDeepLink)
     }
     
-    @objc public func openWalletWithURL(url: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview!) {
+    @objc public func openWalletWithURL(url: String, auto_close_webview : Bool = CustomerGlu.auto_close_webview ?? false) {
         CustomerGlu.getInstance.presentToCustomerWebViewController(nudge_url: url, page_type: CGConstants.FULL_SCREEN_NOTIFICATION, backgroundAlpha: 0.5,auto_close_webview: auto_close_webview)
     }
     
@@ -1287,10 +1306,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                             let writekey = CustomerGlu.sdkWriteKey
                             
                             var layout = layout
-                            if(nudgeConfiguration != nil){
-                                layout = nudgeConfiguration!.layout
+                            if let nudgeConfiguration = nudgeConfiguration {
+                                layout = nudgeConfiguration.layout
                             }
-                            
                             var cglayout = CGConstants.FULL_SCREEN_NOTIFICATION
                             if(layout == "middle-popup"){
                                 cglayout = CGConstants.MIDDLE_NOTIFICATIONS
@@ -2040,8 +2058,15 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
         entryPointPopUpModel.popups = popupDict
         
-        let data = try! JSONEncoder().encode(entryPointPopUpModel)
-        let jsonString2 = String(data: data, encoding: .utf8)!
+        var data: Data?
+        
+        do {
+            data = try JSONEncoder().encode(entryPointPopUpModel)
+        } catch(let error) {
+            CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "updateShowCount", posttoserver: true)
+        }
+        
+        guard let data = data, let jsonString2 = String(data: data, encoding: .utf8) else { return }
         encryptUserDefaultKey(str: jsonString2, userdefaultKey: CGConstants.CustomerGluPopupDict)
     }
     
@@ -2255,6 +2280,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         
         if(true == posttoserver){
             ApplicationManager.callCrashReport(cglog: cglog, isException: isException, methodName: methodName, user_id:  decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_USERID))
+            
+            APIManager.crashReport(queryParameters: ["Method Name" : methodName, "CGLog" : cglog]) { _ in }
         }
     }
     
@@ -2298,8 +2325,15 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
             }
             entryPointPopUpModel.popups = popupDict
             
-            let data = try! JSONEncoder().encode(entryPointPopUpModel)
-            let jsonString2 = String(data: data, encoding: .utf8)!
+            var data: Data?
+            
+            do {
+                data = try JSONEncoder().encode(entryPointPopUpModel)
+            } catch(let error) {
+                CustomerGlu.getInstance.printlog(cglog: error.localizedDescription, isException: false, methodName: "migrateUserDefaultKey", posttoserver: true)
+            }
+            
+            guard let data = data, let jsonString2 = String(data: data, encoding: .utf8) else { return }
             encryptUserDefaultKey(str: jsonString2, userdefaultKey: CGConstants.CustomerGluPopupDict)
             userDefaults.removeObject(forKey: CGConstants.CustomerGluPopupDict_OLD)
         }
@@ -2311,10 +2345,12 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     }
     
     @objc public func decryptUserDefaultKey(userdefaultKey: String) -> String {
-        if UserDefaults.standard.object(forKey: userdefaultKey) != nil {
-            return EncryptDecrypt.shared.decryptText(str: UserDefaults.standard.string(forKey: userdefaultKey)!)
-        }
-        return ""
+        guard
+            UserDefaults.standard.object(forKey: userdefaultKey) != nil,
+            let value = UserDefaults.standard.string(forKey: userdefaultKey)
+        else { return "" }
+        
+        return EncryptDecrypt.shared.decryptText(str: value)
     }
     
     @objc public func testIntegration() {
