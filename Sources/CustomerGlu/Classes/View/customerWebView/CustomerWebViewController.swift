@@ -317,8 +317,6 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
             webView.evaluateJavaScript(javascriptCode) { (result, error) in
-
-                print("Result: \(result)")
                 if let error = error {
                     print("Error calling JavaScript function: \(error)")
                 } else {
@@ -404,7 +402,15 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     // receive message from wkwebview
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         
-        print("BODDY: \(message.body)")
+        if message.name == "CALLBACK" {
+            if let messageBody = message.body as? [String: Any],
+               let eventName = messageBody["eventName"] as? String,
+               let goes = messageBody["goes"] as? String {
+                print("Received event: \(eventName), goes: \(goes)")
+            }
+        }
+        
+        print("SDfsdfsdfsdf: \(message.body)")
         
         if message.name == WebViewsKey.callback {
             guard let bodyString = message.body as? String,
@@ -793,20 +799,4 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         }
         
     }
-    
-//    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-//            let functionName = "emitEventV2"
-//            let eventData = ["your": "data", "goes": "here"]
-//
-//            let jsonData = try! JSONSerialization.data(withJSONObject: eventData, options: [])
-//            let jsonString = String(data: jsonData, encoding: .utf8)!
-//
-//            let javascriptCode = "\(functionName)(\"\(functionName)\", \(jsonString));"
-//
-//            webView.evaluateJavaScript(javascriptCode) { (result, error) in
-//                if let error = error {
-//                    print("Error calling JavaScript function: \(error)")
-//                }
-//            }
-//        }
 }
