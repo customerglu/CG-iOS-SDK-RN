@@ -406,7 +406,8 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                   let bodyData = bodyString.data(using: .utf8) else { fatalError() }
             
             let bodyStruct = try? JSONDecoder().decode(CGEventModel.self, from: bodyData)
-            
+            print("Body Struct: \(bodyStruct)")
+            print("Body data: \(bodyData)")
             // DIAGNOSTICS
             var diagnosticsEventData: [String: Any] = ["eventName": bodyStruct?.eventName ?? "",
                                             "Name": WebViewsKey.callback]
@@ -423,7 +424,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }
             
             if bodyStruct?.eventName == "CALLBACK" {
-                print("Got the call back event with data \(bodyStruct?.data)")
+                print("Got the call back event with event naem \(bodyStruct?.eventName)")
                 abc()
             }
             
