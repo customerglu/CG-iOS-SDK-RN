@@ -307,19 +307,19 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         // DIAGNOSTICS
         CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_WEBVIEW_START_PROVISIONAL, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta: [:])
         
-        let functionName = "emitEventV2"
+        let eventName = "CALLBACK"
         let eventData = ["your": "data", "goes": "here"]
         
         let jsonData = try! JSONSerialization.data(withJSONObject: eventData, options: [])
         let jsonString = String(data: jsonData, encoding: .utf8)!
         
-        let javascriptCode = "\(functionName)(\"\(functionName)\", \(jsonString));"
+        let javascriptCode = "emitEventV2(\"\(eventName)\", \(jsonString));"
         
         webView.evaluateJavaScript(javascriptCode) { (result, error) in
             if let error = error {
                 print("Error calling JavaScript function: \(error)")
             } else {
-                print("Successss")
+                print("sssss ss sssss ")
             }
         }
         
