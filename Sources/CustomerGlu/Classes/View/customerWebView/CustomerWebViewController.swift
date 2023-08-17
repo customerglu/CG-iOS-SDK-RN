@@ -311,12 +311,12 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     
     private func abc() {
         let functionName = "emitEventV2"
-        let eventData = ["eventName": "CALLBACK", "goes": "here"]
+        let eventData = ["eventName": "ANOTHERCALLBACK", "goes": "here"]
         
         let jsonData = try! JSONSerialization.data(withJSONObject: eventData, options: [])
         let jsonString = String(data: jsonData, encoding: .utf8)!
         
-        let javascriptCode = "\(functionName)(\"\(functionName)\", \(jsonString));"
+        let javascriptCode = "\(functionName)(\"\("alpha")\", \(jsonString));"
         
         webView.evaluateJavaScript(javascriptCode) { (result, error) in
             if let error = error {
