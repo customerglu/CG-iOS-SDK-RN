@@ -271,7 +271,8 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 darkUrl = url + "&darkMode=" + (CustomerGlu.getInstance.checkIsDarkMode() ? "true" : "false")
             }
             
-            webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: darkUrl)!)))
+            webView.load(URLRequest(url: URL(string: darkUrl)!))
+//            webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: darkUrl)!)))
             webView.isHidden = true
             
             coverview.frame = webView.frame
