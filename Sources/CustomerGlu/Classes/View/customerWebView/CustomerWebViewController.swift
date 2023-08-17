@@ -307,7 +307,9 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
         // DIAGNOSTICS
         CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_WEBVIEW_START_PROVISIONAL, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta: [:])
-        
+    }
+    
+    private func abc() {
         let functionName = "emitEventV2"
         let eventData = ["eventName": "CALLBACK", "goes": "here"]
         
@@ -316,16 +318,13 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         
         let javascriptCode = "\(functionName)(\"\(functionName)\", \(jsonString));"
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-            webView.evaluateJavaScript(javascriptCode) { (result, error) in
-                if let error = error {
-                    print("Error calling JavaScript function: \(error)")
-                } else {
-                    print("SDfs")
-                }
+        webView.evaluateJavaScript(javascriptCode) { (result, error) in
+            if let error = error {
+                print("Error calling JavaScript function: \(error)")
+            } else {
+                print("SDfs")
             }
         }
-        
     }
     
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
@@ -402,16 +401,14 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     
     // receive message from wkwebview
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        
         if message.name == "CALLBACK" {
             if let messageBody = message.body as? [String: Any],
                let eventName = messageBody["eventName"] as? String,
                let goes = messageBody["goes"] as? String {
                 print("Received event: \(eventName), goes: \(goes)")
+                abc()
             }
         }
-        
-        print("SDfsdfsdfsdf: \(message.body)")
         
         if message.name == WebViewsKey.callback {
             guard let bodyString = message.body as? String,
