@@ -401,17 +401,6 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     
     // receive message from wkwebview
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        if message.name == "CALLBACK" {
-            if let messageBody = message.body as? [String: Any],
-               let eventName = messageBody["eventName"] as? String,
-               let goes = messageBody["goes"] as? String {
-                print("Received event: \(eventName), goes: \(goes)")
-                abc()
-            }
-        }
-        
-        print("BODYUYYY: \(message.body)")
-        
         if message.name == WebViewsKey.callback {
             guard let bodyString = message.body as? String,
                   let bodyData = bodyString.data(using: .utf8) else { fatalError() }
@@ -431,6 +420,11 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 } else {
                     self.navigationController?.popViewController(animated: true)
                 }
+            }
+            
+            if bodyStruct?.eventName == "CALLBACK" {
+                print("Got the call back event with data \(bodyStruct?.data)")
+                abc()
             }
             
             // Moved this piece of code out so it can be used for ClientTesting
