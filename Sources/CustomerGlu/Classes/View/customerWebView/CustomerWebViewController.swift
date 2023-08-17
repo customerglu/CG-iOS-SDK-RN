@@ -407,7 +407,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             
             let bodyStruct = try? JSONDecoder().decode(CGEventModel.self, from: bodyData)
             print("Body Struct: \(bodyStruct)")
-            print("Body data: \(bodyData)")
+            print("DATA: \(message.body)")
             // DIAGNOSTICS
             var diagnosticsEventData: [String: Any] = ["eventName": bodyStruct?.eventName ?? "",
                                             "Name": WebViewsKey.callback]
