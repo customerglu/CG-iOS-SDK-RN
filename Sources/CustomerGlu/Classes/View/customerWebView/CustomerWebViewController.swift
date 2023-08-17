@@ -307,19 +307,23 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         // DIAGNOSTICS
         CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_WEBVIEW_START_PROVISIONAL, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta: [:])
         
-        let eventName = "CALLBACK"
-        let eventData = ["your": "data", "goes": "here"]
+        let functionName = "emitEventV2"
+        let eventData = ["eventName": "CALLBACK", "goes": "here"]
         
         let jsonData = try! JSONSerialization.data(withJSONObject: eventData, options: [])
         let jsonString = String(data: jsonData, encoding: .utf8)!
         
-        let javascriptCode = "emitEventV2(\"\(eventName)\", \(jsonString));"
+        let javascriptCode = "\(functionName)(\"\(functionName)\", \(jsonString));"
         
-        webView.evaluateJavaScript(javascriptCode) { (result, error) in
-            if let error = error {
-                print("Error calling JavaScript function: \(error)")
-            } else {
-                print("sssss ss sssss ")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            webView.evaluateJavaScript(javascriptCode) { (result, error) in
+
+                print("Result: \(result)")
+                if let error = error {
+                    print("Error calling JavaScript function: \(error)")
+                } else {
+                    print("SDfs")
+                }
             }
         }
         
@@ -399,6 +403,8 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     
     // receive message from wkwebview
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        
+        print("BODDY: \(message.body)")
         
         if message.name == WebViewsKey.callback {
             guard let bodyString = message.body as? String,
