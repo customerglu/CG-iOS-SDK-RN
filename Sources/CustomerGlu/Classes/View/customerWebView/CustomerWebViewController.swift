@@ -410,6 +410,8 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }
         }
         
+        print("BODYUYYY: \(message.body)")
+        
         if message.name == WebViewsKey.callback {
             guard let bodyString = message.body as? String,
                   let bodyData = bodyString.data(using: .utf8) else { fatalError() }
