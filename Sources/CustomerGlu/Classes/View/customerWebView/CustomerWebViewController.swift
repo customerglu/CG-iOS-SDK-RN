@@ -306,6 +306,23 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
         // DIAGNOSTICS
         CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_WEBVIEW_START_PROVISIONAL, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta: [:])
+        
+        let functionName = "emitEventV2"
+        let eventData = ["your": "data", "goes": "here"]
+        
+        let jsonData = try! JSONSerialization.data(withJSONObject: eventData, options: [])
+        let jsonString = String(data: jsonData, encoding: .utf8)!
+        
+        let javascriptCode = "\(functionName)(\"\(functionName)\", \(jsonString));"
+        
+        webView.evaluateJavaScript(javascriptCode) { (result, error) in
+            if let error = error {
+                print("Error calling JavaScript function: \(error)")
+            } else {
+                print("Successss")
+            }
+        }
+        
     }
     
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
@@ -770,4 +787,20 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         }
         
     }
+    
+//    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+//            let functionName = "emitEventV2"
+//            let eventData = ["your": "data", "goes": "here"]
+//
+//            let jsonData = try! JSONSerialization.data(withJSONObject: eventData, options: [])
+//            let jsonString = String(data: jsonData, encoding: .utf8)!
+//
+//            let javascriptCode = "\(functionName)(\"\(functionName)\", \(jsonString));"
+//
+//            webView.evaluateJavaScript(javascriptCode) { (result, error) in
+//                if let error = error {
+//                    print("Error calling JavaScript function: \(error)")
+//                }
+//            }
+//        }
 }
