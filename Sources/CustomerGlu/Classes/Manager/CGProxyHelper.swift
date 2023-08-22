@@ -63,7 +63,20 @@ class CGProxyHelper {
     }
     
     func alpha(_ dict: [String : Any]) -> Void {
-        print("sdfsdf: \(dict)")
+        print("sdfsdf: \(CGProxyHelper.shared.abc(dictionary: dict))")
+    }
+    
+    func abc(dictionary: [String:Any]) -> String? {
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: dictionary, options: .prettyPrinted)
+            if let jsonString = String(data: jsonData, encoding: .utf8) {
+                return jsonString
+            }
+        } catch {
+            print("Error: \(error.localizedDescription)")
+        }
+        
+        return nil
     }
 
 }
