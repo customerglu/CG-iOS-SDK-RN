@@ -15,11 +15,13 @@ class CGProxyHelper {
     private init() { }
     
     func getProgram() -> Void {
-        var campaignId: [String : Any] = [:]
+        var campaignId: [String : Any] = [
+            "7218f57f-85da-4ab3-94d0-dd05034ad6fe" : true
+        ]
         
-        for id in CustomerGlu.allCampaignsIds {
-            campaignId[id] = true
-        }
+//        for id in CustomerGlu.allCampaignsIds {
+//            campaignId[id] = true
+//        }
         
         let request: NSDictionary = [
             "filter" : campaignId,
@@ -38,11 +40,13 @@ class CGProxyHelper {
     }
     
     func getReward() -> Void {
-        var campaignId: [String : Any] = [:]
+        var campaignId: [String : Any] = [
+            "7218f57f-85da-4ab3-94d0-dd05034ad6fe" : true
+        ]
         
-        for id in CustomerGlu.allCampaignsIds {
-            campaignId[id] = true
-        }
+//        for id in CustomerGlu.allCampaignsIds {
+//            campaignId[id] = true
+//        }
         
         
         let request: NSDictionary = [
