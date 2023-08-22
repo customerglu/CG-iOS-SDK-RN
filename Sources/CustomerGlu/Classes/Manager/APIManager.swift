@@ -343,25 +343,7 @@ class APIManager {
         }
         return nil
     }
-    
-    
-    static func unescapeJSONString(_ jsonString: String) -> String {
-        guard let data = jsonString.data(using: .utf8) else {
-            return jsonString
-        }
-
-        do {
-            let options: JSONSerialization.ReadingOptions = .allowFragments
-            if let unescaped = try JSONSerialization.jsonObject(with: data, options: options) as? String {
-                return unescaped
-            } else {
-                return jsonString
-            }
-        } catch {
-            return jsonString
-        }
-    }
-    
+        
     static func userRegister(queryParameters: NSDictionary, completion: @escaping (Result<CGRegistrationModel, CGNetworkError>) -> Void) {
         serviceCall(for: .userRegister, parametersDict: queryParameters,completion: completion)
     }

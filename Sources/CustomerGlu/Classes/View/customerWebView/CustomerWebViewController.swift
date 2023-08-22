@@ -309,16 +309,27 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_WEBVIEW_START_PROVISIONAL, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta: [:])
     }
     
-    private func getCallBack() {
-        let functionName = "emitEventV2"
-        let eventData = ["eventName": "ANOTHERCALLBACK", "goes": "here"]
+    private func executeCallBack(eventName: String, requestId: String) {
+        let functionName = "sdkCallback"
+        let eventData = ["eventName": eventName, "goes": "here"]
         
         let jsonData = try! JSONSerialization.data(withJSONObject: eventData, options: [])
         let jsonString = String(data: jsonData, encoding: .utf8)!
         
-        let javascriptCode = "\(functionName)(\"\("alpha")\", \(jsonString));"
+//        let javascriptCode = "\(functionName)(\"\("alpha")\", \(jsonString));"
         
-        webView.evaluateJavaScript(javascriptCode) { (result, error) in
+        let object = """
+        {
+            "eventName": "\(eventName)",
+          "data": {
+                "requestId": "\(requestId)",
+                "rewardsResponse": "\(CGProxyHelper.shared.rewardsObject)",
+                "programsResponse": "\(CGProxyHelper.shared.programsObject)"
+            }
+        }
+        """
+        
+        webView.evaluateJavaScript(object) { (result, error) in
             if let error = error {
                 print("Error calling JavaScript function: \(error)")
             } else {
@@ -423,9 +434,9 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 }
             }
             
-            if bodyStruct?.eventName == "CALLBACK" {
+            if bodyStruct?.eventName == "REQUEST_API_DATA" {
                 print("Got the call back event with event naem \(bodyStruct?.eventName)")
-                getCallBack()
+                executeCallBack(eventName: "REQUEST_API_RESULT", requestId: bodyStruct?.data?.requestId ?? "")
             }
             
             // Moved this piece of code out so it can be used for ClientTesting

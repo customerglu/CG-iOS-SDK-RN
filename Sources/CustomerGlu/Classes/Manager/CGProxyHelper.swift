@@ -9,6 +9,8 @@ import Foundation
 
 class CGProxyHelper {
     static let shared = CGProxyHelper()
+    var programsObject: String = ""
+    var rewardsObject: String = ""
     
     private init() { }
     
@@ -28,7 +30,7 @@ class CGProxyHelper {
         APIManager.getProgram(queryParameters: request) { result in
             switch result {
             case .success(let response):
-                print("Got success with response: \(response)")
+                self.programsObject = response ?? ""
             case .failure(let failure):
                 print("Get program failed with error : \(failure.localizedDescription)")
             }
@@ -51,11 +53,10 @@ class CGProxyHelper {
         
         APIManager.getReward(queryParameters: request) { result in
             switch result {
-            case .success(let success):
-                print("")
-//                var jsonObject = self.getJSON(from: success)
+            case .success(let response):
+                self.programsObject = response ?? ""
             case .failure(let failure):
-                print("")
+                print("Get reward failed with error : \(failure.localizedDescription)")
             }
         }
     }
