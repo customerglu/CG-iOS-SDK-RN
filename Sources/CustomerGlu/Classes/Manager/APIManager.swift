@@ -291,7 +291,7 @@ class APIManager {
         })
     }
     
-    private static func serviceCall<T: Decodable>(for type: CGService, parametersDict: NSDictionary, dispatchGroup: DispatchGroup = DispatchGroup(), completion: @escaping (Result<T, CGNetworkError>) -> Void) {
+    private static func serviceCall<T: Decodable>(for type: CGService, parametersDict: NSDictionary, dispatchGroup: DispatchGroup = DispatchGroup(), completion: @escaping (Result<T, CGNetworkError>) -> Void, isStringDecoding: Bool = false) {
         let methodandpath = MethodandPath(serviceType: type)
         var requestData = CGRequestData(baseurl: methodandpath.baseurl, methodandpath: methodandpath, parametersDict: parametersDict, dispatchGroup: dispatchGroup, retryCount: CustomerGlu.getInstance.appconfigdata?.allowedRetryCount ?? 1)
         
@@ -300,6 +300,9 @@ class APIManager {
             switch status {
             case .success:
                 if let data {
+                    if type == .getProgram {
+                        print("Data found is : \(data)")
+                    }
                     requestData.retryCount = requestData.retryCount - 1
                     if let error, error == .badURLRetry, requestData.retryCount >= 1 {
                         blockOperationForServiceWithDelay(andRequestData: requestData)
@@ -382,7 +385,7 @@ class APIManager {
         serviceCall(for: .onboardingSDKTestSteps, parametersDict: queryParameters, completion: completion)
     }
     
-    static func getReward(queryParameters: NSDictionary, completion: @escaping (Result<Data, CGNetworkError>) -> Void) {
+    static func getReward(queryParameters: NSDictionary, completion: @escaping (Result<String, CGNetworkError>) -> Void) {
         serviceCall(for: .getReward, parametersDict: queryParameters, completion: completion)
     }
     
@@ -447,6 +450,8 @@ class APIManager {
             return nil
         }
     }
+    
+    
 }
 
 // We create a partial mock by subclassing the original class

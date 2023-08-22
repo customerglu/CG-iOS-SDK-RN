@@ -53,7 +53,8 @@ class CGProxyHelper {
         APIManager.getReward(queryParameters: request) { result in
             switch result {
             case .success(let success):
-                var jsonObject = self.getJSON(from: success)
+                print("")
+//                var jsonObject = self.getJSON(from: success)
             case .failure(let failure):
                 print("")
             }
