@@ -316,26 +316,11 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     
     private func executeCallBack(eventName: String, requestId: String) {
         let functionName = "sdkCallback"
-        let eventData = ["eventName": eventName, "goes": "here"]
-        
-        let jsonData = try! JSONSerialization.data(withJSONObject: eventData, options: [])
-        let jsonString = String(data: jsonData, encoding: .utf8)!
-        
-//        let data2: [String: Any] = [
-//            "requestId": requestId,
-//            "rewardsResponse": CGProxyHelper.shared.rewardsObject,
-//            "programsResponse": CGProxyHelper.shared.programsObject
-//        ]
-//
-//        let objectt: [String : Any] = [
-//            "eventName" : eventName,
-//            "data" : data2
-//        ]
-        
+
         let object = """
         {
             "eventName": "\(eventName)",
-          "data": {
+            "data": {
                 "requestId": "\(requestId)",
                 "rewardsResponse": \(CGProxyHelper.shared.rewardsObject),
                 "programsResponse": \(CGProxyHelper.shared.programsObject)
@@ -349,7 +334,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             if let error = error {
                 print("Error calling JavaScript function: \(error)")
             } else {
-                print("SDfs")
+                print("Successfully sent the callback to EUI")
             }
         }
     }
@@ -451,8 +436,13 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }
             
             if bodyStruct?.eventName == "REQUEST_API_DATA" {
-                print("Got the call back event with event naem \(bodyStruct?.eventName)")
+                print("Got the callback event for REQUEST_API_DATA : \(bodyStruct?.eventName)")
                 executeCallBack(eventName: "REQUEST_API_RESULT", requestId: bodyStruct?.data?.requestId ?? "")
+            }
+            
+            if bodyStruct?.eventName == "REFRESH_API_DATA" {
+                print("Got the callback event for REFRESH_API_DATA : \(bodyStruct?.eventName)")
+                executeCallBack(eventName: "REFRESH_API_DATA_RESULT", requestId: bodyStruct?.data?.requestId ?? "")
             }
             
             // Moved this piece of code out so it can be used for ClientTesting

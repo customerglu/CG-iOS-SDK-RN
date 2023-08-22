@@ -7,7 +7,6 @@
 
 import Foundation
 
-#warning("NEED TO CORRECT THE FORMATE")
 class CGProxyHelper {
     static let shared = CGProxyHelper()
     var programsObject: String = ""
@@ -16,8 +15,12 @@ class CGProxyHelper {
     private init() { }
     
     func getProgram() -> Void {
-        var campaignId: [String : Any] = [
+        let campaignIds: [String : Any] = [
             "7218f57f-85da-4ab3-94d0-dd05034ad6fe" : true
+        ]
+        
+        let campaignId: [String : Any] = [
+            "campaignId" : campaignIds
         ]
         
 //        for id in CustomerGlu.allCampaignsIds {
@@ -26,9 +29,10 @@ class CGProxyHelper {
         
         let request: NSDictionary = [
             "filter" : campaignId,
-            "limit" : 1,
+            "limit" : 10,
             "page" : 1
         ]
+        
         
         APIManager.getProgram(queryParameters: request) { result in
             switch result {
