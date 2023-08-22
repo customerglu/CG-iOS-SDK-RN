@@ -62,8 +62,17 @@ class CGProxyHelper {
         }
     }
     
+    func unescape(_ jsonString: String) -> String {
+        var unescapedString = jsonString
+        unescapedString = unescapedString.replacingOccurrences(of: "\\\"", with: "\"")
+        unescapedString = unescapedString.replacingOccurrences(of: "\\\\n", with: "\n")
+        return unescapedString
+    }
+
     func convertToMultilineJSON(_ jsonString: String) -> String? {
-        guard let jsonData = jsonString.data(using: .utf8) else {
+        let unescapedJSONString = unescape(jsonString)
+        
+        guard let jsonData = unescapedJSONString.data(using: .utf8) else {
             return nil
         }
         
