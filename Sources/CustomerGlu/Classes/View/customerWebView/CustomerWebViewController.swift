@@ -321,17 +321,28 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         let jsonData = try! JSONSerialization.data(withJSONObject: eventData, options: [])
         let jsonString = String(data: jsonData, encoding: .utf8)!
         
-        let object = """
-        {
-            "eventName": "\(eventName)",
-          "data": {
-                "requestId": "\(requestId)",
-                "rewardsResponse": \(CGProxyHelper.shared.rewardsObject),
-                "programsResponse": \(CGProxyHelper.shared.programsObject)
-            }
-        }
-        """
-        let javascriptCode = "\(functionName)(\(object));"
+        let data2: [String: Any] = [
+            "requestId": requestId,
+            "rewardsResponse": CGProxyHelper.shared.rewardsObject,
+            "programsResponse": CGProxyHelper.shared.programsObject
+        ]
+        
+        let objectt: [String : Any] = [
+            "eventName" : eventName,
+            "data" : data2
+        ]
+        
+//        let object = """
+//        {
+//            "eventName": "\(eventName)",
+//          "data": {
+//                "requestId": "\(requestId)",
+//                "rewardsResponse": \(CGProxyHelper.shared.rewardsObject),
+//                "programsResponse": \(CGProxyHelper.shared.programsObject)
+//            }
+//        }
+//        """
+        let javascriptCode = "\(functionName)(\(objectt));"
         print("Sending this call back: \(javascriptCode)")
         
         webView.evaluateJavaScript(javascriptCode) { (result, error) in
