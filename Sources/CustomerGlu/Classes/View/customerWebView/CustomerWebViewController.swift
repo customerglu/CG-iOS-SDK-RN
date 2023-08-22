@@ -316,8 +316,6 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         let jsonData = try! JSONSerialization.data(withJSONObject: eventData, options: [])
         let jsonString = String(data: jsonData, encoding: .utf8)!
         
-//        let javascriptCode = "\(functionName)(\"\("alpha")\", \(jsonString));"
-        
         let object = """
         {
             "eventName": "\(eventName)",

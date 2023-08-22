@@ -54,7 +54,7 @@ class CGProxyHelper {
         APIManager.getReward(queryParameters: request) { result in
             switch result {
             case .success(let response):
-                self.programsObject = response ?? ""
+                self.rewardsObject = response ?? ""
             case .failure(let failure):
                 print("Get reward failed with error : \(failure.localizedDescription)")
             }
