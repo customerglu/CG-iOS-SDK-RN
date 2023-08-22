@@ -301,7 +301,7 @@ class APIManager {
             case .success:
                 if let data {
                     if type == .getProgram {
-                        print("Data found is : \(data)")
+                        print("Data as a String = \(APIManager.dictionaryToString(data)))")
                     }
                     requestData.retryCount = requestData.retryCount - 1
                     if let error, error == .badURLRetry, requestData.retryCount >= 1 {
@@ -331,6 +331,18 @@ class APIManager {
         
         requestData.completionBlock = block
         blockOperationForService(withRequestData: requestData)
+    }
+    
+    static func dictionaryToString(_ dictionary: [String: Any]) -> String? {
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: dictionary, options: .prettyPrinted)
+            if let jsonString = String(data: jsonData, encoding: .utf8) {
+                return jsonString
+            }
+        } catch {
+            print("Error converting dictionary to string: \(error)")
+        }
+        return nil
     }
     
     static func userRegister(queryParameters: NSDictionary, completion: @escaping (Result<CGRegistrationModel, CGNetworkError>) -> Void) {
