@@ -271,8 +271,8 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 darkUrl = url + "&darkMode=" + (CustomerGlu.getInstance.checkIsDarkMode() ? "true" : "false")
             }
             
-            webView.load(URLRequest(url: URL(string: darkUrl)!))
-//            webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: darkUrl)!)))
+//            webView.load(URLRequest(url: URL(string: darkUrl)!))
+            webView.load(URLRequest(url: CustomerGlu.getInstance.validateURL(url: URL(string: darkUrl)!)))
             webView.isHidden = true
             
             coverview.frame = webView.frame
@@ -309,7 +309,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_WEBVIEW_START_PROVISIONAL, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta: [:])
     }
     
-    private func abc() {
+    private func getCallBack() {
         let functionName = "emitEventV2"
         let eventData = ["eventName": "ANOTHERCALLBACK", "goes": "here"]
         
@@ -425,7 +425,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             
             if bodyStruct?.eventName == "CALLBACK" {
                 print("Got the call back event with event naem \(bodyStruct?.eventName)")
-                abc()
+                getCallBack()
             }
             
             // Moved this piece of code out so it can be used for ClientTesting

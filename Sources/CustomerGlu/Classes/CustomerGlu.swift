@@ -82,7 +82,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     @objc public static var lightBackground = UIColor.white
     @objc public static var darkBackground = UIColor.black
     @objc public static var sdk_version = APIParameterKey.cgsdkversionvalue
-    
+    public static var allCampaignsIds: [String] = []
     internal var activescreenname = ""
     public static var bannersHeight: [String: Any]? = nil
     public static var embedsHeight: [String: Any]? = nil
@@ -964,6 +964,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                 CustomerGlu.embedsHeight = [String:Any]()
                                 completion(true)
                             }
+                            CGProxyHelper.shared.getProgram()
                         } else {
                             CustomerGlu.bannersHeight = [String:Any]()
                             CustomerGlu.embedsHeight = [String:Any]()

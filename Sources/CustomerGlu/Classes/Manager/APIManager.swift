@@ -80,6 +80,12 @@ internal class MethodandPath: Codable {
         case .onboardingSDKTestSteps:
             self.method = "POST"
             self.path = "integrations/v1/onboarding/sdk/test-steps"
+        case .getReward:
+            self.method = "POST"
+            self.path = "reward/v2/user/reward"
+        case .getProgram:
+            self.method = "POST"
+            self.path = "reward/v2/user/program"
         }
     }
 }
@@ -98,6 +104,8 @@ enum CGService {
     case cgNudgeIntegration
     case onboardingSDKNotificationConfig
     case onboardingSDKTestSteps
+    case getReward
+    case getProgram
 }
 
 // Parameter Key's for all API's
@@ -372,6 +380,14 @@ class APIManager {
     
     static func onboardingSDKTestSteps(queryParameters: NSDictionary, completion: @escaping (Result<CGSDKTestStepsResponseModel, CGNetworkError>) -> Void) {
         serviceCall(for: .onboardingSDKTestSteps, parametersDict: queryParameters, completion: completion)
+    }
+    
+    static func getReward(queryParameters: NSDictionary, completion: @escaping (Result<Data, CGNetworkError>) -> Void) {
+        serviceCall(for: .getReward, parametersDict: queryParameters, completion: completion)
+    }
+    
+    static func getProgram(queryParameters: NSDictionary, completion: @escaping (Result<Data, CGNetworkError>) -> Void) {
+        serviceCall(for: .getProgram, parametersDict: queryParameters, completion: completion)
     }
     
     // MARK: - Private Class Methods
