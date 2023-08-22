@@ -334,16 +334,15 @@ class APIManager {
     
     static func dictionaryToString(_ dictionary: [String: Any]) -> String? {
         do {
-            let jsonData = try JSONSerialization.data(withJSONObject: dictionary, options: .prettyPrinted)
-            print("JSON Data: \(jsonData)")
-            if let jsonDictionary = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any] {
-                print("sdf: \(jsonDictionary)")
+            var jsonData: Data?
+            if #available(iOS 13.0, *) {
+                jsonData = try JSONSerialization.data(withJSONObject: dictionary, options: .withoutEscapingSlashes)
+            } else {
+                jsonData = try JSONSerialization.data(withJSONObject: dictionary, options: .prettyPrinted)
             }
-            
-            return ""
-//            if let jsonString = String(data: jsonData, encoding: .utf8) {
-//                return jsonString
-//            }
+            if let jsonData = jsonData, let jsonString = String(data: jsonData, encoding: .utf8) {
+                return jsonString
+            }
         } catch {
             print("Error converting dictionary to string: \(error)")
         }
