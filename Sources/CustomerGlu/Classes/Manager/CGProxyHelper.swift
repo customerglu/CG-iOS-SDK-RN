@@ -29,8 +29,6 @@ class CGProxyHelper {
             switch result {
             case .success(let response):
                 print("Got success with response: \(response)")
-                
-//                var jsonObject = self.getJSON(from: response)
             case .failure(let failure):
                 print("Get program failed with error : \(failure.localizedDescription)")
             }
@@ -61,22 +59,4 @@ class CGProxyHelper {
             }
         }
     }
-    
-    func alpha(_ dict: [String : Any]) -> Void {
-        print("sdfsdf: \(CGProxyHelper.shared.abc(dictionary: dict))")
-    }
-    
-    func abc(dictionary: [String:Any]) -> String? {
-        do {
-            let jsonData = try JSONSerialization.data(withJSONObject: dictionary, options: .prettyPrinted)
-            if let jsonString = String(data: jsonData, encoding: .utf8) {
-                return jsonString
-            }
-        } catch {
-            print("Error: \(error.localizedDescription)")
-        }
-        
-        return nil
-    }
-
 }
