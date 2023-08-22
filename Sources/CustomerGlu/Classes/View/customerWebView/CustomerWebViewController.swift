@@ -35,7 +35,8 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     var campaign_id = ""
     private var dismissactionglobal = CGDismissAction.UI_BUTTON
     
-    let contentController = WKUserContentController()
+    
+    let contentController = WKUserContentController().addUserScript(WKUserScript(source: "console.log = function(message) { window.webkit.messageHandlers.consoleLogHandler.postMessage(message); };", injectionTime: .atDocumentStart, forMainFrameOnly: false))
     let config = WKWebViewConfiguration()
     
     var postdata = [String:Any]()
@@ -106,7 +107,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     public override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(rotated),
                                                name: UIDevice.orientationDidChangeNotification,
@@ -256,6 +257,9 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     }
     
     func loadwebView(url: String, x: CGFloat, y: CGFloat) {
+        
+        
+        
         webView.navigationDelegate = self
         if url != "" || !url.isEmpty {
             self.loadedurl = url
