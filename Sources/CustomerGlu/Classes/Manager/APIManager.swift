@@ -335,6 +335,7 @@ class APIManager {
     static func dictionaryToString(_ dictionary: [String: Any]) -> String? {
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: dictionary, options: .prettyPrinted)
+            print("JSON Data: \(jsonData)")
             if let jsonString = String(data: jsonData, encoding: .utf8) {
                 return jsonString
             }
