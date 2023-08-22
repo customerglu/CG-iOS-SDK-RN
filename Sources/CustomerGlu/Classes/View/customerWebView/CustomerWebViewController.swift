@@ -36,7 +36,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     private var dismissactionglobal = CGDismissAction.UI_BUTTON
     
     
-    let contentController = WKUserContentController().addUserScript(WKUserScript(source: "console.log = function(message) { window.webkit.messageHandlers.consoleLogHandler.postMessage(message); };", injectionTime: .atDocumentStart, forMainFrameOnly: false))
+    let contentController = WKUserContentController()
     let config = WKWebViewConfiguration()
     
     var postdata = [String:Any]()
@@ -331,10 +331,10 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }
         }
         """
+        let javascriptCode = "\(functionName)(\(object));"
+        print("Sending this call back: \(javascriptCode)")
         
-        print("Sending this call back: \(object)")
-        
-        webView.evaluateJavaScript(object) { (result, error) in
+        webView.evaluateJavaScript(javascriptCode) { (result, error) in
             if let error = error {
                 print("Error calling JavaScript function: \(error)")
             } else {
