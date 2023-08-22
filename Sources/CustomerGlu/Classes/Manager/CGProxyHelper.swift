@@ -29,6 +29,7 @@ class CGProxyHelper {
             switch result {
             case .success(let response):
                 print("Got success with response: \(response)")
+                print("sdf: \(CGProxyHelper.shared.convertToMultilineJSON(response ?? ""))")
 //                var jsonObject = self.getJSON(from: response)
             case .failure(let failure):
                 print("Get program failed with error : \(failure.localizedDescription)")
@@ -61,14 +62,23 @@ class CGProxyHelper {
         }
     }
     
-    private func getJSON(from data: Data) -> [String : Any]? {
+    func convertToMultilineJSON(_ jsonString: String) -> String? {
+        guard let jsonData = jsonString.data(using: .utf8) else {
+            return nil
+        }
+        
         do {
-            return try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+            let jsonObject = try JSONSerialization.jsonObject(with: jsonData, options: [])
+            let prettyJSONData = try JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted)
+            
+            if let prettyJSONString = String(data: prettyJSONData, encoding: .utf8) {
+                return prettyJSONString
+            } else {
+                return nil
+            }
         } catch {
-            print("Error parsing JSON: \(error.localizedDescription)")
+            print("Error parsing JSON: \(error)")
             return nil
         }
     }
-    
-    
 }
