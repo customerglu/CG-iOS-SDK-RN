@@ -386,7 +386,7 @@ class APIManager {
         serviceCall(for: .getReward, parametersDict: queryParameters, completion: completion)
     }
     
-    static func getProgram(queryParameters: NSDictionary, completion: @escaping (Result<Data, CGNetworkError>) -> Void) {
+    static func getProgram(queryParameters: NSDictionary, completion: @escaping (Result<String, CGNetworkError>) -> Void) {
         serviceCall(for: .getProgram, parametersDict: queryParameters, completion: completion)
     }
     

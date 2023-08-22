@@ -29,7 +29,7 @@ class CGProxyHelper {
             switch result {
             case .success(let response):
                 print("Got success with response: \(response)")
-                var jsonObject = self.getJSON(from: response)
+//                var jsonObject = self.getJSON(from: response)
             case .failure(let failure):
                 print("Get program failed with error : \(failure.localizedDescription)")
             }
