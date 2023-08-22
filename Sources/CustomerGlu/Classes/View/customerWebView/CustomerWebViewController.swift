@@ -270,7 +270,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Notification.Name("CG_INVALID_CAMPAIGN_ID").rawValue), object: nil, userInfo: eventInfo)
             }
             webView.backgroundColor = CustomerGlu.getInstance.checkIsDarkMode() ? CustomerGlu.darkBackground: CustomerGlu.lightBackground
-            var darkUrl = url.replacingOccurrences(of: "dev-constellation.customerglu.com", with: "ef68-2406-7400-56-e4a0-e087-e514-5b9-12d4.ngrok-free.app")
+            var darkUrl = url.replacingOccurrences(of: "dev-constellation.customerglu.com", with: "8755-2406-7400-56-e4a0-e087-e514-5b9-12d4.ngrok-free.app")
             if let nudgeConfiguration = nudgeConfiguration, !nudgeConfiguration.isHyperLink {
                 darkUrl = url + "&darkMode=" + (CustomerGlu.getInstance.checkIsDarkMode() ? "true" : "false")
             }
