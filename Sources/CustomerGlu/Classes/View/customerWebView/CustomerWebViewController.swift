@@ -329,6 +329,8 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         }
         """
         
+        print("Sending this call back: \(object)")
+        
         webView.evaluateJavaScript(object) { (result, error) in
             if let error = error {
                 print("Error calling JavaScript function: \(error)")
