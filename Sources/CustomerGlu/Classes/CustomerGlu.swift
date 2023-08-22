@@ -965,6 +965,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                 completion(true)
                             }
                             CGProxyHelper.shared.getProgram()
+                            CGProxyHelper.shared.getReward()
                         } else {
                             CustomerGlu.bannersHeight = [String:Any]()
                             CustomerGlu.embedsHeight = [String:Any]()
