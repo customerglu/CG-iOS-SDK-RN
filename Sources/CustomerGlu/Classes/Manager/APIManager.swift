@@ -334,9 +334,9 @@ class APIManager {
     
     static func dictionaryToString(_ dictionary: [String: Any]) -> String? {
         do {
-            let jsonData = try JSONSerialization.data(withJSONObject: dictionary, options: .prettyPrinted)
-            if let jsonString = String(data: jsonData, encoding: .utf8) {
-                return APIManager.unescapeJSONString(jsonString)
+            let jsonData = try JSONSerialization.data(withJSONObject: dictionary, options: [.prettyPrinted])
+            if let jsonString = String(data: jsonData, encoding: .ascii) {
+                return jsonString
             }
         } catch {
             print("Error converting dictionary to string: \(error)")
