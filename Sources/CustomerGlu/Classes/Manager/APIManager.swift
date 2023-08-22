@@ -291,7 +291,7 @@ class APIManager {
         })
     }
     
-    private static func serviceCall<T: Decodable>(for type: CGService, parametersDict: NSDictionary, dispatchGroup: DispatchGroup = DispatchGroup(), completion: @escaping (Result<T, CGNetworkError>) -> Void, isStringDecoding: Bool = false) {
+    private static func serviceCall<T: Decodable>(for type: CGService, parametersDict: NSDictionary, dispatchGroup: DispatchGroup = DispatchGroup(), completion: @escaping (Result<T, CGNetworkError>) -> Void) {
         let methodandpath = MethodandPath(serviceType: type)
         var requestData = CGRequestData(baseurl: methodandpath.baseurl, methodandpath: methodandpath, parametersDict: parametersDict, dispatchGroup: dispatchGroup, retryCount: CustomerGlu.getInstance.appconfigdata?.allowedRetryCount ?? 1)
         
@@ -306,6 +306,8 @@ class APIManager {
                     } else {
                         if let error, error == .badURLRetry {
                             completion(.failure(CGNetworkError.badURLRetry))
+                        } else if type == .getReward || type == .getProgram {
+                            completion(.success(APIManager.dictionaryToString(data) as! T))
                         } else if let object = dictToObject(dict: data, type: T.self) {
                             completion(.success(object))
                         } else {
@@ -394,11 +396,11 @@ class APIManager {
         serviceCall(for: .onboardingSDKTestSteps, parametersDict: queryParameters, completion: completion)
     }
     
-    static func getReward(queryParameters: NSDictionary, completion: @escaping (Result<Data, CGNetworkError>) -> Void) {
+    static func getReward(queryParameters: NSDictionary, completion: @escaping (Result<String?, CGNetworkError>) -> Void) {
         serviceCall(for: .getReward, parametersDict: queryParameters, completion: completion)
     }
     
-    static func getProgram(queryParameters: NSDictionary, completion: @escaping (Result<Data, CGNetworkError>) -> Void) {
+    static func getProgram(queryParameters: NSDictionary, completion: @escaping (Result<String?, CGNetworkError>) -> Void) {
         serviceCall(for: .getProgram, parametersDict: queryParameters, completion: completion)
     }
     
