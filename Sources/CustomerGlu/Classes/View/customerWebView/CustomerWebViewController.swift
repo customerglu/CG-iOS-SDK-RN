@@ -319,9 +319,9 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         
         let object = """
         {
-            "eventName": \(eventName),
+            "eventName": "\(eventName)",
           "data": {
-                "requestId": \(requestId),
+                "requestId": "\(requestId)",
                 "rewardsResponse": \(CGProxyHelper.shared.rewardsObject),
                 "programsResponse": \(CGProxyHelper.shared.programsObject)
             }
