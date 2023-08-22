@@ -29,7 +29,7 @@ class CGProxyHelper {
             switch result {
             case .success(let response):
                 print("Got success with response: \(response)")
-                print("sdf: \(CGProxyHelper.shared.convertToMultilineJSON(response ?? ""))")
+                print("sdf: \(CGProxyHelper.shared.convertJSONStringToDictionary(jsonString: response ?? ""))")
 //                var jsonObject = self.getJSON(from: response)
             case .failure(let failure):
                 print("Get program failed with error : \(failure.localizedDescription)")
@@ -61,33 +61,22 @@ class CGProxyHelper {
             }
         }
     }
-    
-    func unescape(_ jsonString: String) -> String {
-        var unescapedString = jsonString
-        unescapedString = unescapedString.replacingOccurrences(of: "\\\"", with: "\"")
-        unescapedString = unescapedString.replacingOccurrences(of: "\\\\n", with: "\n")
-        return unescapedString
+
+    func convertJSONStringToDictionary(jsonString: String) -> [String: Any]? {
+        if let jsonData = jsonString.data(using: .utf8) {
+            do {
+                if let jsonDictionary = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any] {
+                    return jsonDictionary
+                } else {
+                    print("Failed to convert JSON string to dictionary.")
+                }
+            } catch {
+                print("Error: \(error.localizedDescription)")
+            }
+        } else {
+            print("Invalid JSON string data.")
+        }
+        return nil
     }
 
-    func convertToMultilineJSON(_ jsonString: String) -> String? {
-        let unescapedJSONString = unescape(jsonString)
-        
-        guard let jsonData = unescapedJSONString.data(using: .utf8) else {
-            return nil
-        }
-        
-        do {
-            let jsonObject = try JSONSerialization.jsonObject(with: jsonData, options: [])
-            let prettyJSONData = try JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted)
-            
-            if let prettyJSONString = String(data: prettyJSONData, encoding: .utf8) {
-                return prettyJSONString
-            } else {
-                return nil
-            }
-        } catch {
-            print("Error parsing JSON: \(error)")
-            return nil
-        }
-    }
 }
