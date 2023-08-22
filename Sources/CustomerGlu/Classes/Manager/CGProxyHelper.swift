@@ -29,7 +29,7 @@ class CGProxyHelper {
             switch result {
             case .success(let response):
                 print("Got success with response: \(response)")
-                print("sdf: \(CGProxyHelper.shared.convertJSONStringToDictionary(jsonString: response ?? ""))")
+                print("sdf: \(CGProxyHelper.shared.convertDictionaryToJSON(CGProxyHelper.shared.convertJSONStringToDictionary(jsonString: response ?? "") ?? [:]))")
 //                var jsonObject = self.getJSON(from: response)
             case .failure(let failure):
                 print("Get program failed with error : \(failure.localizedDescription)")
@@ -77,6 +77,21 @@ class CGProxyHelper {
             print("Invalid JSON string data.")
         }
         return nil
+    }
+    
+    func convertDictionaryToJSON(_ dictionary: [String: Any]) -> String? {
+
+       guard let jsonData = try? JSONSerialization.data(withJSONObject: dictionary, options: .prettyPrinted) else {
+          print("Something is wrong while converting dictionary to JSON data.")
+          return nil
+       }
+
+       guard let jsonString = String(data: jsonData, encoding: .utf8) else {
+          print("Something is wrong while converting JSON data to JSON string.")
+          return nil
+       }
+
+       return jsonString
     }
 
 }
