@@ -336,9 +336,14 @@ class APIManager {
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: dictionary, options: .prettyPrinted)
             print("JSON Data: \(jsonData)")
-            if let jsonString = String(data: jsonData, encoding: .utf8) {
-                return jsonString
+            if let jsonDictionary = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any] {
+                print("sdf: \(jsonDictionary)")
             }
+            
+            return ""
+//            if let jsonString = String(data: jsonData, encoding: .utf8) {
+//                return jsonString
+//            }
         } catch {
             print("Error converting dictionary to string: \(error)")
         }
