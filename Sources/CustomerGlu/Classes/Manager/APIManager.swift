@@ -334,19 +334,32 @@ class APIManager {
     
     static func dictionaryToString(_ dictionary: [String: Any]) -> String? {
         do {
-            var jsonData: Data?
-            if #available(iOS 13.0, *) {
-                jsonData = try JSONSerialization.data(withJSONObject: dictionary, options: .withoutEscapingSlashes)
-            } else {
-                jsonData = try JSONSerialization.data(withJSONObject: dictionary, options: .prettyPrinted)
-            }
-            if let jsonData = jsonData, let jsonString = String(data: jsonData, encoding: .utf8) {
-                return jsonString
+            let jsonData = try JSONSerialization.data(withJSONObject: dictionary, options: .prettyPrinted)
+            if let jsonString = String(data: jsonData, encoding: .utf8) {
+                return APIManager.unescapeJSONString(jsonString)
             }
         } catch {
             print("Error converting dictionary to string: \(error)")
         }
         return nil
+    }
+    
+    
+    static func unescapeJSONString(_ jsonString: String) -> String {
+        guard let data = jsonString.data(using: .utf8) else {
+            return jsonString
+        }
+
+        do {
+            let options: JSONSerialization.ReadingOptions = .allowFragments
+            if let unescaped = try JSONSerialization.jsonObject(with: data, options: options) as? String {
+                return unescaped
+            } else {
+                return jsonString
+            }
+        } catch {
+            return jsonString
+        }
     }
     
     static func userRegister(queryParameters: NSDictionary, completion: @escaping (Result<CGRegistrationModel, CGNetworkError>) -> Void) {
