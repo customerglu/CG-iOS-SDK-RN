@@ -964,8 +964,10 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                 CustomerGlu.embedsHeight = [String:Any]()
                                 completion(true)
                             }
-                            CGProxyHelper.shared.getProgram()
-                            CGProxyHelper.shared.getReward()
+                            if let isEUIProxyEnabled = self.appconfigdata?.isEUIProxyEnabled, isEUIProxyEnabled {
+                                CGProxyHelper.shared.getProgram()
+                                CGProxyHelper.shared.getReward()
+                            }
                         } else {
                             CustomerGlu.bannersHeight = [String:Any]()
                             CustomerGlu.embedsHeight = [String:Any]()

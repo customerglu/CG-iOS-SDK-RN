@@ -71,6 +71,7 @@ public class CGMobileData: Codable {
     public var mqttEnabledComponents: [String]?
     public var allowedRetryCount: Int = 1
     public var allowAnonymousRegistration: Bool?
+    public var isEUIProxyEnabled: Bool?
     
     required public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -121,6 +122,7 @@ public class CGMobileData: Codable {
         }
         self.allowedRetryCount = try container.decodeIfPresent(Int.self, forKey: .allowedRetryCount) ?? 1
         self.allowAnonymousRegistration = try container.decodeIfPresent(Bool.self, forKey: .allowAnonymousRegistration) ?? false
+        self.isEUIProxyEnabled = try container.decodeIfPresent(Bool.self, forKey: .allowAnonymousRegistration) ?? true
     }
     
     required public init() {
