@@ -307,7 +307,8 @@ class APIManager {
                         if let error, error == .badURLRetry {
                             completion(.failure(CGNetworkError.badURLRetry))
                         } else if type == .getReward || type == .getProgram {
-                            completion(.success(APIManager.dictionaryToString(data) as! T))
+                            CGProxyHelper.shared.alpha(data)
+                            completion(.success("" as! T))
                         } else if let object = dictToObject(dict: data, type: T.self) {
                             completion(.success(object))
                         } else {
