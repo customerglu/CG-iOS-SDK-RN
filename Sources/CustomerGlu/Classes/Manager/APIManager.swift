@@ -300,9 +300,6 @@ class APIManager {
             switch status {
             case .success:
                 if let data {
-                    if type == .getProgram {
-                        print("Data as a String = \(APIManager.dictionaryToString(data)))")
-                    }
                     requestData.retryCount = requestData.retryCount - 1
                     if let error, error == .badURLRetry, requestData.retryCount >= 1 {
                         blockOperationForServiceWithDelay(andRequestData: requestData)
@@ -397,11 +394,11 @@ class APIManager {
         serviceCall(for: .onboardingSDKTestSteps, parametersDict: queryParameters, completion: completion)
     }
     
-    static func getReward(queryParameters: NSDictionary, completion: @escaping (Result<String, CGNetworkError>) -> Void) {
+    static func getReward(queryParameters: NSDictionary, completion: @escaping (Result<Data, CGNetworkError>) -> Void) {
         serviceCall(for: .getReward, parametersDict: queryParameters, completion: completion)
     }
     
-    static func getProgram(queryParameters: NSDictionary, completion: @escaping (Result<String, CGNetworkError>) -> Void) {
+    static func getProgram(queryParameters: NSDictionary, completion: @escaping (Result<Data, CGNetworkError>) -> Void) {
         serviceCall(for: .getProgram, parametersDict: queryParameters, completion: completion)
     }
     
