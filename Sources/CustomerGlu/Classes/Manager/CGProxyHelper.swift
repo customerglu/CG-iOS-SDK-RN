@@ -31,7 +31,7 @@ class CGProxyHelper {
                 print("Got success with response: \(response)")
                 var jsonObject = self.getJSON(from: response)
             case .failure(let failure):
-                print("")
+                print("Get program failed with error : \(failure.localizedDescription)")
             }
         }
     }
