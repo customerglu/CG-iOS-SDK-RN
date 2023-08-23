@@ -294,7 +294,7 @@ class APIManager {
     private static func serviceCall<T: Decodable>(for type: CGService, parametersDict: NSDictionary, dispatchGroup: DispatchGroup = DispatchGroup(), completion: @escaping (Result<T, CGNetworkError>) -> Void) {
         let methodandpath = MethodandPath(serviceType: type)
         var requestData = CGRequestData(baseurl: methodandpath.baseurl, methodandpath: methodandpath, parametersDict: parametersDict, dispatchGroup: dispatchGroup, retryCount: CustomerGlu.getInstance.appconfigdata?.allowedRetryCount ?? 1)
-        
+        print("Request: \(requestData)")
         // Call Login API with API Router
         let block: (_ status: CGAPIStatus, _ data: [String: Any]?, _ error: CGNetworkError?) -> Void = { (status, data, error) in
             switch status {
