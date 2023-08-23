@@ -30,6 +30,7 @@ class CGProxyHelper {
             "page" : 1
         ]
         
+        print("Program Request Body is: \(request)")
         
         APIManager.getProgram(queryParameters: request) { result in
             switch result {
@@ -60,6 +61,8 @@ class CGProxyHelper {
             "limit" : 10,
             "page" : 1
         ]
+        
+        print("Reward Request Body is: \(request)")
         
         APIManager.getReward(queryParameters: request) { result in
             switch result {
