@@ -9,23 +9,20 @@ import Foundation
 
 class CGProxyHelper {
     static let shared = CGProxyHelper()
-    var programsObject: String = ""
-    var rewardsObject: String = ""
+    private let userDefaults = UserDefaults.standard
     
     private init() { }
     
     func getProgram() -> Void {
-        let campaignIds: [String : Any] = [
-            "7218f57f-85da-4ab3-94d0-dd05034ad6fe" : true
-        ]
+        var campaignIds: [String : Any] = [:]
         
         let campaignId: [String : Any] = [
             "campaignId" : campaignIds
         ]
         
-//        for id in CustomerGlu.allCampaignsIds {
-//            campaignId[id] = true
-//        }
+        for id in CustomerGlu.allCampaignsIds {
+            campaignIds[id] = true
+        }
         
         let request: NSDictionary = [
             "filter" : campaignId,
@@ -37,8 +34,10 @@ class CGProxyHelper {
         APIManager.getProgram(queryParameters: request) { result in
             switch result {
             case .success(let response):
-                print("Got the response for program: \(response)")
-                self.programsObject = response ?? ""
+                print("Got the response for program: \(String(describing: response))")
+                if let response = response {
+                    self.encryptUserDefaultKey(str: response, userdefaultKey: CGConstants.CGGetProgramResponse)
+                }
             case .failure(let failure):
                 print("Get program failed with error : \(failure.localizedDescription)")
             }
@@ -46,17 +45,15 @@ class CGProxyHelper {
     }
     
     func getReward() -> Void {
-        let campaignIds: [String : Any] = [
-            "7218f57f-85da-4ab3-94d0-dd05034ad6fe" : true
-        ]
+        var campaignIds: [String : Any] = [:]
         
         let campaignId: [String : Any] = [
             "campaignId" : campaignIds
         ]
         
-//        for id in CustomerGlu.allCampaignsIds {
-//            campaignId[id] = true
-//        }
+        for id in CustomerGlu.allCampaignsIds {
+            campaignIds[id] = true
+        }
         
         let request: NSDictionary = [
             "filter" : campaignId,
@@ -67,11 +64,17 @@ class CGProxyHelper {
         APIManager.getReward(queryParameters: request) { result in
             switch result {
             case .success(let response):
-                self.rewardsObject = response ?? ""
-                print("Got the response for reward: \(response)")
+                if let response = response {
+                    self.encryptUserDefaultKey(str: response, userdefaultKey: CGConstants.CGGetRewardResponse)
+                }
+                print("Got the response for reward: \(String(describing: response))")
             case .failure(let failure):
                 print("Get reward failed with error : \(failure.localizedDescription)")
             }
         }
+    }
+    
+    private func encryptUserDefaultKey(str: String, userdefaultKey: String) {
+        self.userDefaults.set(EncryptDecrypt.shared.encryptText(str: str), forKey: userdefaultKey)
     }
 }
