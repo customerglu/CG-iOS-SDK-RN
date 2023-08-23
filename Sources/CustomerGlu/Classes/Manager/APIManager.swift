@@ -18,6 +18,7 @@ private enum HTTPHeaderField: String {
     case xgluauth = "X-GLU-AUTH"
     case cgsdkversionkey = "cg-sdk-version"
     case sandbox = "sandbox"
+    case contentLength = "Content-Length"
 }
 
 // HTTP Header Value's for API's
@@ -188,6 +189,15 @@ class APIManager {
         urlRequest.setValue("ios", forHTTPHeaderField: HTTPHeaderField.platform.rawValue)
         urlRequest.setValue(CustomerGlu.isDebugingEnabled.description, forHTTPHeaderField: HTTPHeaderField.sandbox.rawValue)
         urlRequest.setValue(APIParameterKey.cgsdkversionvalue, forHTTPHeaderField: HTTPHeaderField.cgsdkversionkey.rawValue)
+
+        if let jsonData = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CGGetRewardResponse).data(using: .utf8) {
+            if let jsonString = String(data: jsonData, encoding: .utf8) {
+                let byteLength = jsonString.utf8.count
+                urlRequest.setValue("\(byteLength)", forHTTPHeaderField: HTTPHeaderField.contentLength.rawValue)
+            }
+        } else {
+            print("Failed to convert JSON string to data.")
+        }
         
         if UserDefaults.standard.object(forKey: CGConstants.CUSTOMERGLU_TOKEN) != nil {
             urlRequest.setValue("\(APIParameterKey.bearer) " + CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN), forHTTPHeaderField: HTTPHeaderField.authorization.rawValue)
