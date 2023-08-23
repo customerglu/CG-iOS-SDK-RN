@@ -18,7 +18,6 @@ private enum HTTPHeaderField: String {
     case xgluauth = "X-GLU-AUTH"
     case cgsdkversionkey = "cg-sdk-version"
     case sandbox = "sandbox"
-    case contentLength = "Content-Length"
 }
 
 // HTTP Header Value's for API's
