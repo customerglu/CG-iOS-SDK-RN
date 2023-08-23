@@ -70,7 +70,9 @@ class CGProxyHelper {
                 if let response = response {
                     self.encryptUserDefaultKey(str: response, userdefaultKey: CGConstants.CGGetRewardResponse)
                 }
-                print("Got the response for reward: \(String(describing: response))")
+                print("Does Contain: \(response?.contains("7218f57f-85da-4ab3-94d0-dd05034ad6fe"))")
+//                print("Got the response for reward: \(String(describing: response))")
+
             case .failure(let failure):
                 print("Get reward failed with error : \(failure.localizedDescription)")
             }
