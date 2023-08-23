@@ -35,7 +35,7 @@ class CGProxyHelper {
         APIManager.getProgram(queryParameters: request) { result in
             switch result {
             case .success(let response):
-                print("Got the response for program: \(String(describing: response))")
+//                print("Got the response for program: \(String(describing: response))")
                 if let response = response {
                     self.encryptUserDefaultKey(str: response, userdefaultKey: CGConstants.CGGetProgramResponse)
                 }
