@@ -129,7 +129,13 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         }
         
         contentController.add(self, name: WebViewsKey.callback) //name is the key you want the app to listen to.\
-        contentController.add(self, name: "consoleLog")
+        
+        // For logging java script console
+        let source = "function captureLog(msg) { window.webkit.messageHandlers.logHandler.postMessage(msg); } window.console.log = captureLog;"
+        let script = WKUserScript(source: source, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
+        webView.configuration.userContentController.addUserScript(script)
+        webView.configuration.userContentController.add(self, name: "logHandler")
+        
         config.userContentController = contentController
         config.allowsInlineMediaPlayback = true
         
@@ -415,8 +421,8 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
     // receive message from wkwebview
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         
-        if message.name == "consoleLog", let logMessage = message.body as? String {
-            print("JavaScript Console Log: \(logMessage)")
+        if message.name == "logHandler" {
+            print("LOG: \(message.body)")
         }
         
         if message.name == WebViewsKey.callback {
