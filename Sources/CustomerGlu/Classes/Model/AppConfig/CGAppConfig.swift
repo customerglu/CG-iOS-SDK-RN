@@ -122,7 +122,7 @@ public class CGMobileData: Codable {
         }
         self.allowedRetryCount = try container.decodeIfPresent(Int.self, forKey: .allowedRetryCount) ?? 1
         self.allowAnonymousRegistration = try container.decodeIfPresent(Bool.self, forKey: .allowAnonymousRegistration) ?? false
-        self.isEUIProxyEnabled = try container.decodeIfPresent(Bool.self, forKey: .allowAnonymousRegistration) ?? true
+        self.isEUIProxyEnabled = try container.decodeIfPresent(Bool.self, forKey: .allowAnonymousRegistration) ?? false
     }
     
     required public init() {
