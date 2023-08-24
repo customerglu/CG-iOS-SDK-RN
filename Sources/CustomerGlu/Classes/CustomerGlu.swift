@@ -624,6 +624,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_DARK_LOTTIE_FILE_PATH)
         userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_LIGHT_EMBEDLOTTIE_FILE_PATH)
         userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_DARK_EMBEDLOTTIE_FILE_PATH)
+        userDefaults.removeObject(forKey: CGConstants.allCampaignsIdsAsString)
+        userDefaults.removeObject(forKey: CGConstants.CGGetRewardResponse)
+        userDefaults.removeObject(forKey: CGConstants.CGGetProgramResponse)
         CustomerGlu.getInstance.cgUserData = CGUser()
         ApplicationManager.appSessionId = UUID().uuidString
         CGSentryHelper.shared.logoutSentryUser()
