@@ -106,7 +106,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         }
     }
     public override func viewDidLoad() {
-        print("Web view has just initiliased \(Date())")
+        print("Web view has just initiliased \(Helper.shared.formatTimeWithMilliseconds())")
         super.viewDidLoad()
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(rotated),
@@ -339,7 +339,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
             }
         }
         
-        print("Call back has been done at: \(Date())")
+        print("Call back has been done at: \(Helper.shared.formatTimeWithMilliseconds())")
     }
     
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
@@ -819,4 +819,15 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         }
         
     }
+}
+
+class Helper {
+    static let shared = Helper()
+    
+    func formatTimeWithMilliseconds() -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "mm:ss.SSS"
+        return dateFormatter.string(from: Date())
+    }
+
 }
