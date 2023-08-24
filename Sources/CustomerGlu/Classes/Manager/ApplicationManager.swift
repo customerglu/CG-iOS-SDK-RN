@@ -38,6 +38,8 @@ class ApplicationManager {
                 // Save this - To open / not open wallet incase of failure / invalid campaignId in loadCampaignById
                 CustomerGlu.getInstance.setCampaignsModel(response)
                 CustomerGlu.allCampaignsIds = response.campaigns?.compactMap { $0.campaignId } ?? []
+                var allCampaignAsString = response.campaigns?.compactMap { $0.campaignId }.joined(separator: ", ")
+                print("Stored Campaigns are: \(allCampaignAsString)")
                 completion(true, response)
                 
             case .failure(let error):
