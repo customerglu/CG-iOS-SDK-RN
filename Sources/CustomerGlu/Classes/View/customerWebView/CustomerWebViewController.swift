@@ -132,7 +132,7 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         
         // For logging java script console
         let source = "function captureLog(msg) { window.webkit.messageHandlers.logHandler.postMessage(msg); } window.console.log = captureLog;"
-        let script = WKUserScript(source: source, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
+        let script = WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: false)
         webView.configuration.userContentController.addUserScript(script)
         webView.configuration.userContentController.add(self, name: "logHandler")
         
