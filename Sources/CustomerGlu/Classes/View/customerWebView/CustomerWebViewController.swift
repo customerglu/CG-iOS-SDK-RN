@@ -332,14 +332,13 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         print("Sending this call back: \(javascriptCode)")
         
         webView.evaluateJavaScript(javascriptCode) { (result, error) in
+            print("Call back has been done at: \(Helper.shared.formatTimeWithMilliseconds())")
             if let error = error {
                 print("Error calling JavaScript function: \(error)")
             } else {
                 print("Successfully sent the callback to EUI")
             }
         }
-        
-        print("Call back has been done at: \(Helper.shared.formatTimeWithMilliseconds())")
     }
     
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
