@@ -108,6 +108,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     @objc public var cgUserData = CGUser()
     private var sdkInitialized: Bool = false
     private static var isAnonymousFlowAllowed: Bool = false
+    public static var oldCampaignIds = ""
     
     private var allowOpenWallet: Bool = true
     private var loadCampaignResponse: CGCampaignsModel?
@@ -909,7 +910,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     self.encryptUserDefaultKey(str: response.data?.user?.userId ?? "", userdefaultKey: CGConstants.CUSTOMERGLU_USERID)
                     self.encryptUserDefaultKey(str: response.data?.user?.anonymousId ?? "", userdefaultKey: CGConstants.CUSTOMERGLU_ANONYMOUSID)
                     
-                    self.cgUserData = response.data?.user ?? CGUser()
+                    self.cgUserData = response.data?.user ??     CGUser()
                     var data: Data?
                     do {
                         data = try JSONEncoder().encode(self.cgUserData)
@@ -926,6 +927,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         }
                         self.initializeMqtt()
                     }
+                    CustomerGlu.oldCampaignIds = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.allCampaignsIdsAsString)
                     
                     ApplicationManager.openWalletApi { success, response in
                         if success {
@@ -964,7 +966,8 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                 CustomerGlu.embedsHeight = [String:Any]()
                                 completion(true)
                             }
-                            if let isEUIProxyEnabled = self.appconfigdata?.isEUIProxyEnabled, isEUIProxyEnabled {
+                            if let isEUIProxyEnabled = self.appconfigdata?.isEUIProxyEnabled, isEUIProxyEnabled, CustomerGlu.oldCampaignIds != CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.allCampaignsIdsAsString) {
+                                print("Get Program and Get Reward is getting called")
                                 CGProxyHelper.shared.getProgram()
                                 CGProxyHelper.shared.getReward()
                             }

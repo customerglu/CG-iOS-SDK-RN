@@ -52,6 +52,7 @@ struct CGConstants {
     
     static let CGGetProgramResponse = "CGGetProgramResponse"
     static let CGGetRewardResponse = "CGGetRewardResponse"
+    static let allCampaignsIdsAsString = "allCampaignsIdsAsString"
 }
 
 struct CGDiagnosticConstants{
