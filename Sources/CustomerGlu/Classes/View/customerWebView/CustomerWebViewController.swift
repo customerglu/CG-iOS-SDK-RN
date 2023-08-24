@@ -106,8 +106,8 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
         }
     }
     public override func viewDidLoad() {
+        print("Web view has just initiliased \(Date())")
         super.viewDidLoad()
-
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(rotated),
                                                name: UIDevice.orientationDidChangeNotification,
@@ -338,6 +338,8 @@ public class CustomerWebViewController: UIViewController, WKNavigationDelegate, 
                 print("Successfully sent the callback to EUI")
             }
         }
+        
+        print("Call back has been done at: \(Date())")
     }
     
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
