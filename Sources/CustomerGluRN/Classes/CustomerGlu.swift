@@ -82,7 +82,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     @objc public static var lightBackground = UIColor.white
     @objc public static var darkBackground = UIColor.black
     @objc public static var sdk_version = APIParameterKey.cgsdkversionvalue
-    
+    public static var allCampaignsIds: [String] = []
     internal var activescreenname = ""
     public static var bannersHeight: [String: Any]? = nil
     public static var embedsHeight: [String: Any]? = nil
@@ -108,6 +108,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     @objc public var cgUserData = CGUser()
     private var sdkInitialized: Bool = false
     private static var isAnonymousFlowAllowed: Bool = false
+    public static var oldCampaignIds = ""
     
     private var allowOpenWallet: Bool = true
     private var loadCampaignResponse: CGCampaignsModel?
@@ -623,6 +624,9 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
         userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_DARK_LOTTIE_FILE_PATH)
         userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_LIGHT_EMBEDLOTTIE_FILE_PATH)
         userDefaults.removeObject(forKey: CGConstants.CUSTOMERGLU_DARK_EMBEDLOTTIE_FILE_PATH)
+        userDefaults.removeObject(forKey: CGConstants.allCampaignsIdsAsString)
+        userDefaults.removeObject(forKey: CGConstants.CGGetRewardResponse)
+        userDefaults.removeObject(forKey: CGConstants.CGGetProgramResponse)
         CustomerGlu.getInstance.cgUserData = CGUser()
         ApplicationManager.appSessionId = UUID().uuidString
 //        CGExceptionHelper.shared.logoutSentryUser()
@@ -909,7 +913,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                     self.encryptUserDefaultKey(str: response.data?.user?.userId ?? "", userdefaultKey: CGConstants.CUSTOMERGLU_USERID)
                     self.encryptUserDefaultKey(str: response.data?.user?.anonymousId ?? "", userdefaultKey: CGConstants.CUSTOMERGLU_ANONYMOUSID)
                     
-                    self.cgUserData = response.data?.user ?? CGUser()
+                    self.cgUserData = response.data?.user ??     CGUser()
                     var data: Data?
                     do {
                         data = try JSONEncoder().encode(self.cgUserData)
@@ -926,6 +930,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                         }
                         self.initializeMqtt()
                     }
+                    CustomerGlu.oldCampaignIds = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.allCampaignsIdsAsString)
                     
                     ApplicationManager.openWalletApi { success, response in
                         if success {
@@ -963,6 +968,11 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                                 CustomerGlu.bannersHeight = [String:Any]()
                                 CustomerGlu.embedsHeight = [String:Any]()
                                 completion(true)
+                            }
+                            if let isEUIProxyEnabled = self.appconfigdata?.isEUIProxyEnabled, isEUIProxyEnabled, CustomerGlu.oldCampaignIds != CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.allCampaignsIdsAsString) {
+                                print("Get Program and Get Reward is getting called")
+                                CGProxyHelper.shared.getProgram()
+                                CGProxyHelper.shared.getReward()
                             }
                         } else {
                             CustomerGlu.bannersHeight = [String:Any]()
@@ -2383,7 +2393,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
              */
             let userTopic = "nudges/" + (clientID) + "/" + (userID.sha256())
             let clientTopic = "/state/global/" + (clientID)
-            let host = "hermes.customerglu.com"
+            let host = "dev-hermes.customerglu.com"
             let username = userID
             let password = CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: CGConstants.CUSTOMERGLU_TOKEN)
             let mqttIdentifier = decryptUserDefaultKey(userdefaultKey: CGConstants.MQTT_Identifier)

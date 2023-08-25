@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Himanshu Trehan on 25/10/21.
 //
@@ -29,13 +29,13 @@ struct CGConstants {
     static let CustomerGluPopupDict = "CustomerGluPopupDict_Encrypt"
     static let CUSTOMERGLU_ANONYMOUSID = "CustomerGluAnonymousId_Encrypt"
     static let CUSTOMERGLU_USERDATA = "CustomerGluUserData_Encrypt"
-    
-    
+
+
     static let CUSTOMERGLU_TOKEN_OLD = "CustomerGlu_Token"
     static let CUSTOMERGLU_USERID_OLD = "CustomerGlu_user_id"
     static let CustomerGluCrash_OLD = "CustomerGluCrash"
     static let CustomerGluPopupDict_OLD = "CustomerGluPopupDict"
-    
+
     static let default_whitelist_doamin = "customerglu.com"
     static var default_redirect_url = "https://constellation.customerglu.com/error.html"
     static let customerglu_encryptedKey = "customerglu_encryptedKey"
@@ -45,10 +45,14 @@ struct CGConstants {
     static let MQTT_ENTRYPOINTS = "ENTRYPOINT"
     static let MQTT_CLIENT_TESTING = "OPEN_CLIENT_TESTING_PAGE"
     static let CG_SAFE_AREA_DEFAULT = -1
-    
+
     static let MQTT_Enabled_Components_State_Sync = "STATE_SYNC"
     static let MQTT_Enabled_Components_Nudges = "NUDGES"
     static let MQTT_Enabled_Components_EntryPoints = "ENTRYPOINTS"
+
+    static let CGGetProgramResponse = "CGGetProgramResponse"
+    static let CGGetRewardResponse = "CGGetRewardResponse"
+    static let allCampaignsIdsAsString = "allCampaignsIdsAsString"
 }
 
 struct CGDiagnosticConstants{
@@ -76,7 +80,7 @@ struct CGDiagnosticConstants{
     static let CG_DIAGNOSTICS_DISABLE_SDK_CALLED = "CGDiagnostics - SDK disableGluSdk Called"
     static let CG_DIAGNOSTICS_NOTIFICATION_CALLED = "CGDiagnostics - SDK Push notification Received "
     static let CG_DIAGNOSTICS_BACKGROUND_NOTIFICATION_CALLED = "CGDiagnostics - SDK background notification Received"
-    
+
     static let CG_DIAGNOSTICS_MQTT_ENABLED = "CGDiagnostics - MQTT Enabled"
     static let CG_DIAGNOSTICS_MQTT_DISABLED = "CGDiagnostics - MQTT Disabled"
     static let CG_DIAGNOSTICS_MQTT_INITIALIZE = "CGDiagnostics - MQTT Initialize"
@@ -85,13 +89,13 @@ struct CGDiagnosticConstants{
     static let CG_DIAGNOSTICS_MQTT_SUBSCRIBE = "CGDiagnostics - MQTT Subscribe"
     static let CG_DIAGNOSTICS_MQTT_RECEIVING_MESSAGE = "CGDiagnostics - MQTT Receiving Message"
     static let CG_DIAGNOSTICS_MQTT_DISCONNECT = "CGDiagnostics - MQTT Disconnect"
-    
+
     static let CG_DIAGNOSTICS_WEBVIEW_DIDFINISH = "CGDiagnostics - WebView Did Finish"
     static let CG_DIAGNOSTICS_WEBVIEW_START_PROVISIONAL = "CGDiagnostics - WebView Start Provisional"
     static let CG_DIAGNOSTICS_WEBVIEW_FAILED_PROVISIONAL = "CGDiagnostics - WebView Failed Provisional"
     static let CG_DIAGNOSTICS_WEBVIEW_RECEIVE_MESSAGE_FROM_WEBVIEW = "CGDiagnostics - WebView Receive Message from Webview"
     static let CG_DIAGNOSTICS_WEBVIEW_HANDLE_DEEPLINK = "CGDiagnostics - WebView Handle Deeplink"
-    
+
     // Metrics Event
     static let CG_METRICS_SDK_READY = "CGMetrics - SDK Ready "
     static let CG_METRICS_SDK_CONFIG_CALLED = "CGMetrics - SDK Config Called"
@@ -118,8 +122,8 @@ struct CGDiagnosticConstants{
     static let CG_METRICS_SDK_WORMHOLE_RESPONSE = "CGMetrics - SDK Wormhole Response "
     static let CG_METRICS_SDK_WORMHOLE_SUCCESS = "CGMetrics - SDK Wormhole Success"
     static let CG_METRICS_SDK_WORMHOLE_FAILURE = "CGMetrics - SDK Wormhole Failure"
-    
-    
+
+
     static let CG_TYPE_DIAGNOSTICS = "DIAGNOSTICS"
     static let CG_TYPE_METRICS = "METRICS"
     static let CG_TYPE_CRASH = "CRASH"
@@ -179,7 +183,7 @@ struct APIParameterKey {
     static let appSessionId = "appSessionId"
     static let userAgent = "userAgent"
     static let eventName = "eventName"
-    static let cgsdkversionvalue = "1.2.9"
+    static let cgsdkversionvalue = "1.2.10"
     static let analytics_version_value = "4.0.0"
     static let analytics_version = "analytics_version"
     static let dismiss_trigger = "dismiss_trigger"
@@ -194,7 +198,7 @@ struct APIParameterKey {
     static let app_platform = "app_platform"
     static let sdk_version = "sdk_version"
     static let messagekey = "message"
-    
+
     static let entry_point_data = "entry_point_data"
     static let entry_point_id = "entry_point_id"
     static let entry_point_name = "entry_point_name"

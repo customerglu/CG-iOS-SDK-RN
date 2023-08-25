@@ -9,7 +9,7 @@ import Foundation
 import UIKit
 
 class ApplicationManager {
-    public static var baseUrl = "api.customerglu.com/"
+    public static var baseUrl = "dev-api.customerglu.com/"
     public static var devbaseUrl = "dev-api.customerglu.com/"
     public static var streamUrl = "stream.customerglu.com/"
     public static var eventUrl = "events.customerglu.com/"
@@ -37,6 +37,12 @@ class ApplicationManager {
             case .success(let response):
                 // Save this - To open / not open wallet incase of failure / invalid campaignId in loadCampaignById
                 CustomerGlu.getInstance.setCampaignsModel(response)
+                CustomerGlu.allCampaignsIds = response.campaigns?.compactMap { $0.campaignId } ?? []
+                let responseCampaignIds = response.campaigns?.compactMap { $0.campaignId }.joined(separator: ", ")
+                if let allCampaignAsString = responseCampaignIds {
+                    ApplicationManager.encryptUserDefaultKey(str: allCampaignAsString, userdefaultKey: CGConstants.allCampaignsIdsAsString)
+                }
+                
                 completion(true, response)
                 
             case .failure(let error):
@@ -45,6 +51,10 @@ class ApplicationManager {
             }
         }
         CGEventsDiagnosticsHelper.shared.sendDiagnosticsReport(eventName: CGDiagnosticConstants.CG_DIAGNOSTICS_LOAD_CAMPAIGN_END, eventType:CGDiagnosticConstants.CG_TYPE_DIAGNOSTICS, eventMeta:eventData)
+    }
+    
+    static func encryptUserDefaultKey(str: String, userdefaultKey: String) {
+        UserDefaults.standard.set(EncryptDecrypt.shared.encryptText(str: str), forKey: userdefaultKey)
     }
     
     public static func loadAllCampaignsApi(type: String, value: String, loadByparams: NSDictionary, completion: @escaping (Bool, CGCampaignsModel?) -> Void) {
