@@ -119,7 +119,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
     public var closeOnDeepLink = CustomerGlu.auto_close_webview!
     private var defaulttimer : Timer?
     var spinner = SpinnerView()
-    var progressView = AnimationView()
+    var progressView = LottieAnimationView()
     
     @IBInspectable var embedId: String? {
         didSet {
@@ -467,7 +467,7 @@ public class CGEmbedView: UIView, WKNavigationDelegate, WKScriptMessageHandler {
             
 
             if path.count > 0 && URL(string: path) != nil && path.hasSuffix(".json") {
-                progressView = AnimationView(filePath: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key))
+                progressView = LottieAnimationView(filePath: CustomerGlu.getInstance.decryptUserDefaultKey(userdefaultKey: path_key))
                 
                 let size = (self.view.bounds.width <= self.view.bounds.height) ? self.view.bounds.width : self.view.bounds.height
                 

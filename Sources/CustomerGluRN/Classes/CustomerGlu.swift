@@ -45,7 +45,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
     // MARK: - Global Variable
     var spinner = SpinnerView()
     var arrFloatingButton = [FloatingButtonController]()
-    var progressView = AnimationView()
+    var progressView = LottieAnimationView()
     
     // Singleton Instance
     @objc public static var getInstance = CustomerGlu()
@@ -287,7 +287,7 @@ public class CustomerGlu: NSObject, CustomerGluCrashDelegate {
                 spinner.removeFromSuperview()
                 
                 if path.count > 0 && URL(string: path) != nil && path.hasSuffix(".json") {
-                    progressView = AnimationView(filePath: decryptUserDefaultKey(userdefaultKey: path_key))
+                    progressView = LottieAnimationView(filePath: decryptUserDefaultKey(userdefaultKey: path_key))
                     
                     let size = (UIScreen.main.bounds.width <= UIScreen.main.bounds.height) ? UIScreen.main.bounds.width : UIScreen.main.bounds.height
                     
